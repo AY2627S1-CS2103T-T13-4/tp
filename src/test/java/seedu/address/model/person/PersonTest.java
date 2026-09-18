@@ -93,7 +93,16 @@ public class PersonTest {
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", remark=" + ALICE.getRemark()
+                + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    @Test
+    public void remark_affectsEqualityButNotIdentity() {
+        Person remarked = new PersonBuilder(ALICE).withRemark("note").build();
+        assertFalse(ALICE.equals(remarked));
+        assertTrue(ALICE.isSamePerson(remarked));
+        assertEquals(remarked.hashCode(), new PersonBuilder(remarked).build().hashCode());
     }
 }
