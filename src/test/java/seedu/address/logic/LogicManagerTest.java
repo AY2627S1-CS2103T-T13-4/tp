@@ -21,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.RemarkCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
@@ -68,6 +69,22 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_remark_updatesPersonAndSavesIt() throws Exception {
+        Person originalPerson = new PersonBuilder().build();
+        model.addPerson(originalPerson);
+        Person editedPerson = new PersonBuilder(originalPerson).withRemark("Likes baseball").build();
+
+        CommandResult result = logic.execute("remark 1 r/Likes baseball");
+
+        String expectedMessage = String.format(RemarkCommand.MESSAGE_ADD_REMARK_SUCCESS, Messages.format(editedPerson));
+        assertEquals(expectedMessage, result.getFeedbackToUser());
+        assertEquals(editedPerson, model.getFilteredPersonList().get(0));
+
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(editedPerson, storage.readAddressBook().get().getPersonList().get(0));
     }
 
     @Test
