@@ -17,8 +17,17 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/zzzhiyuan-77)]
 
+* Role: Developer
+* Responsibilities: Developer
 
-* Role: Project Advisor
+### Hu Xiuyuan
+
+<img src="images/hxy070103.png" width="200px">
+
+[[github](https://github.com/HXY070103)]
+
+* Role: Developer
+* Responsibilities: Developer
 
 ### Xu Zhenyao
 
