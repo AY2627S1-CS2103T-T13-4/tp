@@ -11,6 +11,15 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 ## Project team
 
+### Ni Zhiyuan
+
+<img src="images/zzzhiyuan-77.png" width="200px">
+
+[[github](https://github.com/zzzhiyuan-77)]
+
+* Role: Developer
+* Responsibilities: Developer
+
 ### Hu Xiuyuan
 
 <img src="images/hxy070103.png" width="200px">
@@ -39,22 +48,20 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Data
 
-### Jean Doe
+### Fang Pin Xin
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/pinxinfang.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](https://github.com/pinxinfang)]
 
 * Role: Developer
-* Responsibilities: Dev Ops + Threading
+* Responsibilities: Development, testing, and documentation
 
-### James Doe
+### Deron Chan
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/dafadlaw.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/dafadlaw)]
 
 * Role: Developer
 * Responsibilities: UI
