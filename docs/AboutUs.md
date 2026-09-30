@@ -17,27 +17,26 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](https://github.com/zzzhiyuan-77)]
 
+* Role: Developer
+* Responsibilities: Developer
 
-* Role: Project Advisor
+### Hu Xiuyuan
 
-### Jane Doe
+<img src="images/hxy070103.png" width="200px">
 
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
-
-* Role: Team Lead
-* Responsibilities: UI
-
-### Johnny Doe
-
-<img src="images/johndoe.png" width="200px">
-
-[[github](http://github.com/johndoe)] [[portfolio](team/johndoe.md)]
+[[github](https://github.com/HXY070103)]
 
 * Role: Developer
-* Responsibilities: Data
+* Responsibilities: Developer
+
+### Xu Zhenyao
+
+<img src="images/little-zhenyao.png" width="200px">
+
+[[github](http://github.com/little-zhenyao)]
+
+* Role: Developer
+* Responsibilities: UI
 
 ### Fang Pin Xin
 
