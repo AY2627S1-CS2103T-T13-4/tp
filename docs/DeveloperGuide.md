@@ -270,13 +270,14 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* is an undergraduate or graduate teaching assistant (tutor) managing one or more university tutorial groups
+* needs to maintain student rosters that may change throughout the semester
+* regularly needs to find, inspect, add, edit, or remove student records while preparing for or conducting tutorials
+* needs reliable student details such as names, matriculation numbers, tutorial groups, and optional email addresses
+* is reasonably comfortable using a desktop application and concise CLI commands for repetitive tasks
+* values fast, keyboard-driven workflows, clear validation, and protection against duplicate student records
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: TutorLink helps university tutors manage student rosters quickly and accurately from a desktop application. Concise commands make it easy to add, view, filter, edit, delete, and list students, while input validation and duplicate matriculation checks reduce roster errors.
 
 
 ### User stories
@@ -285,14 +286,21 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 | Priority | As a …                                    | I want to …                 | So that I can…                                                        |
 |----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
+| `* * *`  | new tutor                                  | see usage instructions           | learn how to use TutorLink effectively                                |
+| `* * *`  | tutor                                      | add a student's details          | create a roster record for a newly assigned student                    |
+| `* * *`  | tutor                                      | list all students                | inspect the complete roster and reset an active group filter           |
+| `* * *`  | tutor                                      | view a student's full details    | inspect a student's academic and contact information                   |
+| `* * *`  | tutor                                      | filter students by tutorial group | focus on students attending a particular tutorial session            |
+| `* * *`  | tutor                                      | edit a student's details         | correct errors or update a student's matriculation number or group     |
+| `* * *`  | tutor                                      | delete a student's record        | remove students who drop the course or change tutorials                |
+| `* * *`  | tutor                                      | receive clear validation feedback | correct invalid input without risking inaccurate roster data         |
+| `* * *`  | tutor                                      | prevent duplicate matriculation numbers | keep each student represented by one accurate roster record      |
+| `* *`    | tutor                                      | store a student's email address  | contact the student when an email address is available                 |
+| `* *`    | tutor                                      | add free-text remarks to a student record | keep useful context about a student for future reference       |
+| `* *`    | tutor                                      | import or export roster data as CSV | reuse roster data and share it with other tools                       |
+| `* *`    | tutor                                      | record student attendance        | track participation across tutorial sessions                           |
+| `*`      | tutor                                      | seed the application with sample data | explore the application before entering a real roster             |
 
-*{More to be added}*
 
 ### Use cases
 
