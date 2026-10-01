@@ -270,13 +270,14 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
-* prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
+* is an undergraduate or graduate teaching assistant (tutor) managing one or more university tutorial groups
+* needs to maintain student rosters that may change throughout the semester
+* regularly needs to find, inspect, add, edit, or remove student records while preparing for or conducting tutorials
+* needs reliable student details such as names, matriculation numbers, tutorial groups, and optional email addresses
+* is reasonably comfortable using a desktop application and concise CLI commands for repetitive tasks
+* values fast, keyboard-driven workflows, clear validation, and protection against duplicate student records
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: TutorLink helps university tutors manage student rosters quickly and accurately from a desktop application. Concise commands make it easy to add, view, filter, edit, delete, and list students, while input validation and duplicate matriculation checks reduce roster errors.
 
 
 ### User stories
@@ -285,43 +286,161 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 | Priority | As a …                                    | I want to …                 | So that I can…                                                        |
 |----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
+| `* * *`  | new tutor                                  | see usage instructions           | learn how to use TutorLink effectively                                |
+| `* * *`  | tutor                                      | add a student's details          | create a roster record for a newly assigned student                    |
+| `* * *`  | tutor                                      | list all students                | inspect the complete roster and reset an active group filter           |
+| `* * *`  | tutor                                      | view a student's full details    | inspect a student's academic and contact information                   |
+| `* * *`  | tutor                                      | filter students by tutorial group | focus on students attending a particular tutorial session            |
+| `* * *`  | tutor                                      | edit a student's details         | correct errors or update a student's matriculation number or group     |
+| `* * *`  | tutor                                      | delete a student's record        | remove students who drop the course or change tutorials                |
+| `* * *`  | tutor                                      | receive clear validation feedback | correct invalid input without risking inaccurate roster data         |
+| `* * *`  | tutor                                      | prevent duplicate matriculation numbers | keep each student represented by one accurate roster record      |
+| `* *`    | tutor                                      | store a student's email address  | contact the student when an email address is available                 |
+| `* *`    | tutor                                      | add free-text remarks to a student record | keep useful context about a student for future reference       |
+| `* *`    | tutor                                      | import or export roster data as CSV | reuse roster data and share it with other tools                       |
+| `* *`    | tutor                                      | record student attendance        | track participation across tutorial sessions                           |
+| `*`      | tutor                                      | seed the application with sample data | explore the application before entering a real roster             |
 
-*{More to be added}*
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+For all use cases below, the **System** is `TutorLink` and the **Actor** is a `university tutor`. These use cases describe the planned MVP behaviour.
 
-**Use case: Delete a person**
+**Common precondition**: TutorLink is running.
 
-**MSS**
+An index refers to the student's one-based position in the current list, including a list filtered by tutorial group. It is not a permanent student identifier. A rejected request leaves the student records and current list unchanged.
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+#### UC01: Add a student
 
-    Use case ends.
+**Related requirement**: Add a student's details.
+
+**Main success scenario (MSS)**
+
+1. Tutor requests to add a student, supplying a name, matriculation number, tutorial group, and optionally an email address.
+2. TutorLink adds the student record, confirms the addition, and shows the complete student list including the new student.
+
+   Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. Required details are missing or the request contains an invalid value or command format.
+
+  * 1a1. TutorLink explains the input error without adding a record.
+
+    Use case resumes at step 1.
+
+* 1b. Another record has the same matriculation number, ignoring letter case.
+
+  * 1b1. TutorLink reports the duplicate without changing either record.
+
+    Use case resumes at step 1.
+
+#### UC02: View a student in a tutorial group
+
+**Related requirements**: View students in a specified tutorial group; view a student's full details.
+
+**MSS**
+
+1. Tutor requests the students in a specified tutorial group.
+2. TutorLink shows the matching students and the number of matches.
+3. Tutor requests the full details of a student using their index in the current list.
+4. TutorLink shows that student's full stored details.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The tutorial-group identifier or request format is invalid.
+
+  * 1a1. TutorLink explains the input error.
+
+    Use case resumes at step 1.
+
+* 2a. No students match the specified tutorial group.
+
+  * 2a1. TutorLink shows an empty list and reports zero matching students.
+
+    Use case ends.
+
+* 3a. The given index or request format is invalid.
+
+  * 3a1. TutorLink explains the input error without changing the current list.
+
+    Use case resumes at step 3.
+
+#### UC03: Edit a student's details
+
+**Related requirements**: List students; edit a student's details.
+
+**MSS**
+
+1. Tutor requests a student list, optionally restricted to a tutorial group.
+2. TutorLink shows the requested list.
+3. Tutor requests to edit a student using their index in the current list and supplies the replacement field values.
+4. TutorLink updates the record, confirms the edit, and refreshes the current list while retaining any tutorial-group filter. Fields omitted from the request keep their existing values.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The request to list students has an invalid tutorial-group identifier or command format.
+
+  * 1a1. TutorLink explains the input error without changing the current list.
+
+    Use case resumes at step 1.
+
+* 2a. The requested list is empty.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The index is invalid, no changes are supplied, or a field value or command format is invalid.
 
-    * 3a1. AddressBook shows an error message.
+  * 3a1. TutorLink explains the input error without changing the record.
 
-      Use case resumes at step 2.
+    Use case resumes at step 3.
 
-*{More to be added}*
+* 3b. The replacement matriculation number belongs to another student, ignoring letter case.
+
+  * 3b1. TutorLink reports the duplicate without changing either record.
+
+    Use case resumes at step 3.
+
+* 4a. The student's new tutorial group no longer matches the active filter.
+
+  * 4a1. TutorLink excludes the student from the filtered list. The updated record remains in the complete student directory.
+
+    Use case ends.
+
+#### UC04: Delete a student's record
+
+**Related requirements**: List students; delete a student's record.
+
+**MSS**
+
+1. Tutor requests a student list, optionally restricted to a tutorial group.
+2. TutorLink shows the requested list.
+3. Tutor requests to delete a student using their index in the current list.
+4. TutorLink removes the student's record from the directory, confirms the deletion, and refreshes the current list while retaining any tutorial-group filter.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The request to list students has an invalid tutorial-group identifier or command format.
+
+  * 1a1. TutorLink explains the input error without changing the current list.
+
+    Use case resumes at step 1.
+
+* 2a. The requested list is empty.
+
+  Use case ends.
+
+* 3a. The given index or command format is invalid.
+
+  * 3a1. TutorLink explains the input error without deleting any record.
+
+    Use case resumes at step 3.
 
 ### Non-Functional Requirements
 
