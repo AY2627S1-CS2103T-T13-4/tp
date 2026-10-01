@@ -444,16 +444,25 @@ An index refers to the student's one-based position in the current list, includi
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1. TutorLink must run on Windows 10 or 11, macOS 13 or later, and Ubuntu 22.04 LTS or later, provided Java `25` or later is installed.
+2. TutorLink must support at least 1,000 student records distributed across at least 20 tutorial groups in one local data file.
+3. With 1,000 student records, TutorLink must become ready for command input within 5 seconds of launch on a computer with at least a 2 GHz quad-core processor, 8 GB of RAM, and SSD storage, while no other CPU-intensive application is running.
+4. Under the dataset and test conditions stated in NFR 3, TutorLink must display the result within 1 second for at least 95 out of 100 consecutive operations that add, view, edit, delete, search for, or filter student records.
+5. A successful data-modifying operation must be saved to the local data file before its success message is shown. After a normal shutdown and restart, TutorLink must restore the most recently saved student data without loss or modification.
+6. Invalid commands and invalid student details must not modify stored data. TutorLink must identify the invalid input in an error message within the response-time limit stated in NFR 3.
+7. After TutorLink and the Java runtime have been installed, all must-have features listed in the user stories must remain usable without an internet connection.
+8. TutorLink must not transmit student data over a network. Student data must remain in the application's local data file unless the user explicitly copies or moves it.
+9. Every student-management operation—including adding, viewing, editing, deleting, searching for, and filtering student records by tutorial group—must be executable using only the keyboard.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **Current list**: The student records currently displayed in TutorLink, which may be all records or a subset produced by a search or tutorial-group filter.
+* **Data-modifying operation**: An operation that changes stored student data, such as adding, editing, deleting, or importing student records.
+* **Index**: The one-based number shown beside a student in the current list. It identifies that displayed record for an operation and is not a permanent student identifier.
+* **Matriculation number**: The unique identifier assigned to a student by the university.
+* **Student record**: The information TutorLink stores for one student, including the student's name, matriculation number, and tutorial group.
+* **Tutorial group**: A named or numbered class group taught by a university tutor and used by TutorLink to organize student records.
+* **University tutor**: A TutorLink user who teaches one or more tutorial groups and manages the records of students in those groups.
 
 --------------------------------------------------------------------------------------------------------------------
 
