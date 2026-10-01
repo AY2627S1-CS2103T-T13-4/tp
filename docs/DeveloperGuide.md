@@ -296,7 +296,9 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-For all use cases below, the **System** is `TutorLink`, the **Actor** is a `university tutor`, and TutorLink is running. These use cases describe the planned MVP behaviour.
+For all use cases below, the **System** is `TutorLink` and the **Actor** is a `university tutor`. These use cases describe the planned MVP behaviour.
+
+**Common precondition**: TutorLink is running.
 
 An index refers to the student's one-based position in the current list, including a list filtered by tutorial group. It is not a permanent student identifier. A rejected request leaves the student records and current list unchanged.
 
@@ -307,22 +309,21 @@ An index refers to the student's one-based position in the current list, includi
 **Main success scenario (MSS)**
 
 1. Tutor requests to add a student, supplying a name, matriculation number, tutorial group, and optionally an email address.
-2. TutorLink adds the student record and confirms the addition.
-3. TutorLink shows the complete student list, including the new student.
+2. TutorLink adds the student record, confirms the addition, and shows the complete student list including the new student.
 
    Use case ends.
 
 **Extensions**
 
-* 2a. Required details are missing or the request contains an invalid value or command format.
+* 1a. Required details are missing or the request contains an invalid value or command format.
 
-  * 2a1. TutorLink explains the input error without adding a record.
+  * 1a1. TutorLink explains the input error without adding a record.
 
     Use case resumes at step 1.
 
-* 2b. Another record has the same matriculation number, ignoring letter case.
+* 1b. Another record has the same matriculation number, ignoring letter case.
 
-  * 2b1. TutorLink reports the duplicate without changing either record.
+  * 1b1. TutorLink reports the duplicate without changing either record.
 
     Use case resumes at step 1.
 
@@ -341,21 +342,21 @@ An index refers to the student's one-based position in the current list, includi
 
 **Extensions**
 
-* 2a. The tutorial-group identifier or request format is invalid.
+* 1a. The tutorial-group identifier or request format is invalid.
 
-  * 2a1. TutorLink explains the input error.
+  * 1a1. TutorLink explains the input error.
 
     Use case resumes at step 1.
 
-* 2b. No students match the specified tutorial group.
+* 2a. No students match the specified tutorial group.
 
-  * 2b1. TutorLink shows an empty list and reports zero matching students.
+  * 2a1. TutorLink shows an empty list and reports zero matching students.
 
     Use case ends.
 
-* 4a. The given index or request format is invalid.
+* 3a. The given index or request format is invalid.
 
-  * 4a1. TutorLink explains the input error without changing the current list.
+  * 3a1. TutorLink explains the input error without changing the current list.
 
     Use case resumes at step 3.
 
@@ -368,32 +369,37 @@ An index refers to the student's one-based position in the current list, includi
 1. Tutor requests a student list, optionally restricted to a tutorial group.
 2. TutorLink shows the requested list.
 3. Tutor requests to edit a student using their index in the current list and supplies the replacement field values.
-4. TutorLink updates the record and confirms the edit. Fields omitted from the request keep their existing values.
-5. TutorLink updates the current list while retaining any tutorial-group filter.
+4. TutorLink updates the record, confirms the edit, and refreshes the current list while retaining any tutorial-group filter. Fields omitted from the request keep their existing values.
 
    Use case ends.
 
 **Extensions**
 
+* 1a. The request to list students has an invalid tutorial-group identifier or command format.
+
+  * 1a1. TutorLink explains the input error without changing the current list.
+
+    Use case resumes at step 1.
+
 * 2a. The requested list is empty.
 
   Use case ends.
 
-* 4a. The index is invalid, no changes are supplied, or a field value or command format is invalid.
+* 3a. The index is invalid, no changes are supplied, or a field value or command format is invalid.
 
-  * 4a1. TutorLink explains the input error without changing the record.
-
-    Use case resumes at step 3.
-
-* 4b. The replacement matriculation number belongs to another student, ignoring letter case.
-
-  * 4b1. TutorLink reports the duplicate without changing either record.
+  * 3a1. TutorLink explains the input error without changing the record.
 
     Use case resumes at step 3.
 
-* 5a. The student's new tutorial group no longer matches the active filter.
+* 3b. The replacement matriculation number belongs to another student, ignoring letter case.
 
-  * 5a1. TutorLink excludes the student from the filtered list. The updated record remains in the complete student directory.
+  * 3b1. TutorLink reports the duplicate without changing either record.
+
+    Use case resumes at step 3.
+
+* 4a. The student's new tutorial group no longer matches the active filter.
+
+  * 4a1. TutorLink excludes the student from the filtered list. The updated record remains in the complete student directory.
 
     Use case ends.
 
@@ -406,20 +412,25 @@ An index refers to the student's one-based position in the current list, includi
 1. Tutor requests a student list, optionally restricted to a tutorial group.
 2. TutorLink shows the requested list.
 3. Tutor requests to delete a student using their index in the current list.
-4. TutorLink removes the student's record from the directory and confirms the deletion.
-5. TutorLink updates the current list while retaining any tutorial-group filter.
+4. TutorLink removes the student's record from the directory, confirms the deletion, and refreshes the current list while retaining any tutorial-group filter.
 
    Use case ends.
 
 **Extensions**
 
+* 1a. The request to list students has an invalid tutorial-group identifier or command format.
+
+  * 1a1. TutorLink explains the input error without changing the current list.
+
+    Use case resumes at step 1.
+
 * 2a. The requested list is empty.
 
   Use case ends.
 
-* 4a. The given index or command format is invalid.
+* 3a. The given index or command format is invalid.
 
-  * 4a1. TutorLink explains the input error without deleting any record.
+  * 3a1. TutorLink explains the input error without deleting any record.
 
     Use case resumes at step 3.
 
