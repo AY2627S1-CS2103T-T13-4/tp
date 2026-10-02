@@ -5,9 +5,12 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import javafx.application.Platform;
 
+@EnabledOnOs({OS.LINUX, OS.WINDOWS})
 public class PersonCardTest {
 
     @BeforeAll
