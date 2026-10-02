@@ -1,5 +1,6 @@
 package seedu.address.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
@@ -70,5 +71,14 @@ public class RemarkCommandTest {
         assertFalse(standardCommand.equals(new ClearCommand()));
         assertFalse(standardCommand.equals(new RemarkCommand(INDEX_SECOND_PERSON, new Remark("remark"))));
         assertFalse(standardCommand.equals(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("other"))));
+    }
+
+    @Test
+    public void toStringMethod() {
+        RemarkCommand command = new RemarkCommand(INDEX_FIRST_PERSON, new Remark("remark"));
+        String expected = RemarkCommand.class.getCanonicalName() + "{index=" + INDEX_FIRST_PERSON
+                + ", remark=remark}";
+
+        assertEquals(expected, command.toString());
     }
 }
