@@ -10,27 +10,27 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class TutorialGroup {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Tutorial groups should start with T or L, followed by 1 or 2 digits";
-    public static final String VALIDATION_REGEX = "[TLtl][0-9]{1,2}";
+            "Tutorial groups should contain one letter followed by exactly two digits";
+    public static final String VALIDATION_REGEX = "[A-Za-z][0-9]{2}";
 
     public final String value;
 
     /**
-     * Constructs a {@code TutorialGroup}, uppercases its prefix and removes leading zeros from its number.
+     * Constructs a {@code TutorialGroup}, uppercasing its letter and preserving both digits.
      *
      * @param tutorialGroup A valid tutorial group.
      */
     public TutorialGroup(String tutorialGroup) {
         requireNonNull(tutorialGroup);
         checkArgument(isValidTutorialGroup(tutorialGroup), MESSAGE_CONSTRAINTS);
-        value = Character.toUpperCase(tutorialGroup.charAt(0))
-                + Integer.toString(Integer.parseInt(tutorialGroup.substring(1)));
+        value = Character.toUpperCase(tutorialGroup.charAt(0)) + tutorialGroup.substring(1);
     }
 
     /**
      * Returns true if a given string is a valid tutorial group.
      */
     public static boolean isValidTutorialGroup(String test) {
+        requireNonNull(test);
         return test.matches(VALIDATION_REGEX);
     }
 

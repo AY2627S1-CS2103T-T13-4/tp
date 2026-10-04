@@ -25,6 +25,7 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
+    private static final String LEGACY_TUTORIAL_GROUP_REGEX = "[TLtl][0-9]";
 
     private final String name;
     private final String matricNumber;
@@ -32,6 +33,7 @@ class JsonAdaptedPerson {
     private final String phone;
     private final String email;
     private final String address;
+    private final String remark;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -42,6 +44,7 @@ class JsonAdaptedPerson {
             @JsonProperty("matricNumber") String matricNumber, @JsonProperty("tutorialGroup") String tutorialGroup,
             @JsonProperty("phone") String phone, @JsonProperty("email") String email,
             @JsonProperty("address") String address,
+            @JsonProperty("remark") String remark,
             @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.matricNumber = matricNumber;
@@ -49,9 +52,18 @@ class JsonAdaptedPerson {
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.remark = remark;
         if (tags != null) {
             this.tags.addAll(tags);
         }
+    }
+
+    /**
+     * Creates a person without a remark, for callers that have no remark field.
+     */
+    public JsonAdaptedPerson(String name, String matricNumber, String tutorialGroup,
+            String phone, String email, String address, List<JsonAdaptedTag> tags) {
+        this(name, matricNumber, tutorialGroup, phone, email, address, null, tags);
     }
 
     /**
@@ -61,9 +73,10 @@ class JsonAdaptedPerson {
         name = source.getName().fullName;
         matricNumber = source.getMatricNumber().value;
         tutorialGroup = source.getTutorialGroup().value;
-        phone = source.getPhone().value;
-        email = source.getEmail().value;
-        address = source.getAddress().value;
+        phone = source.getPhone() == null ? null : source.getPhone().value;
+        email = source.getEmail() == null ? null : source.getEmail().value;
+        address = source.getAddress() == null ? null : source.getAddress().value;
+        remark = source.getRemark();
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -101,38 +114,32 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     TutorialGroup.class.getSimpleName()));
         }
-        if (!TutorialGroup.isValidTutorialGroup(tutorialGroup)) {
+        // Earlier versions saved T04 as T4. Accept that stored form and restore its leading zero.
+        String normalizedTutorialGroup = tutorialGroup.matches(LEGACY_TUTORIAL_GROUP_REGEX)
+                ? tutorialGroup.charAt(0) + "0" + tutorialGroup.charAt(1) : tutorialGroup;
+        if (!TutorialGroup.isValidTutorialGroup(normalizedTutorialGroup)) {
             throw new IllegalValueException(TutorialGroup.MESSAGE_CONSTRAINTS);
         }
-        final TutorialGroup modelTutorialGroup = new TutorialGroup(tutorialGroup);
+        final TutorialGroup modelTutorialGroup = new TutorialGroup(normalizedTutorialGroup);
 
-        if (phone == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
-        }
-        if (!Phone.isValidPhone(phone)) {
+        if (phone != null && !Phone.isValidPhone(phone)) {
             throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
         }
-        final Phone modelPhone = new Phone(phone);
+        final Phone modelPhone = phone == null ? null : new Phone(phone);
 
-        if (email == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName()));
-        }
-        if (!Email.isValidEmail(email)) {
+        if (email != null && !Email.isValidEmail(email)) {
             throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
         }
-        final Email modelEmail = new Email(email);
+        final Email modelEmail = email == null ? null : new Email(email);
 
-        if (address == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Address.class.getSimpleName()));
-        }
-        if (!Address.isValidAddress(address)) {
+        if (address != null && !Address.isValidAddress(address)) {
             throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
         }
-        final Address modelAddress = new Address(address);
+        final Address modelAddress = address == null ? null : new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
         return new Person(modelName, modelMatricNumber, modelTutorialGroup,
-                modelPhone, modelEmail, modelAddress, modelTags);
+                modelPhone, modelEmail, modelAddress, modelTags, remark);
     }
 
 }

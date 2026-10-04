@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -16,6 +17,7 @@ import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.MatricNumber;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.TutorialGroup;
 
@@ -101,11 +103,23 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_nullPhone_throwsIllegalValueException() {
+    public void toModelType_nullOptionalDetails_returnsPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
-                null, VALID_EMAIL, VALID_ADDRESS, VALID_TAGS);
-        String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName());
-        assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
+                null, null, null, null);
+        Person student = person.toModelType();
+        assertNull(student.getPhone());
+        assertNull(student.getEmail());
+        assertNull(student.getAddress());
+        assertNull(student.getRemark());
+        assertEquals(0, student.getTags().size());
+    }
+
+    @Test
+    public void toModelType_existingRemark_retainsValue() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
+                null, null, null, "Needs help with recursion", null);
+
+        assertEquals("Needs help with recursion", person.toModelType().getRemark());
     }
 
     @Test
@@ -114,14 +128,6 @@ public class JsonAdaptedPersonTest {
                 new JsonAdaptedPerson(VALID_NAME, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
                         VALID_PHONE, INVALID_EMAIL, VALID_ADDRESS, VALID_TAGS);
         String expectedMessage = Email.MESSAGE_CONSTRAINTS;
-        assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
-    }
-
-    @Test
-    public void toModelType_nullEmail_throwsIllegalValueException() {
-        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
-                VALID_PHONE, null, VALID_ADDRESS, VALID_TAGS);
-        String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, Email.class.getSimpleName());
         assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
     }
 
@@ -135,11 +141,12 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_nullAddress_throwsIllegalValueException() {
-        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
-                VALID_PHONE, VALID_EMAIL, null, VALID_TAGS);
-        String expectedMessage = String.format(MISSING_FIELD_MESSAGE_FORMAT, Address.class.getSimpleName());
-        assertThrows(IllegalValueException.class, expectedMessage, person::toModelType);
+    public void toModelType_legacyOneDigitGroup_restoresLeadingZero() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, "a0123456x", "t4",
+                null, null, null, null);
+        Person student = person.toModelType();
+        assertEquals(new MatricNumber("A0123456X"), student.getMatricNumber());
+        assertEquals(new TutorialGroup("T04"), student.getTutorialGroup());
     }
 
     @Test

@@ -12,7 +12,8 @@ import seedu.address.model.tag.Tag;
 
 /**
  * Represents a Person in the address book.
- * Guarantees: details are present and not null, field values are validated, immutable.
+ * Guarantees: identity fields and tags are present, field values are validated, immutable.
+ * Phone, email, and address may be null when not provided.
  */
 public class Person {
 
@@ -25,20 +26,30 @@ public class Person {
     private final Phone phone;
     private final Email email;
     private final Address address;
+    private final String remark;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
-     * Every field must be present and not null.
+     * Name, matriculation number, tutorial group, and tags must be present and not null.
      */
     public Person(Name name, MatricNumber matricNumber, TutorialGroup tutorialGroup,
             Phone phone, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, matricNumber, tutorialGroup, phone, email, address, tags);
+        this(name, matricNumber, tutorialGroup, phone, email, address, tags, null);
+    }
+
+    /**
+     * Creates a person while retaining an optional remark from an earlier data file.
+     */
+    public Person(Name name, MatricNumber matricNumber, TutorialGroup tutorialGroup,
+            Phone phone, Email email, Address address, Set<Tag> tags, String remark) {
+        requireAllNonNull(name, matricNumber, tutorialGroup, tags);
         this.name = name;
         this.matricNumber = matricNumber;
         this.tutorialGroup = tutorialGroup;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.remark = remark;
         this.tags.addAll(tags);
     }
 
@@ -64,6 +75,10 @@ public class Person {
 
     public Address getAddress() {
         return address;
+    }
+
+    public String getRemark() {
+        return remark;
     }
 
     /**
@@ -105,16 +120,17 @@ public class Person {
         return name.equals(otherPerson.name)
                 && matricNumber.equals(otherPerson.matricNumber)
                 && tutorialGroup.equals(otherPerson.tutorialGroup)
-                && phone.equals(otherPerson.phone)
-                && email.equals(otherPerson.email)
-                && address.equals(otherPerson.address)
+                && Objects.equals(phone, otherPerson.phone)
+                && Objects.equals(email, otherPerson.email)
+                && Objects.equals(address, otherPerson.address)
+                && Objects.equals(remark, otherPerson.remark)
                 && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, matricNumber, tutorialGroup, phone, email, address, tags);
+        return Objects.hash(name, matricNumber, tutorialGroup, phone, email, address, remark, tags);
     }
 
     @Override
@@ -126,6 +142,7 @@ public class Person {
                 .add("phone", phone)
                 .add("email", email)
                 .add("address", address)
+                .add("remark", remark)
                 .add("tags", tags)
                 .toString();
     }

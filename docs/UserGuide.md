@@ -82,9 +82,11 @@ Adds a person to the contact list.
 
 Format: `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
 
-The matriculation number must be `A` followed by seven digits and an uppercase letter. The tutorial group must be
-`T` or `L` (case-insensitive) followed by one or two digits. Leading zeros in the group number are removed when saved,
-so `L03` is stored as `L3`.
+Names can contain letters, digits, and spaces, up to 70 characters after leading/trailing whitespace is removed and consecutive spaces are collapsed. For example, `John  Doe` is saved as `John Doe`.
+
+The matriculation number must be `A` followed by seven digits and a letter. Letter case is ignored on input, and the
+value is saved in uppercase. A tutorial group must be one letter followed by exactly two digits. Its letter is saved
+in uppercase, while leading zeros are kept, so `l03` is stored as `L03`.
 
 <box type="tip" seamless>
 
@@ -171,7 +173,7 @@ TutorLink data is saved automatically as a JSON file `[JAR file location]/data/a
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, TutorLink starts with an empty contact list at the next run. The invalid file remains on disk until you run a command (TutorLink saves after every command). Still, we recommend backing up the file before editing it.<br>
+If TutorLink cannot load the data file, it shows an error and stops starting. It does not replace the file with an empty student list or change the original file. Correct the invalid data or restore a valid backup before opening TutorLink again. In particular, older files without a matriculation number or tutorial group for each student need those required values added; TutorLink cannot infer them. Back up the file before editing it.<br>
 Furthermore, certain edits can cause TutorLink to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 

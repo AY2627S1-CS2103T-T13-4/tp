@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.util.Locale;
+
 /**
  * Represents a student's matriculation number.
  * Guarantees: immutable; is valid as declared in {@link #isValidMatricNumber(String)}.
@@ -11,7 +13,7 @@ public class MatricNumber {
 
     public static final String MESSAGE_CONSTRAINTS =
             "Matriculation numbers should start with A, followed by 7 digits and an uppercase letter";
-    public static final String VALIDATION_REGEX = "A[0-9]{7}[A-Z]";
+    public static final String VALIDATION_REGEX = "[Aa][0-9]{7}[A-Za-z]";
 
     public final String value;
 
@@ -23,13 +25,14 @@ public class MatricNumber {
     public MatricNumber(String matricNumber) {
         requireNonNull(matricNumber);
         checkArgument(isValidMatricNumber(matricNumber), MESSAGE_CONSTRAINTS);
-        value = matricNumber;
+        value = matricNumber.toUpperCase(Locale.ROOT);
     }
 
     /**
      * Returns true if a given string is a valid matriculation number.
      */
     public static boolean isValidMatricNumber(String test) {
+        requireNonNull(test);
         return test.matches(VALIDATION_REGEX);
     }
 

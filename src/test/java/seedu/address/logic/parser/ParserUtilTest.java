@@ -84,6 +84,11 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseName_consecutiveSpaces_returnsNormalizedName() throws Exception {
+        assertEquals(new Name("John Doe"), ParserUtil.parseName("  John   Doe  "));
+    }
+
+    @Test
     public void parseMatricNumber_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parseMatricNumber(null));
     }
@@ -111,7 +116,7 @@ public class ParserUtilTest {
 
     @Test
     public void parseTutorialGroup_validValueWithWhitespace_returnsNormalizedTutorialGroup() throws Exception {
-        assertEquals(new TutorialGroup("L3"),
+        assertEquals(new TutorialGroup("L03"),
                 ParserUtil.parseTutorialGroup(WHITESPACE + VALID_TUTORIAL_GROUP + WHITESPACE));
     }
 

@@ -29,17 +29,19 @@ public class TutorialGroupTest {
         assertFalse(TutorialGroup.isValidTutorialGroup("G1"));
         assertFalse(TutorialGroup.isValidTutorialGroup("T1A"));
         assertFalse(TutorialGroup.isValidTutorialGroup(" T1"));
+        assertFalse(TutorialGroup.isValidTutorialGroup("T5"));
 
-        assertTrue(TutorialGroup.isValidTutorialGroup("T5"));
+        assertTrue(TutorialGroup.isValidTutorialGroup("T05"));
         assertTrue(TutorialGroup.isValidTutorialGroup("L03"));
+        assertTrue(TutorialGroup.isValidTutorialGroup("W12"));
         assertTrue(TutorialGroup.isValidTutorialGroup("t10"));
         assertTrue(TutorialGroup.isValidTutorialGroup("l12"));
     }
 
     @Test
     public void constructor_validTutorialGroup_normalizesValue() {
-        assertEquals("T5", new TutorialGroup("t05").toString());
-        assertEquals("L3", new TutorialGroup("L03").toString());
+        assertEquals("T05", new TutorialGroup("t05").toString());
+        assertEquals("L03", new TutorialGroup("L03").toString());
         assertEquals("T10", new TutorialGroup("t10").toString());
         assertEquals("L12", new TutorialGroup("l12").toString());
     }
@@ -48,16 +50,16 @@ public class TutorialGroupTest {
     public void equals() {
         TutorialGroup tutorialGroup = new TutorialGroup("L03");
 
-        assertTrue(tutorialGroup.equals(new TutorialGroup("l3")));
+        assertTrue(tutorialGroup.equals(new TutorialGroup("l03")));
         assertTrue(tutorialGroup.equals(tutorialGroup));
         assertFalse(tutorialGroup.equals(null));
         assertFalse(tutorialGroup.equals(5));
-        assertFalse(tutorialGroup.equals(new TutorialGroup("T3")));
-        assertFalse(tutorialGroup.equals(new TutorialGroup("L4")));
+        assertFalse(tutorialGroup.equals(new TutorialGroup("T03")));
+        assertFalse(tutorialGroup.equals(new TutorialGroup("L04")));
     }
 
     @Test
     public void hashCode_equivalentValues_sameHashCode() {
-        assertEquals(new TutorialGroup("L03").hashCode(), new TutorialGroup("l3").hashCode());
+        assertEquals(new TutorialGroup("L03").hashCode(), new TutorialGroup("l03").hashCode());
     }
 }

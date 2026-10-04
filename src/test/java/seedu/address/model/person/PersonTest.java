@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
@@ -40,7 +41,29 @@ public class PersonTest {
 
         assertEquals(new Name("Alice Tan"), student.getName());
         assertEquals(new MatricNumber("A0123456X"), student.getMatricNumber());
-        assertEquals(new TutorialGroup("L3"), student.getTutorialGroup());
+        assertEquals(new TutorialGroup("L03"), student.getTutorialGroup());
+    }
+
+    @Test
+    public void constructor_missingOptionalDetails_retainsNullValues() {
+        Person student = new Person(new Name("Alice Tan"), new MatricNumber("A0123456X"),
+                new TutorialGroup("L03"), null, null, null, Set.of());
+
+        assertNull(student.getPhone());
+        assertNull(student.getEmail());
+        assertNull(student.getAddress());
+        assertNull(student.getRemark());
+        assertEquals(student, new Person(new Name("Alice Tan"), new MatricNumber("a0123456x"),
+                new TutorialGroup("l03"), null, null, null, Set.of()));
+    }
+
+    @Test
+    public void constructor_existingRemark_retainsValueAndAffectsEquality() {
+        Person withRemark = new Person(ALICE.getName(), ALICE.getMatricNumber(), ALICE.getTutorialGroup(),
+                ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(), ALICE.getTags(), "Needs follow-up");
+
+        assertEquals("Needs follow-up", withRemark.getRemark());
+        assertFalse(ALICE.equals(withRemark));
     }
 
     @Test
@@ -124,7 +147,8 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName()
                 + ", matricNumber=" + ALICE.getMatricNumber() + ", tutorialGroup=" + ALICE.getTutorialGroup()
                 + ", phone=" + ALICE.getPhone()
-                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress() + ", tags=" + ALICE.getTags() + "}";
+                + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress()
+                + ", remark=" + ALICE.getRemark() + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

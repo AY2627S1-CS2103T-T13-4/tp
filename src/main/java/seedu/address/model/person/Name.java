@@ -10,32 +10,38 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
-
-    /*
-     * The first character of the name must not be a whitespace,
-     * otherwise " " (a blank string) becomes a valid input.
-     */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+            "Names should contain only letters, numbers, and spaces, and be at most 70 characters long";
+    public static final int MAX_LENGTH = 70;
+    public static final String VALIDATION_REGEX = "[A-Za-z0-9]+(?: [A-Za-z0-9]+)*";
 
     public final String fullName;
 
     /**
-     * Constructs a {@code Name}.
+     * Constructs a {@code Name} with surrounding whitespace removed and consecutive spaces collapsed.
      *
      * @param name A valid name.
      */
     public Name(String name) {
         requireNonNull(name);
-        checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
-        fullName = name;
+        String normalizedName = normalizeName(name);
+        checkArgument(isValidNormalizedName(normalizedName), MESSAGE_CONSTRAINTS);
+        fullName = normalizedName;
     }
 
     /**
-     * Returns true if a given string is a valid name.
+     * Returns true if the given string is a valid name after normalization.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX);
+        requireNonNull(test);
+        return isValidNormalizedName(normalizeName(test));
+    }
+
+    private static String normalizeName(String name) {
+        return name.trim().replaceAll(" +", " ");
+    }
+
+    private static boolean isValidNormalizedName(String name) {
+        return name.length() <= MAX_LENGTH && name.matches(VALIDATION_REGEX);
     }
 
 

@@ -15,6 +15,7 @@ import seedu.address.model.person.Person;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
+    private static final String NOT_PROVIDED = "Not provided";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -33,6 +34,10 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label id;
     @FXML
+    private Label matricNumber;
+    @FXML
+    private Label tutorialGroup;
+    @FXML
     private Label phone;
     @FXML
     private Label address;
@@ -49,9 +54,11 @@ public class PersonCard extends UiPart<Region> {
         this.person = person;
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
-        phone.setText(person.getPhone().value);
-        address.setText(person.getAddress().value);
-        email.setText(person.getEmail().value);
+        matricNumber.setText("Matric: " + person.getMatricNumber().value);
+        tutorialGroup.setText("Group: " + person.getTutorialGroup().value);
+        phone.setText("Phone: " + (person.getPhone() == null ? NOT_PROVIDED : person.getPhone().value));
+        address.setText("Address: " + (person.getAddress() == null ? NOT_PROVIDED : person.getAddress().value));
+        email.setText("Email: " + (person.getEmail() == null ? NOT_PROVIDED : person.getEmail().value));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

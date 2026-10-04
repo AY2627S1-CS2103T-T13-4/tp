@@ -26,9 +26,10 @@ public class MatricNumberTest {
         assertFalse(MatricNumber.isValidMatricNumber(""));
         assertFalse(MatricNumber.isValidMatricNumber("A012345X")); // 6 digits
         assertFalse(MatricNumber.isValidMatricNumber("A01234567X")); // 8 digits
-        assertFalse(MatricNumber.isValidMatricNumber("a0123456X")); // lowercase prefix
-        assertFalse(MatricNumber.isValidMatricNumber("A0123456x")); // lowercase suffix
+        assertTrue(MatricNumber.isValidMatricNumber("a0123456X")); // lowercase prefix
+        assertTrue(MatricNumber.isValidMatricNumber("A0123456x")); // lowercase suffix
         assertFalse(MatricNumber.isValidMatricNumber("A01234X6X")); // non-digit in the middle
+        assertFalse(MatricNumber.isValidMatricNumber("A0123456ı")); // non-ASCII letter
         assertFalse(MatricNumber.isValidMatricNumber(" A0123456X")); // whitespace
 
         assertTrue(MatricNumber.isValidMatricNumber("A0123456X"));
@@ -40,6 +41,7 @@ public class MatricNumberTest {
         MatricNumber matricNumber = new MatricNumber("A0123456X");
 
         assertTrue(matricNumber.equals(new MatricNumber("A0123456X")));
+        assertTrue(matricNumber.equals(new MatricNumber("a0123456x")));
         assertTrue(matricNumber.equals(matricNumber));
         assertFalse(matricNumber.equals(null));
         assertFalse(matricNumber.equals(5));
@@ -54,5 +56,6 @@ public class MatricNumberTest {
     @Test
     public void toString_returnsValue() {
         assertEquals("A0123456X", new MatricNumber("A0123456X").toString());
+        assertEquals("A0123456X", new MatricNumber("a0123456x").toString());
     }
 }

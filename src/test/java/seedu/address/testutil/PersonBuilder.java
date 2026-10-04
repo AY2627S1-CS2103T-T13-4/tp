@@ -31,6 +31,7 @@ public class PersonBuilder {
     private Phone phone;
     private Email email;
     private Address address;
+    private String remark;
     private Set<Tag> tags;
 
     /**
@@ -56,6 +57,7 @@ public class PersonBuilder {
         phone = personToCopy.getPhone();
         email = personToCopy.getEmail();
         address = personToCopy.getAddress();
+        remark = personToCopy.getRemark();
         tags = new HashSet<>(personToCopy.getTags());
     }
 
@@ -115,8 +117,16 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the remark of the person that we are building.
+     */
+    public PersonBuilder withRemark(String remark) {
+        this.remark = remark;
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, matricNumber, tutorialGroup, phone, email, address, tags);
+        return new Person(name, matricNumber, tutorialGroup, phone, email, address, tags, remark);
     }
 
 }
