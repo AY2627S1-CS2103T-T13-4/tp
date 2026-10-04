@@ -67,6 +67,14 @@ public class PersonTest {
     }
 
     @Test
+    public void hashCode_equalPeople_haveSameHashCode() {
+        Person person = new PersonBuilder(ALICE).build();
+
+        assertEquals(ALICE, person);
+        assertEquals(ALICE.hashCode(), person.hashCode());
+    }
+
+    @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
         Person person = new PersonBuilder().build();
         assertThrows(UnsupportedOperationException.class, () -> person.getTags().remove(0));
