@@ -12,9 +12,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.MatricNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.TutorialGroup;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -25,6 +27,8 @@ class JsonAdaptedPerson {
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
 
     private final String name;
+    private final String matricNumber;
+    private final String tutorialGroup;
     private final String phone;
     private final String email;
     private final String address;
@@ -34,10 +38,14 @@ class JsonAdaptedPerson {
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      */
     @JsonCreator
-    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
-            @JsonProperty("email") String email, @JsonProperty("address") String address,
+    public JsonAdaptedPerson(@JsonProperty("name") String name,
+            @JsonProperty("matricNumber") String matricNumber, @JsonProperty("tutorialGroup") String tutorialGroup,
+            @JsonProperty("phone") String phone, @JsonProperty("email") String email,
+            @JsonProperty("address") String address,
             @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
+        this.matricNumber = matricNumber;
+        this.tutorialGroup = tutorialGroup;
         this.phone = phone;
         this.email = email;
         this.address = address;
@@ -51,6 +59,8 @@ class JsonAdaptedPerson {
      */
     public JsonAdaptedPerson(Person source) {
         name = source.getName().fullName;
+        matricNumber = source.getMatricNumber().value;
+        tutorialGroup = source.getTutorialGroup().value;
         phone = source.getPhone().value;
         email = source.getEmail().value;
         address = source.getAddress().value;
@@ -78,6 +88,24 @@ class JsonAdaptedPerson {
         }
         final Name modelName = new Name(name);
 
+        if (matricNumber == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
+                    MatricNumber.class.getSimpleName()));
+        }
+        if (!MatricNumber.isValidMatricNumber(matricNumber)) {
+            throw new IllegalValueException(MatricNumber.MESSAGE_CONSTRAINTS);
+        }
+        final MatricNumber modelMatricNumber = new MatricNumber(matricNumber);
+
+        if (tutorialGroup == null) {
+            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
+                    TutorialGroup.class.getSimpleName()));
+        }
+        if (!TutorialGroup.isValidTutorialGroup(tutorialGroup)) {
+            throw new IllegalValueException(TutorialGroup.MESSAGE_CONSTRAINTS);
+        }
+        final TutorialGroup modelTutorialGroup = new TutorialGroup(tutorialGroup);
+
         if (phone == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Phone.class.getSimpleName()));
         }
@@ -103,7 +131,8 @@ class JsonAdaptedPerson {
         final Address modelAddress = new Address(address);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelTags);
+        return new Person(modelName, modelMatricNumber, modelTutorialGroup,
+                modelPhone, modelEmail, modelAddress, modelTags);
     }
 
 }

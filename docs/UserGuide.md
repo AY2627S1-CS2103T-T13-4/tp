@@ -31,7 +31,7 @@ TutorLink is a **desktop application for managing students' contact details, opt
 
    * `list` : Lists all contacts.
 
-   * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to TutorLink.
+   * `add n/John Doe m/A0123456X g/T01 p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a student named `John Doe` to TutorLink.
 
    * `delete 3` : Deletes the 3rd contact shown in the current list.
 
@@ -80,7 +80,11 @@ Format: `help`
 
 Adds a person to the contact list.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
+Format: `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
+
+The matriculation number must be `A` followed by seven digits and an uppercase letter. The tutorial group must be
+`T` or `L` (case-insensitive) followed by one or two digits. Leading zeros in the group number are removed when saved,
+so `L03` is stored as `L3`.
 
 <box type="tip" seamless>
 
@@ -88,8 +92,8 @@ Format: `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
 </box>
 
 Examples:
-* `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
-* `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
+* `add n/John Doe m/A0123456X g/T01 p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
+* `add n/Betsy Crowe m/A1234567Y g/l03 t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
 ### Listing all persons: `list`
 
@@ -195,7 +199,7 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add**    | `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho m/A2345678Z g/T05 p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
