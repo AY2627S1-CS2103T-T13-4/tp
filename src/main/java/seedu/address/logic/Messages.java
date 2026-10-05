@@ -12,6 +12,7 @@ import seedu.address.model.person.Person;
  */
 public class Messages {
 
+    public static final String NOT_PROVIDED = "Not provided";
     public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The person index provided is invalid.";
@@ -37,12 +38,16 @@ public class Messages {
     public static String format(Person person) {
         final StringBuilder builder = new StringBuilder();
         builder.append(person.getName())
+                .append("; Matric: ")
+                .append(person.getMatricNumber())
+                .append("; Group: ")
+                .append(person.getTutorialGroup())
                 .append("; Phone: ")
-                .append(person.getPhone())
+                .append(person.getPhone() == null ? NOT_PROVIDED : person.getPhone())
                 .append("; Email: ")
-                .append(person.getEmail())
+                .append(person.getEmail() == null ? NOT_PROVIDED : person.getEmail())
                 .append("; Address: ")
-                .append(person.getAddress())
+                .append(person.getAddress() == null ? NOT_PROVIDED : person.getAddress())
                 .append("; Tags: ");
         person.getTags().forEach(builder::append);
         return builder.toString();

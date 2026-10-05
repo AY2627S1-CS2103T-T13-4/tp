@@ -279,6 +279,29 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Value proposition**: TutorLink helps university tutors manage student rosters quickly and accurately from a desktop application. Concise commands make it easy to add, view, filter, edit, delete, and list students, while input validation and duplicate matriculation checks reduce roster errors.
 
+### MVP student data contract
+
+The following decisions define the intended MVP behaviour for the model, commands, storage, and UI. They are implementation requirements; the current code and User Guide may not yet match them.
+
+| Field | Requirement | Missing value |
+|-------|-------------|---------------|
+| Name | Required; letters, digits, and spaces only; at most 70 characters after normalization | Reject the record or command |
+| Matriculation number | Required and unique, ignoring letter case | Reject the record or command |
+| Tutorial group | Required | Reject the record or command |
+| Phone, email, address | Retain the existing fields, but make each optional | Represent an absent value as `null` in the model and JSON; display `Not provided` in the UI |
+| Tags | Retain the existing field | Use an empty set in the model and an empty array in JSON, rather than `null` |
+| Remark | Preserve any existing remark when loading, editing, or saving a student | Use `null` when absent; adding or changing remarks is outside the profile data contract |
+
+An `add` command must accept a name, matriculation number, and tutorial group without requiring phone, email, or address. Existing `p/`, `e/`, `a/`, and `t/` inputs remain supported as optional details. Commands and UI components must handle absent optional values without dereferencing `null`. An `edit` command leaves omitted fields unchanged; it must not interpret omission as a request to clear a field.
+
+Names are trimmed at both ends, and consecutive internal spaces are collapsed to one before the 70-character limit is checked. For example, `John  Doe` is stored as `John Doe`. Letter case is preserved; punctuation and other internal whitespace are invalid.
+
+Tutorial groups use one letter followed by exactly two digits, stored with an uppercase letter (for example, `T04` or `W12`). Lowercase input such as `t04` is accepted and stored as `T04`. `T4`, `T004`, and groups containing spaces are invalid. Parsing, model validation, filtering, JSON loading, and display must apply the same rule; leading zeros must be preserved. Matriculation numbers are likewise stored uppercase before duplicate checks.
+
+Older data files may lack required matriculation numbers or tutorial groups. Those values cannot be inferred or replaced with `null`. If such a file cannot be loaded, TutorLink must preserve it and prevent subsequent commands from overwriting it with an empty roster. A migration may proceed only after the missing required values are supplied. Tests must cover both absent optional fields and an incompatible old file that remains unchanged after a command.
+
+Files written by the earlier student-profile implementation may contain a one-digit `T` or `L` group such as `T4`. On loading such a file, TutorLink restores the leading zero (`T04`) before applying the current group rule. A newly entered one-digit group remains invalid.
+
 
 ### User stories
 

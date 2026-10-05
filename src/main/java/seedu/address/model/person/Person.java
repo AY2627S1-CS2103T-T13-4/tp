@@ -12,33 +12,57 @@ import seedu.address.model.tag.Tag;
 
 /**
  * Represents a Person in the address book.
- * Guarantees: details are present and not null, field values are validated, immutable.
+ * Guarantees: identity fields and tags are present, field values are validated, immutable.
+ * Phone, email, and address may be null when not provided.
  */
 public class Person {
 
     // Identity fields
-    private final Name name;
-    private final Phone phone;
-    private final Email email;
+    private final MatricNumber matricNumber;
 
     // Data fields
+    private final Name name;
+    private final TutorialGroup tutorialGroup;
+    private final Phone phone;
+    private final Email email;
     private final Address address;
+    private final String remark;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
-     * Every field must be present and not null.
+     * Name, matriculation number, tutorial group, and tags must be present and not null.
      */
-    public Person(Name name, Phone phone, Email email, Address address, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, address, tags);
+    public Person(Name name, MatricNumber matricNumber, TutorialGroup tutorialGroup,
+            Phone phone, Email email, Address address, Set<Tag> tags) {
+        this(name, matricNumber, tutorialGroup, phone, email, address, tags, null);
+    }
+
+    /**
+     * Creates a person while retaining an optional remark from an earlier data file.
+     */
+    public Person(Name name, MatricNumber matricNumber, TutorialGroup tutorialGroup,
+            Phone phone, Email email, Address address, Set<Tag> tags, String remark) {
+        requireAllNonNull(name, matricNumber, tutorialGroup, tags);
         this.name = name;
+        this.matricNumber = matricNumber;
+        this.tutorialGroup = tutorialGroup;
         this.phone = phone;
         this.email = email;
         this.address = address;
+        this.remark = remark;
         this.tags.addAll(tags);
     }
 
     public Name getName() {
         return name;
+    }
+
+    public MatricNumber getMatricNumber() {
+        return matricNumber;
+    }
+
+    public TutorialGroup getTutorialGroup() {
+        return tutorialGroup;
     }
 
     public Phone getPhone() {
@@ -53,6 +77,10 @@ public class Person {
         return address;
     }
 
+    public String getRemark() {
+        return remark;
+    }
+
     /**
      * Returns an immutable tag set, which throws {@code UnsupportedOperationException}
      * if modification is attempted.
@@ -62,7 +90,7 @@ public class Person {
     }
 
     /**
-     * Returns true if both persons have the same name.
+     * Returns true if both persons have the same matriculation number.
      * This defines a weaker notion of equality between two persons.
      */
     public boolean isSamePerson(Person otherPerson) {
@@ -71,7 +99,7 @@ public class Person {
         }
 
         return otherPerson != null
-                && otherPerson.getName().equals(getName());
+                && otherPerson.getMatricNumber().equals(getMatricNumber());
     }
 
     /**
@@ -90,25 +118,31 @@ public class Person {
         }
 
         return name.equals(otherPerson.name)
-                && phone.equals(otherPerson.phone)
-                && email.equals(otherPerson.email)
-                && address.equals(otherPerson.address)
+                && matricNumber.equals(otherPerson.matricNumber)
+                && tutorialGroup.equals(otherPerson.tutorialGroup)
+                && Objects.equals(phone, otherPerson.phone)
+                && Objects.equals(email, otherPerson.email)
+                && Objects.equals(address, otherPerson.address)
+                && Objects.equals(remark, otherPerson.remark)
                 && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, address, tags);
+        return Objects.hash(name, matricNumber, tutorialGroup, phone, email, address, remark, tags);
     }
 
     @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("name", name)
+                .add("matricNumber", matricNumber)
+                .add("tutorialGroup", tutorialGroup)
                 .add("phone", phone)
                 .add("email", email)
                 .add("address", address)
+                .add("remark", remark)
                 .add("tags", tags)
                 .toString();
     }

@@ -1,12 +1,16 @@
 {
   "persons": [ {
     "name": "Alice Pauline",
+    "matricNumber": "A0000002B",
+    "tutorialGroup": "T1",
     "phone": "94351253",
     "email": "alice@example.com",
     "address": "123, Jurong West Ave 6, #08-111",
     "tags": [ "friends" ]
   }, {
     "name": "Alice Pauline",
+    "matricNumber": "A0000002B",
+    "tutorialGroup": "L3",
     "phone": "94351253",
     "email": "pauline@example.com",
     "address": "4th street"

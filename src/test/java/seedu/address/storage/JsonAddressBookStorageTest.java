@@ -11,6 +11,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -18,6 +19,10 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.person.MatricNumber;
+import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
+import seedu.address.model.person.TutorialGroup;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -84,6 +89,34 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveAddressBook_missingOptionalDetails_roundTrips() throws Exception {
+        Path filePath = testFolder.resolve("OptionalStudent.json");
+        AddressBook original = new AddressBook();
+        Person student = new Person(new Name("Alice Tan"), new MatricNumber("A0123456X"),
+                new TutorialGroup("W12"), null, null, null, Set.of());
+        original.addPerson(student);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original);
+        assertEquals(original, new AddressBook(storage.readAddressBook().get()));
+    }
+
+    @Test
+    public void readAndSaveAddressBook_existingRemark_roundTrips() throws Exception {
+        Path filePath = testFolder.resolve("StudentWithRemark.json");
+        AddressBook original = new AddressBook();
+        Person student = new Person(new Name("Alice Tan"), new MatricNumber("A0123456X"),
+                new TutorialGroup("W12"), null, null, null, Set.of(), "Needs help with recursion");
+        original.addPerson(student);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original);
+        ReadOnlyAddressBook readBack = storage.readAddressBook().get();
+        assertEquals("Needs help with recursion", readBack.getPersonList().get(0).getRemark());
+        assertEquals(original, new AddressBook(readBack));
     }
 
     @Test
