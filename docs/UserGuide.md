@@ -119,20 +119,28 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name: `find`
+### Finding students by name or matriculation number: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds students whose names or matriculation numbers match any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Each keyword can match a whole word in a name or a complete matriculation number.
+  Partial matches are not supported: `Han` does not match `Hans`, and `A0123` does not match `A0123456B`.
+* Matriculation-number matching is also case-insensitive: `a0123456b` matches `A0123456B`.
+* Students matching at least one keyword are returned (an `OR` search). You can mix names and matriculation numbers.
+* Each matching student appears once, in their original directory order, even if multiple keywords match.
+* Each search covers the complete directory and replaces the previous displayed results. Use `list` to show all students again.
+* No matches produces an empty list and a zero-result message. Searching does not change student records.
+* `find` without keywords shows a usage error and keeps the current list unchanged.
+* Phone numbers, email addresses, addresses, tutorial groups, tags, and remarks are not searched.
 
 Examples:
 * `find John` returns `john` and `John Doe`
+* `find A0123456B` returns the student with that matriculation number, if present.
+* `find John a0123456b` returns students with `John` in their name or the matriculation number `A0123456B`.
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
@@ -205,6 +213,6 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **List**   | `list`
 **Help**   | `help`
