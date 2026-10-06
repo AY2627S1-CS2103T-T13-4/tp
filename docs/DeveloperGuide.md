@@ -305,6 +305,8 @@ Files written by the earlier student-profile implementation may contain a one-di
 
 ### User stories
 
+This backlog records 33 user stories, including ideas from the team's shared project notes. It covers both the MVP and possible later enhancements; a story's inclusion does not mean it is implemented in the current version. The User Guide describes the available commands.
+
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
 | Priority | As a …                                    | I want to …                 | So that I can…                                                        |
@@ -322,7 +324,26 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                      | add free-text remarks to a student record | keep useful context about a student for future reference       |
 | `* *`    | tutor                                      | import or export roster data as CSV | reuse roster data and share it with other tools                       |
 | `* *`    | tutor                                      | record student attendance        | track participation across tutorial sessions                           |
+| `* *`    | tutor                                      | search for a student by name     | find their details without scrolling through the complete roster       |
+| `* *`    | tutor                                      | search for a student by matriculation number | identify the correct student when names are similar             |
+| `* *`    | tutor                                      | move a student to another tutorial group | reflect changes in tutorial allocation                          |
+| `* *`    | tutor managing multiple tutorial groups     | view all tutorial groups I manage | switch between my classes more easily                               |
+| `* *`    | tutor                                      | sort students by name            | scan the roster more easily                                           |
+| `* *`    | tutor                                      | sort students by tutorial group  | see students from the same class together                             |
+| `* *`    | tutor                                      | tag a student with simple labels | categorize students using information relevant to my teaching         |
+| `* *`    | tutor                                      | search for students with a particular tag | find students who share a relevant characteristic              |
+| `* *`    | tutor                                      | edit a student's remarks         | keep my observations accurate and up to date                           |
+| `* *`    | tutor                                      | view previous notes about a student | recall earlier interactions before a consultation                  |
+| `* *`    | tutor                                      | mark a student as requiring follow-up | avoid forgetting students who need further attention              |
+| `* *`    | tutor                                      | view all students requiring follow-up | identify whom I need to contact or check on                        |
+| `* *`    | tutor                                      | mark a follow-up as completed    | keep my follow-up list current                                        |
+| `* *`    | tutor                                      | view the number of students in each tutorial group | understand the size of each class I manage                  |
+| `* *`    | tutor                                      | view a concise summary of each student in the list | identify students without opening every full profile      |
 | `*`      | tutor                                      | seed the application with sample data | explore the application before entering a real roster             |
+| `*`      | tutor                                      | filter students using multiple criteria | narrow down a large roster quickly                              |
+| `*`      | tutor                                      | undo an accidental deletion      | recover a student record that I removed by mistake                     |
+| `*`      | tutor                                      | archive students from previous semesters | keep my current roster uncluttered while preserving old records |
+| `*`      | tutor                                      | view archived students           | refer back to information about students I previously taught          |
 
 
 ### Use cases
