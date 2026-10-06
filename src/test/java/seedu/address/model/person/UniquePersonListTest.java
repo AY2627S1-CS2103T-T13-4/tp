@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_MATRIC_NUMBER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -40,9 +41,17 @@ public class UniquePersonListTest {
     @Test
     public void contains_personWithSameIdentityFieldsInList_returnsTrue() {
         uniquePersonList.add(ALICE);
-        Person editedAlice = new PersonBuilder(ALICE).withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
+        Person editedAlice = new PersonBuilder(ALICE).withName("Another Name")
+                .withAddress(VALID_ADDRESS_BOB).withTags(VALID_TAG_HUSBAND)
                 .build();
         assertTrue(uniquePersonList.contains(editedAlice));
+    }
+
+    @Test
+    public void contains_personWithDifferentMatricNumber_returnsFalse() {
+        uniquePersonList.add(ALICE);
+        Person anotherAlice = new PersonBuilder(ALICE).withMatricNumber(VALID_MATRIC_NUMBER_BOB).build();
+        assertFalse(uniquePersonList.contains(anotherAlice));
     }
 
     @Test
@@ -53,7 +62,17 @@ public class UniquePersonListTest {
     @Test
     public void add_duplicatePerson_throwsDuplicatePersonException() {
         uniquePersonList.add(ALICE);
-        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.add(ALICE));
+        Person personWithSameMatricNumber = new PersonBuilder(ALICE).withName("Another Name").build();
+        assertThrows(DuplicatePersonException.class, () -> uniquePersonList.add(personWithSameMatricNumber));
+    }
+
+    @Test
+    public void add_sameNameDifferentMatricNumber_success() {
+        uniquePersonList.add(ALICE);
+        Person personWithDifferentMatricNumber = new PersonBuilder(ALICE)
+                .withMatricNumber(VALID_MATRIC_NUMBER_BOB).build();
+        uniquePersonList.add(personWithDifferentMatricNumber);
+        assertEquals(2, uniquePersonList.asUnmodifiableObservableList().size());
     }
 
     @Test

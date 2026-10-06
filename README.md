@@ -1,14 +1,35 @@
+# TutorLink
+
 [![CI Status](https://github.com/AY2627S1-CS2103T-T13-4/tp/workflows/Java%20CI/badge.svg)](https://github.com/AY2627S1-CS2103T-T13-4/tp/actions)
 
-![Ui](docs/images/Ui.png)
+![TutorLink UI](docs/images/Ui.png)
 
-* This is **a sample project for Software Engineering (SE) students**.<br>
-  Example usages:
-  * as a starting point of a course project (as opposed to writing everything from scratch)
-  * as a case study
-* The project simulates an ongoing software project for a desktop application (called _AddressBook_) used for managing contact details.
-  * It is **written in an object-oriented programming (OOP) style** and provides a **reasonably well-written** codebase of about 6 KLoC. It is **larger** than what students typically write in beginner-level software-engineering modules, without being overwhelming.
-  * It comes with a **reasonable level of user and developer documentation**.
-* It is named `AddressBook Level 3` (`AB3` for short) because it was initially created as a part of a series of `AddressBook` projects (`Level 1`, `Level 2`, `Level 3` ...).
-* For the detailed documentation of this project, see the **[Project Website](https://ay2627s1-cs2103t-t13-4.github.io/tp/)**.
-* This project is a **part of the se-education.org** initiative. If you would like to contribute code to this project, see [se-education.org](https://se-education.org/#contributing-to-se-edu) for more info.
+## Overview
+
+TutorLink is a desktop application designed to help tutors manage their tutorial groups and student information efficiently.
+
+It brings tutorial and student records together in one place, allowing tutors to organise their classes, access student profiles, and keep track of student participation. TutorLink combines a graphical user interface with command-based interactions for a fast and convenient workflow.
+
+## Target Users
+
+TutorLink is intended for tutors who manage one or more tutorial groups and need a convenient way to organise student information.
+
+## Key Features
+
+* **Tutorial Management** — Create, view, edit, and delete tutorial groups.
+* **Student Management** — Add and manage students within their respective tutorial groups.
+* **Student Profiles** — View student information, participation records, and notes.
+* **Search** — Search for tutorial groups and students using relevant keywords.
+
+## Documentation
+
+For more information about TutorLink, visit our [Project Website](https://ay2627s1-cs2103t-t13-4.github.io/tp/).
+
+You can also refer to the:
+
+* [User Guide](https://ay2627s1-cs2103t-t13-4.github.io/tp/UserGuide.html)
+* [Developer Guide](https://ay2627s1-cs2103t-t13-4.github.io/tp/DeveloperGuide.html)
+
+## Acknowledgements
+
+This project is based on the [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) project created by the [SE-EDU initiative](https://se-education.org).

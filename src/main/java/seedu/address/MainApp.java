@@ -7,13 +7,14 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
-import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
@@ -42,6 +43,7 @@ public class MainApp extends Application {
     protected Logic logic;
     protected Storage storage;
     protected Model model;
+    private String dataLoadingError;
 
     @Override
     public void init() throws Exception {
@@ -53,7 +55,12 @@ public class MainApp extends Application {
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
-        model = initModelManager(storage, userPrefs);
+        try {
+            model = initModelManager(storage, userPrefs);
+        } catch (IllegalStateException e) {
+            dataLoadingError = e.getMessage();
+            return;
+        }
 
         logic = new LogicManager(model, storage);
 
@@ -62,10 +69,10 @@ public class MainApp extends Application {
 
     /**
      * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
-     * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * The data from the sample address book will be used if {@code storage}'s address book is not found.
+     * An invalid existing data file prevents startup so it cannot be overwritten by an empty address book.
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    static Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
@@ -78,9 +85,10 @@ public class MainApp extends Application {
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
-            logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty AddressBook.");
-            initialData = new AddressBook();
+            String message = "Data file at " + storage.getAddressBookFilePath()
+                    + " could not be loaded. The original file was not changed; startup has stopped to protect it.";
+            logger.severe(message);
+            throw new IllegalStateException(message, e);
         }
 
         return new ModelManager(initialData, userPrefs);
@@ -120,6 +128,16 @@ public class MainApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        if (dataLoadingError != null) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Unable to load student data");
+            alert.setHeaderText("TutorLink did not change your data file");
+            alert.setContentText(dataLoadingError);
+            alert.showAndWait();
+            Platform.exit();
+            return;
+        }
+
         logger.info("Starting AddressBook " + MainApp.VERSION);
         ui.start(primaryStage);
     }
@@ -127,6 +145,9 @@ public class MainApp extends Application {
     @Override
     public void stop() {
         logger.info("============================ [ Stopping AddressBook ] =============================");
+        if (model == null) {
+            return;
+        }
         try {
             storage.saveUserPrefs(model.getUserPrefs());
         } catch (IOException e) {
