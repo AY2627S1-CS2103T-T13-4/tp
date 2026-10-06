@@ -89,6 +89,9 @@ public class FindCommandIntegrationTest {
     public void execute_searchThenDelete_usesResultIndex() throws Exception {
         assertSearch("find A0000004D", List.of(CARL));
         logic.execute("delete 1");
+        assertEquals(List.of(CARL), model.getFilteredPersonList());
+        assertDirectoryUnchanged();
+        logic.execute("delete 1 confirm");
 
         List<Person> remaining = getTypicalPersons();
         remaining.remove(CARL);
