@@ -116,7 +116,7 @@
         "listing-all-persons-list": "Listing all persons: list",
         "editing-a-person-edit": "Editing a person: edit",
         "finding-students-by-name-or-matriculation-number-find": "Finding students by name or matriculation number: find",
-        "deleting-a-person-delete": "Deleting a person: delete",
+        "deleting-a-student-with-confirmation-delete": "Deleting a student with confirmation: delete",
         "clearing-all-entries-clear": "Clearing all entries: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
         "saving-the-data": "Saving the data",
