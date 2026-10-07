@@ -33,7 +33,7 @@ TutorLink is a **desktop application for managing students' contact details, opt
 
    * `add n/John Doe m/A0123456X g/T01 p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a student named `John Doe` to TutorLink.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete 3` : Previews the 3rd contact; use `delete 3 confirm` to delete it.
 
    * `clear` : Deletes all contacts.
 
@@ -144,19 +144,23 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
-### Deleting a person: `delete`
+### Deleting a student with confirmation: `delete`
 
-Deletes the specified contact.
+Shows the selected student before deletion. Add `confirm` to explicitly authorise removal.
 
-Format: `delete INDEX`
+Format: `delete INDEX [confirm]`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
-* The index **must be a positive integer** 1, 2, 3, ...
+* `delete INDEX` displays the selected student's details and the command to confirm deletion. It does not remove them.
+* `delete INDEX confirm` deletes the student at the specified index in the currently displayed list.
+* The index **must be a positive integer** 1, 2, 3, ... and must refer to a student in that list.
+* The confirmation keyword is exactly `confirm` (lowercase).
+* To abandon deletion after viewing the preview, simply do not enter the confirmation command. No cancellation command is needed.
+* Confirmation uses the current displayed index and does not remember the earlier preview. If you change the list between commands, preview the student again and check their index before confirming.
+* You may enter `delete INDEX confirm` directly when you have already checked the student's index.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd contact in the list.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list`, then `delete 2` previews the 2nd student. `delete 2 confirm` removes that student if the list is unchanged.
+* `find Betsy`, then `delete 1` previews the 1st student in the search results. `delete 1 confirm` removes that student if the results are unchanged.
 
 ### Clearing all entries: `clear`
 
@@ -211,7 +215,7 @@ Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho m/A2345678Z g/T05 p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
 **Clear**  | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **List**   | `list`
