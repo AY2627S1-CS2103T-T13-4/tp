@@ -33,9 +33,9 @@ TutorLink is a **desktop application for managing students' contact details, opt
 
    * `list g/T01` : Lists only students in tutorial group `T01`.
 
-   * `add n/John Doe m/A0123456X g/T01 p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a student named `John Doe` to TutorLink.
+   * `add n/John Doe m/A0123456X g/T01 e/johnd@example.com` : Adds a student named `John Doe` to TutorLink.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete 3` : Previews the 3rd contact; use `delete 3 confirm` to delete it.
 
    * `clear` : Deletes all contacts.
 
@@ -82,7 +82,10 @@ Format: `help`
 
 Adds a person to the contact list.
 
-Format: `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... `
+Format: `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+
+The name, matriculation number, and tutorial group are required. Phone number, email, address, and tags are optional.
+If omitted, the corresponding contact details are displayed as `Not provided`.
 
 Names can contain letters, digits, and spaces, up to 70 characters after leading/trailing whitespace is removed and consecutive spaces are collapsed. For example, `John  Doe` is saved as `John Doe`.
 
@@ -96,6 +99,7 @@ in uppercase, while leading zeros are kept, so `l03` is stored as `L03`.
 </box>
 
 Examples:
+* `add n/John Doe m/A0123456X g/T01`
 * `add n/John Doe m/A0123456X g/T01 p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe m/A1234567Y g/l03 t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
@@ -133,36 +137,48 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name: `find`
+### Finding students by name or matriculation number: `find`
 
-Finds persons whose names contain any of the given keywords.
+Finds students whose names or matriculation numbers match any of the given keywords.
 
 Format: `find KEYWORD [MORE_KEYWORDS]`
 
 * The search is case-insensitive; for example, `hans` matches `Hans`.
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Each keyword can match a whole word in a name or a complete matriculation number.
+  Partial matches are not supported: `Han` does not match `Hans`, and `A0123` does not match `A0123456B`.
+* Matriculation-number matching is also case-insensitive: `a0123456b` matches `A0123456B`.
+* Students matching at least one keyword are returned (an `OR` search). You can mix names and matriculation numbers.
+* Each matching student appears once, in their original directory order, even if multiple keywords match.
+* Each search covers the complete directory and replaces the previous displayed results. Use `list` to show all students again.
+* No matches produces an empty list and a zero-result message. Searching does not change student records.
+* `find` without keywords shows a usage error and keeps the current list unchanged.
+* Phone numbers, email addresses, addresses, tutorial groups, tags, and remarks are not searched.
 
 Examples:
 * `find John` returns `john` and `John Doe`
+* `find A0123456B` returns the student with that matriculation number, if present.
+* `find John a0123456b` returns students with `John` in their name or the matriculation number `A0123456B`.
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
-### Deleting a person: `delete`
+### Deleting a student with confirmation: `delete`
 
-Deletes the specified contact.
+Shows the selected student before deletion. Add `confirm` to explicitly authorise removal.
 
-Format: `delete INDEX`
+Format: `delete INDEX [confirm]`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
-* The index **must be a positive integer** 1, 2, 3, ...
+* `delete INDEX` displays the selected student's details and the command to confirm deletion. It does not remove them.
+* `delete INDEX confirm` deletes the student at the specified index in the currently displayed list.
+* The index **must be a positive integer** 1, 2, 3, ... and must refer to a student in that list.
+* The confirmation keyword is exactly `confirm` (lowercase).
+* To abandon deletion after viewing the preview, simply do not enter the confirmation command. No cancellation command is needed.
+* Confirmation uses the current displayed index and does not remember the earlier preview. If you change the list between commands, preview the student again and check their index before confirming.
+* You may enter `delete INDEX confirm` directly when you have already checked the student's index.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd contact in the list.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list`, then `delete 2` previews the 2nd student. `delete 2 confirm` removes that student if the list is unchanged.
+* `find Betsy`, then `delete 1` previews the 1st student in the search results. `delete 1 confirm` removes that student if the results are unchanged.
 
 ### Clearing all entries: `clear`
 
@@ -215,10 +231,10 @@ _Details coming soon ..._
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP p/PHONE_NUMBER e/EMAIL a/ADDRESS [t/TAG]... ` <br> e.g., `add n/James Ho m/A2345678Z g/T05 p/22224444 e/jamesho@example.com a/123, Clementi Rd, 1234665 t/friend t/colleague`
+**Add**    | `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... ` <br> e.g., `add n/James Ho m/A2345678Z g/T05 e/jamesho@example.com`
 **Clear**  | `clear`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **List**   | `list [g/TUTORIAL_GROUP]`<br> e.g., `list g/T01`
 **Help**   | `help`

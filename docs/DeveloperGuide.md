@@ -50,7 +50,7 @@ The bulk of the app's work is done by the following four components:
 
 **How the architecture components interact with each other**
 
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
+The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1 confirm`.
 
 <puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
 
@@ -90,9 +90,9 @@ Here's a (partial) class diagram of the `Logic` component:
 
 <puml src="diagrams/LogicClassDiagram.puml" width="550"/>
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1 confirm")` API call as an example.
 
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
+<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1 confirm` Command" />
 
 <box type="info" seamless>
 
@@ -199,7 +199,7 @@ Step 1. The user launches the application for the first time. The `VersionedAddr
 
 <puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
 
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete 5 confirm` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5 confirm` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
 
 <puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
 
@@ -327,6 +327,8 @@ Files written by the earlier student-profile implementation may contain a one-di
 
 ### User stories
 
+This backlog records 33 user stories, including ideas from the team's shared project notes. It covers both the MVP and possible later enhancements; a story's inclusion does not mean it is implemented in the current version. The User Guide describes the available commands.
+
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
 | Priority | As a …                                    | I want to …                 | So that I can…                                                        |
@@ -344,7 +346,26 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* *`    | tutor                                      | add free-text remarks to a student record | keep useful context about a student for future reference       |
 | `* *`    | tutor                                      | import or export roster data as CSV | reuse roster data and share it with other tools                       |
 | `* *`    | tutor                                      | record student attendance        | track participation across tutorial sessions                           |
+| `* *`    | tutor                                      | search for a student by name     | find their details without scrolling through the complete roster       |
+| `* *`    | tutor                                      | search for a student by matriculation number | identify the correct student when names are similar             |
+| `* *`    | tutor                                      | move a student to another tutorial group | reflect changes in tutorial allocation                          |
+| `* *`    | tutor managing multiple tutorial groups     | view all tutorial groups I manage | switch between my classes more easily                               |
+| `* *`    | tutor                                      | sort students by name            | scan the roster more easily                                           |
+| `* *`    | tutor                                      | sort students by tutorial group  | see students from the same class together                             |
+| `* *`    | tutor                                      | tag a student with simple labels | categorize students using information relevant to my teaching         |
+| `* *`    | tutor                                      | search for students with a particular tag | find students who share a relevant characteristic              |
+| `* *`    | tutor                                      | edit a student's remarks         | keep my observations accurate and up to date                           |
+| `* *`    | tutor                                      | view previous notes about a student | recall earlier interactions before a consultation                  |
+| `* *`    | tutor                                      | mark a student as requiring follow-up | avoid forgetting students who need further attention              |
+| `* *`    | tutor                                      | view all students requiring follow-up | identify whom I need to contact or check on                        |
+| `* *`    | tutor                                      | mark a follow-up as completed    | keep my follow-up list current                                        |
+| `* *`    | tutor                                      | view the number of students in each tutorial group | understand the size of each class I manage                  |
+| `* *`    | tutor                                      | view a concise summary of each student in the list | identify students without opening every full profile      |
 | `*`      | tutor                                      | seed the application with sample data | explore the application before entering a real roster             |
+| `*`      | tutor                                      | filter students using multiple criteria | narrow down a large roster quickly                              |
+| `*`      | tutor                                      | undo an accidental deletion      | recover a student record that I removed by mistake                     |
+| `*`      | tutor                                      | archive students from previous semesters | keep my current roster uncluttered while preserving old records |
+| `*`      | tutor                                      | view archived students           | refer back to information about students I previously taught          |
 
 
 ### Use cases
@@ -546,6 +567,9 @@ testers are expected to do more *exploratory* testing.
    1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
 
    1. Test case: `delete 1`<br>
+      Expected: No person is deleted. The status message previews the first student and shows `delete 1 confirm`.
+
+   1. Test case: `delete 1 confirm`<br>
       Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
 
    1. Test case: `delete 0`<br>

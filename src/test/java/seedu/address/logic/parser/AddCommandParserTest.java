@@ -34,6 +34,8 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSucces
 import static seedu.address.testutil.TypicalPersons.AMY;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
@@ -90,9 +92,9 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_optionalFieldsMissing_success() {
-        String input = NAME_DESC_AMY + MATRIC_NUMBER_DESC_AMY + TUTORIAL_GROUP_DESC_AMY
-                + " p/11111111 e/amy@example.com a/Block 312, Amy Street 1";
-        Person expectedPerson = new PersonBuilder(AMY).withTags().build();
+        String input = NAME_DESC_AMY + MATRIC_NUMBER_DESC_AMY + TUTORIAL_GROUP_DESC_AMY;
+        Person expectedPerson = new Person(AMY.getName(), AMY.getMatricNumber(), AMY.getTutorialGroup(),
+                null, null, null, Set.of(), AMY.getRemark());
         assertParseSuccess(parser, input, new AddCommand(expectedPerson));
     }
 
@@ -102,10 +104,7 @@ public class AddCommandParserTest {
         String[] inputs = {
             VALID_BOB_DETAILS.replace(NAME_DESC_BOB, ""),
             VALID_BOB_DETAILS.replace(MATRIC_NUMBER_DESC_BOB, ""),
-            VALID_BOB_DETAILS.replace(TUTORIAL_GROUP_DESC_BOB, ""),
-            VALID_BOB_DETAILS.replace(PHONE_DESC_BOB, ""),
-            VALID_BOB_DETAILS.replace(EMAIL_DESC_BOB, ""),
-            VALID_BOB_DETAILS.replace(ADDRESS_DESC_BOB, "")
+            VALID_BOB_DETAILS.replace(TUTORIAL_GROUP_DESC_BOB, "")
         };
         for (String input : inputs) {
             assertParseFailure(parser, input, expectedMessage);
