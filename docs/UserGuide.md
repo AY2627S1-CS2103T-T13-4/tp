@@ -31,6 +31,8 @@ TutorLink is a **desktop application for managing students' contact details, opt
 
    * `list` : Lists all contacts.
 
+   * `list g/T01` : Lists only students in tutorial group `T01`.
+
    * `add n/John Doe m/A0123456X g/T01 e/johnd@example.com` : Adds a student named `John Doe` to TutorLink.
 
    * `delete 3` : Previews the 3rd contact; use `delete 3 confirm` to delete it.
@@ -61,7 +63,7 @@ TutorLink is a **desktop application for managing students' contact details, opt
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -101,11 +103,23 @@ Examples:
 * `add n/John Doe m/A0123456X g/T01 p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe m/A1234567Y g/l03 t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
-### Listing all persons: `list`
+### Listing persons: `list`
 
-Shows a list of all contacts.
+Shows all students, or only students from a specified tutorial group.
 
-Format: `list`
+Format: `list [g/TUTORIAL_GROUP]`
+
+* `list` shows all students and resets any active tutorial group filter.
+* `list g/TUTORIAL_GROUP` shows only students whose tutorial group exactly matches the specified group.
+* The tutorial group must be one letter followed by exactly two digits. Lowercase letters are accepted, so `g/t01`
+  is interpreted as `g/T01`.
+* The result message reports the number of matching students. If there are no matches, an empty list is shown.
+* An invalid tutorial group or command format leaves the current list unchanged.
+
+Examples:
+* `list` shows all students.
+* `list g/T01` shows only students in tutorial group `T01`.
+* `list g/l03` shows only students in tutorial group `L03`.
 
 ### Editing a person: `edit`
 
@@ -116,6 +130,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values.
+* The current filtered view remains active after an edit. If the edited student no longer matches the active filter,
+  the student disappears from the displayed list. Use `list` to show all students again.
 * When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
 * To remove all of a person's tags, enter `t/` without a tag after it.
 
@@ -222,5 +238,5 @@ Action     | Format, Examples
 **Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
-**List**   | `list`
+**List**   | `list [g/TUTORIAL_GROUP]`<br> e.g., `list g/T01`
 **Help**   | `help`

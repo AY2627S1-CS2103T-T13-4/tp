@@ -159,6 +159,28 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Tutorial group filtering
+
+Tutorial group filtering is implemented as an optional mode of the `list` command. The supported forms are `list`,
+which shows every student, and `list g/T01`, which shows only students in the specified tutorial group.
+
+When `AddressBookParser` receives a `list` command, it delegates the arguments to `ListCommandParser`. With no
+arguments, the parser creates a `ListCommand` that uses `Model#PREDICATE_SHOW_ALL_PERSONS`. When the `g/` prefix is
+present, the parser uses `ParserUtil#parseTutorialGroup(String)` to validate and normalize the value before creating
+the command. Invalid, missing, or repeated tutorial-group arguments cause a `ParseException`, so the current list is
+not changed.
+
+For a group-filtered command, `ListCommand` creates a `TutorialGroupMatchesPredicate`. This predicate performs an
+exact comparison between the requested `TutorialGroup` and each person's tutorial group. `ListCommand` passes the
+predicate to `Model#updateFilteredPersonList(Predicate)`. `ModelManager` applies it to its JavaFX
+`FilteredList<Person>`, and the UI updates automatically because it observes that list. The command then reports the
+number of matching students, including zero when no students match.
+
+The original `UniquePersonList` is not modified or copied during filtering. It remains the complete source of student
+records, while `FilteredList<Person>` provides the current view. Consequently, filtering does not change stored data.
+Commands that operate on the displayed list use its current one-based indexes. Editing or deleting a displayed
+student retains the active filter, while running `list` without `g/` restores the complete list.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
