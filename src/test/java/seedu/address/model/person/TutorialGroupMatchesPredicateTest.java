@@ -21,6 +21,7 @@ public class TutorialGroupMatchesPredicateTest {
 
         assertTrue(firstPredicate.equals(firstPredicate));
         assertTrue(firstPredicate.equals(firstPredicateCopy));
+        assertEquals(firstPredicate.hashCode(), firstPredicateCopy.hashCode());
         assertFalse(firstPredicate.equals(secondPredicate));
         assertFalse(firstPredicate.equals(null));
         assertFalse(firstPredicate.equals(1));

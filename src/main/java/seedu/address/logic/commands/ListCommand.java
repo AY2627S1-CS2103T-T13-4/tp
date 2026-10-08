@@ -70,6 +70,11 @@ public class ListCommand extends Command {
     }
 
     @Override
+    public int hashCode() {
+        return tutorialGroup.hashCode();
+    }
+
+    @Override
     public String toString() {
         return new ToStringBuilder(this)
                 .add("tutorialGroup", tutorialGroup)
