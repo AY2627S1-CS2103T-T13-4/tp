@@ -28,6 +28,8 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.TutorialGroup;
+import seedu.address.model.person.TutorialGroupMatchesPredicate;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -83,12 +85,56 @@ public class EditCommandTest {
         Person withRemark = new PersonBuilder(original).withRemark("Needs follow-up").build();
         model.setPerson(original, withRemark);
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
-                new EditPersonDescriptorBuilder().withName(VALID_NAME_BOB).build());
+                new EditPersonDescriptorBuilder().withMatricNumber("A1234567Z")
+                        .withTutorialGroup("W12").build());
 
         editCommand.execute(model);
 
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         assertEquals("Needs follow-up", editedPerson.getRemark());
+    }
+
+    @Test
+    public void execute_matricNumberOnly_preservesOtherDetails() {
+        Person original = model.getFilteredPersonList().get(0);
+        Person editedPerson = new PersonBuilder(original).withMatricNumber("a1234567z").build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withMatricNumber("a1234567z").build());
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(original, editedPerson);
+
+        assertCommandSuccess(editCommand, model,
+                String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)), expectedModel);
+    }
+
+    @Test
+    public void execute_duplicateMatricNumberFilteredList_failure() {
+        Person firstPerson = model.getFilteredPersonList().get(0);
+        Person secondPerson = model.getFilteredPersonList().get(1);
+        model.updateFilteredPersonList(person -> person.equals(firstPerson));
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder()
+                        .withMatricNumber(secondPerson.getMatricNumber().toString().toLowerCase()).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_PERSON);
+        assertEquals(firstPerson, model.getFilteredPersonList().get(0));
+    }
+
+    @Test
+    public void execute_tutorialGroupChangedWhileFiltered_studentDisappears() throws Exception {
+        Person original = model.getFilteredPersonList().get(0);
+        TutorialGroup originalGroup = original.getTutorialGroup();
+        model.updateFilteredPersonList(new TutorialGroupMatchesPredicate(originalGroup));
+        int originalFilteredSize = model.getFilteredPersonList().size();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withTutorialGroup("w12").build());
+
+        editCommand.execute(model);
+
+        Person editedPerson = new PersonBuilder(original).withTutorialGroup("W12").build();
+        assertEquals(originalFilteredSize - 1, model.getFilteredPersonList().size());
+        assertTrue(model.getAddressBook().getPersonList().contains(editedPerson));
+        assertFalse(model.getFilteredPersonList().contains(editedPerson));
     }
 
     @Test
