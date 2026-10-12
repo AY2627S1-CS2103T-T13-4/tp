@@ -6,9 +6,9 @@
 
 ## Overview
 
-TutorLink is a desktop application designed to help tutors manage their tutorial groups and student information efficiently.
+TutorLink is a desktop application designed to help tutors manage their student roster efficiently.
 
-It brings tutorial and student records together in one place, allowing tutors to organise their classes, access student profiles, and keep track of student participation. TutorLink combines a graphical user interface with command-based interactions for a fast and convenient workflow.
+It brings student records together in one place, allowing tutors to organise students by tutorial group and access their contact details. TutorLink combines a graphical user interface with command-based interactions for a fast and convenient workflow.
 
 ## Target Users
 
@@ -16,10 +16,17 @@ TutorLink is intended for tutors who manage one or more tutorial groups and need
 
 ## Key Features
 
-* **Tutorial Management** — Create, view, edit, and delete tutorial groups.
-* **Student Management** — Add and manage students within their respective tutorial groups.
-* **Student Profiles** — View student information, participation records, and notes.
-* **Search** — Search for tutorial groups and students using relevant keywords.
+* **Student management** — Add, edit, list, and delete student records.
+* **Tutorial-group filtering** — View students belonging to a specified tutorial group.
+* **Student search** — Find students by whole name words or complete matriculation numbers.
+* **Contact details** — Store optional phone numbers, email addresses, addresses, and tags for each student.
+* **Data persistence** — Save student records automatically after every command.
+
+## Current release scope
+
+The v1.3 MVP focuses on managing a student roster. Tutorial groups are stored as part of each student's record and can be used for filtering, but TutorLink does not yet provide standalone tutorial-group creation, editing, or deletion.
+
+Attendance tracking, participation records, and student remarks are future enhancements and are not available in v1.3.
 
 ## Documentation
 
