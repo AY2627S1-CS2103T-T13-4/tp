@@ -560,6 +560,39 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases … }_
 
+### Searching across tutorial groups and editing search results
+
+Use a **disposable test folder** with a copy of the JAR and Java 25. These steps clear its student data; do not run
+them in a folder containing records you want to keep. Start with `java -jar addressbook.jar` from that folder.
+
+1. Enter `clear`, then add these synthetic students:
+   * `add n/Alice Test m/A1111111A g/T01`
+   * `add n/Ben Test m/A2222222B g/T02`
+   * Expected: Both students are listed, with omitted contact details shown as `Not provided`.
+1. Enter `list g/t01`, then `find a2222222b`.
+   * Expected: The group filter first shows only Alice. The search then shows only Ben at index `1`, even though
+     Ben belongs to another group. Search replaces the group filter and accepts lowercase matriculation numbers.
+1. Enter `list g/T01` again, then `find Ben`.
+   * Expected: The group filter replaces the search and shows Alice; the next search shows Ben.
+1. Enter `edit 2 n/Charlie Test`, `delete 2 confirm`, and `find` separately.
+   * Expected: Each command reports an error. Ben remains the only displayed student and no record changes.
+1. Enter `edit 1 n/Charlie Test`.
+   * Expected: Ben is renamed to Charlie, retaining matriculation number `A2222222B` and group `T02`.
+     The active name search now shows no students because Charlie does not match `Ben`.
+1. Enter `find a2222222b`, then `delete 1`.
+   * Expected: The search finds Charlie at index `1`. Deletion previews Charlie and the confirmation command;
+     Charlie remains in the list until `delete 1 confirm` is entered.
+1. Enter `delete 1 confirm`, then `list`.
+   * Expected: Charlie is removed. `list` restores Alice, who was not part of the search results.
+1. Enter `find Nobody`, then `add n/Dana Test m/A3333333C g/T03`.
+   * Expected: Adding Dana resets the empty search results and shows Alice and Dana.
+1. Enter `find a3333333c`, then `exit`. Restart the JAR from the same folder and enter `list`.
+   * Expected: The search finds Dana before exit. After restart, Alice and Dana remain with their required fields,
+     and Charlie remains deleted. Both students can still be found by name or matriculation number.
+
+These checks complement the parser/model/storage regression tests in `FindCommandIntegrationTest`. They also check
+the visible student cards and packaged application, which those automated tests do not exercise.
+
 ### Deleting a person
 
 1. Deleting a person while all persons are being shown
