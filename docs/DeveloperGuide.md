@@ -71,7 +71,7 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `StudentListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -80,7 +80,7 @@ The `UI` component,
 * executes user commands using the `Logic` component.
 * listens for changes to `Model` data so that the UI can be updated with the modified data.
 * keeps a reference to the `Logic` component, because the `UI` relies on the `Logic` to execute commands.
-* depends on some classes in the `Model` component because it displays `Person` objects from the model.
+* depends on some classes in the `Model` component because it displays `Student` objects from the model.
 
 ### Logic component
 
@@ -102,9 +102,9 @@ The sequence diagram below illustrates the interactions within the `Logic` compo
 
 How the `Logic` component works:
 
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
+1. When `Logic` is called upon to execute a command, the command is passed to a `TutorLinkParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
 1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a person).<br>
+1. The command can communicate with the `Model` when it is executed (e.g. to delete a student).<br>
    Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
 1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
 
@@ -113,7 +113,7 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <puml src="diagrams/ParserClasses.puml" width="600"/>
 
 How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
+* When called upon to parse a user command, the `TutorLinkParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `TutorLinkParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
@@ -124,15 +124,15 @@ How the parsing works:
 
 The `Model` component,
 
-* stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* stores the student directory data i.e., all `Student` objects (which are contained in a `UniqueStudentList` object).
+* stores the `Student` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Student>` that the UI can observe and bind to, so the UI updates when the list changes.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 
 <box type="info" seamless>
 
-**Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
+**Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `StudentDirectory`, and each `Student` references tags from that list. This lets `StudentDirectory` maintain one `Tag` object per unique tag instead of each `Student` holding its own `Tag` objects.<br>
 
 <puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
 </box>
@@ -145,13 +145,13 @@ The `Model` component,
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
 The `Storage` component,
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* can save both student directory data and user preference data in JSON format, and read them back into corresponding objects.
+* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonStudentDirectoryStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
 
-Classes used by multiple components are in the `seedu.address.commons` package.
+Classes used by multiple components are in the `tutorlink.commons` package.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -164,20 +164,20 @@ This section describes some noteworthy details on how certain features are imple
 Tutorial group filtering is implemented as an optional mode of the `list` command. The supported forms are `list`,
 which shows every student, and `list g/T01`, which shows only students in the specified tutorial group.
 
-When `AddressBookParser` receives a `list` command, it delegates the arguments to `ListCommandParser`. With no
-arguments, the parser creates a `ListCommand` that uses `Model#PREDICATE_SHOW_ALL_PERSONS`. When the `g/` prefix is
+When `TutorLinkParser` receives a `list` command, it delegates the arguments to `ListCommandParser`. With no
+arguments, the parser creates a `ListCommand` that uses `Model#PREDICATE_SHOW_ALL_STUDENTS`. When the `g/` prefix is
 present, the parser uses `ParserUtil#parseTutorialGroup(String)` to validate and normalize the value before creating
 the command. Invalid, missing, or repeated tutorial-group arguments cause a `ParseException`, so the current list is
 not changed.
 
 For a group-filtered command, `ListCommand` creates a `TutorialGroupMatchesPredicate`. This predicate performs an
-exact comparison between the requested `TutorialGroup` and each person's tutorial group. `ListCommand` passes the
-predicate to `Model#updateFilteredPersonList(Predicate)`. `ModelManager` applies it to its JavaFX
-`FilteredList<Person>`, and the UI updates automatically because it observes that list. The command then reports the
+exact comparison between the requested `TutorialGroup` and each student's tutorial group. `ListCommand` passes the
+predicate to `Model#updateFilteredStudentList(Predicate)`. `ModelManager` applies it to its JavaFX
+`FilteredList<Student>`, and the UI updates automatically because it observes that list. The command then reports the
 number of matching students, including zero when no students match.
 
-The original `UniquePersonList` is not modified or copied during filtering. It remains the complete source of student
-records, while `FilteredList<Person>` provides the current view. Consequently, filtering does not change stored data.
+The original `UniqueStudentList` is not modified or copied during filtering. It remains the complete source of student
+records, while `FilteredList<Student>` provides the current view. Consequently, filtering does not change stored data.
 Commands that operate on the displayed list use its current one-based indexes. Editing or deleting a displayed
 student retains the active filter, while running `list` without `g/` restores the complete list.
 
@@ -185,41 +185,41 @@ student retains the active filter, while running `list` without `g/` restores th
 
 #### Proposed Implementation
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+The proposed undo/redo mechanism is facilitated by `VersionedStudentDirectory`. It extends `StudentDirectory` with an undo/redo history, stored internally as a `studentDirectoryStateList` and `currentStatePointer`. Additionally, it implements the following operations:
 
-* `VersionedAddressBook#commit()` -- Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` -- Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` -- Restores a previously undone address book state from its history.
+* `VersionedStudentDirectory#commit()` -- Saves the current student directory state in its history.
+* `VersionedStudentDirectory#undo()` -- Restores the previous student directory state from its history.
+* `VersionedStudentDirectory#redo()` -- Restores a previously undone student directory state from its history.
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
+These operations are exposed in the `Model` interface as `Model#commitStudentDirectory()`, `Model#undoStudentDirectory()` and `Model#redoStudentDirectory()` respectively.
 
 Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
 
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
+Step 1. The user launches the application for the first time. The `VersionedStudentDirectory` will be initialized with the initial student directory state, and the `currentStatePointer` pointing to that single student directory state.
 
 <puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
 
-Step 2. The user executes `delete 5 confirm` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5 confirm` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
+Step 2. The user executes `delete 5 confirm` command to delete the 5th student in the student directory. The `delete` command calls `Model#commitStudentDirectory()`, causing the modified state of the student directory after the `delete 5 confirm` command executes to be saved in the `studentDirectoryStateList`, and the `currentStatePointer` is shifted to the newly inserted student directory state.
 
 <puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
 
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
+Step 3. The user executes `add n/David …​` to add a new student. The `add` command also calls `Model#commitStudentDirectory()`, causing another modified student directory state to be saved into the `studentDirectoryStateList`.
 
 <puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
 
 <box type="info" seamless>
 
-**Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
+**Note:** If a command fails its execution, it will not call `Model#commitStudentDirectory()`, so the student directory state will not be saved into the `studentDirectoryStateList`.
 </box>
 
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
+Step 4. The user now decides that adding the student was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoStudentDirectory()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous student directory state, and restores the student directory to that state.
 
 <puml src="diagrams/UndoRedoState3.puml" alt="UndoRedoState3" />
 
 
 <box type="info" seamless>
 
-**Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
+**Note:** If the `currentStatePointer` is at index 0, pointing to the initial StudentDirectory state, then there are no previous StudentDirectory states to restore. The `undo` command uses `Model#canUndoStudentDirectory()` to check if this is the case. If so, it will return an error to the user rather
 than attempting to perform the undo.
 </box>
 
@@ -236,18 +236,18 @@ Similarly, how an undo operation goes through the `Model` component is shown bel
 
 <puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="UndoSequenceDiagram-Model" />
 
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
+The `redo` command does the opposite — it calls `Model#redoStudentDirectory()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the student directory to that state.
 
 <box type="info" seamless>
 
-**Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
+**Note:** If the `currentStatePointer` is at index `studentDirectoryStateList.size() - 1`, pointing to the latest student directory state, then there are no undone StudentDirectory states to restore. The `redo` command uses `Model#canRedoStudentDirectory()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
 </box>
 
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
+Step 5. The user then decides to execute the command `list`. Commands that do not modify the student directory, such as `list`, will usually not call `Model#commitStudentDirectory()`, `Model#undoStudentDirectory()` or `Model#redoStudentDirectory()`. Thus, the `studentDirectoryStateList` remains unchanged.
 
 <puml src="diagrams/UndoRedoState4.puml" alt="UndoRedoState4" />
 
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …` command. This is the behavior that most modern desktop applications follow.
+Step 6. The user executes `clear`, which calls `Model#commitStudentDirectory()`. Since the `currentStatePointer` is not pointing at the end of the `studentDirectoryStateList`, all student directory states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …` command. This is the behavior that most modern desktop applications follow.
 
 <puml src="diagrams/UndoRedoState5.puml" alt="UndoRedoState5" />
 
@@ -259,13 +259,13 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 **Aspect: How undo & redo execute:**
 
-* **Alternative 1 (current choice):** Saves the entire address book.
+* **Alternative 1 (current choice):** Saves the entire student directory.
   * Pros: Easy to implement.
   * Cons: May have performance issues in terms of memory usage.
 
 * **Alternative 2:** Individual command knows how to undo/redo by
   itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
+  * Pros: Will use less memory (e.g. for `delete`, just save the student being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
 _{more aspects and alternatives to be added}_
@@ -547,7 +547,7 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Expected: The GUI opens with a set of sample students. The window size may not be optimal.
 
 1. Saving window preferences
 
@@ -561,7 +561,7 @@ testers are expected to do more *exploratory* testing.
 ### Searching across tutorial groups and editing search results
 
 Use a **disposable test folder** with a copy of the JAR and Java 25. These steps clear its student data; do not run
-them in a folder containing records you want to keep. Start with `java -jar addressbook.jar` from that folder.
+them in a folder containing records you want to keep. Start with `java -jar TutorLink.jar` from that folder.
 
 1. Enter `clear`, then add these synthetic students:
    * `add n/Alice Test m/A1111111A g/T01`
@@ -591,20 +591,20 @@ them in a folder containing records you want to keep. Start with `java -jar addr
 These checks complement the parser/model/storage regression tests in `FindCommandIntegrationTest`. They also check
 the visible student cards and packaged application, which those automated tests do not exercise.
 
-### Deleting a person
+### Deleting a student
 
-1. Deleting a person while all persons are being shown
+1. Deleting a student while all students are being shown
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: List all students using the `list` command, with multiple students in the list.
 
    1. Test case: `delete 1`<br>
-      Expected: No person is deleted. The status message previews the first student and shows `delete 1 confirm`.
+      Expected: No student is deleted. The status message previews the first student and shows `delete 1 confirm`.
 
    1. Test case: `delete 1 confirm`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+      Expected: The first student is deleted from the list. The status message shows the deleted student's details.
 
    1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No student is deleted. The status message shows error details.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
