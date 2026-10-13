@@ -5,7 +5,7 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_TUTORIAL_GROUP;
 
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.TutorialGroup;
+import seedu.address.model.student.TutorialGroup;
 
 /**
  * Parses input arguments and creates a new {@code ListCommand} object.

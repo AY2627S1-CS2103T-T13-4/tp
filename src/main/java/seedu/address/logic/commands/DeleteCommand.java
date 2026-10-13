@@ -9,10 +9,10 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
-import seedu.address.model.person.Person;
+import seedu.address.model.student.Student;
 
 /**
- * Previews or deletes a person identified using its displayed index from the address book.
+ * Previews or deletes a student identified using its displayed index from the student directory.
  */
 public class DeleteCommand extends Command {
 
@@ -23,7 +23,7 @@ public class DeleteCommand extends Command {
             + "Parameters: INDEX [confirm] (INDEX must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 1 confirm";
 
-    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted student: %1$s";
+    public static final String MESSAGE_DELETE_STUDENT_SUCCESS = "Deleted student: %1$s";
 
     public static final String MESSAGE_CONFIRM_DELETE = "Selected student: %1$s\n"
             + "To delete this student, enter: delete %2$d confirm\n"
@@ -48,20 +48,20 @@ public class DeleteCommand extends Command {
     @Override
     public CommandResult execute(Model model) throws CommandException {
         requireNonNull(model);
-        List<Person> lastShownList = model.getFilteredPersonList();
+        List<Student> lastShownList = model.getFilteredStudentList();
 
         if (targetIndex.getZeroBased() >= lastShownList.size()) {
-            throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            throw new CommandException(Messages.MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX);
         }
 
-        Person personToDelete = lastShownList.get(targetIndex.getZeroBased());
+        Student studentToDelete = lastShownList.get(targetIndex.getZeroBased());
         if (!isConfirmed) {
             return new CommandResult(String.format(MESSAGE_CONFIRM_DELETE,
-                    Messages.format(personToDelete), targetIndex.getOneBased()));
+                    Messages.format(studentToDelete), targetIndex.getOneBased()));
         }
 
-        model.deletePerson(personToDelete);
-        return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
+        model.deleteStudent(studentToDelete);
+        return new CommandResult(String.format(MESSAGE_DELETE_STUDENT_SUCCESS, Messages.format(studentToDelete)));
     }
 
     @Override

@@ -2,18 +2,18 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TUTORIAL_GROUP;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
+import static seedu.address.model.Model.PREDICATE_SHOW_ALL_STUDENTS;
 
 import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
-import seedu.address.model.person.TutorialGroup;
-import seedu.address.model.person.TutorialGroupMatchesPredicate;
+import seedu.address.model.student.TutorialGroup;
+import seedu.address.model.student.TutorialGroupMatchesPredicate;
 
 /**
- * Lists all persons in the address book to the user.
+ * Lists all students in the student directory to the user.
  */
 public class ListCommand extends Command {
 
@@ -29,14 +29,14 @@ public class ListCommand extends Command {
     private final Optional<TutorialGroup> tutorialGroup;
 
     /**
-     * Creates a command that lists all persons.
+     * Creates a command that lists all students.
      */
     public ListCommand() {
         tutorialGroup = Optional.empty();
     }
 
     /**
-     * Creates a command that lists persons in the specified tutorial group.
+     * Creates a command that lists students in the specified tutorial group.
      */
     public ListCommand(TutorialGroup tutorialGroup) {
         this.tutorialGroup = Optional.of(requireNonNull(tutorialGroup));
@@ -46,13 +46,13 @@ public class ListCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         if (tutorialGroup.isEmpty()) {
-            model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+            model.updateFilteredStudentList(PREDICATE_SHOW_ALL_STUDENTS);
             return new CommandResult(MESSAGE_SUCCESS);
         }
 
-        model.updateFilteredPersonList(new TutorialGroupMatchesPredicate(tutorialGroup.get()));
+        model.updateFilteredStudentList(new TutorialGroupMatchesPredicate(tutorialGroup.get()));
         return new CommandResult(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
+                String.format(Messages.MESSAGE_STUDENTS_LISTED_OVERVIEW, model.getFilteredStudentList().size()));
     }
 
     @Override

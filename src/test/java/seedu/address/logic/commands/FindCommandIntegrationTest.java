@@ -2,13 +2,13 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
-import static seedu.address.testutil.TypicalPersons.ALICE;
-import static seedu.address.testutil.TypicalPersons.BENSON;
-import static seedu.address.testutil.TypicalPersons.CARL;
-import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
-import static seedu.address.testutil.TypicalPersons.getTypicalPersons;
+import static seedu.address.testutil.TypicalStudents.ALICE;
+import static seedu.address.testutil.TypicalStudents.BENSON;
+import static seedu.address.testutil.TypicalStudents.CARL;
+import static seedu.address.testutil.TypicalStudents.getTypicalStudentDirectory;
+import static seedu.address.testutil.TypicalStudents.getTypicalStudents;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -25,14 +25,14 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
-import seedu.address.model.person.MatricNumber;
-import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
-import seedu.address.model.person.TutorialGroup;
-import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.model.student.MatricNumber;
+import seedu.address.model.student.Name;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.TutorialGroup;
+import seedu.address.storage.JsonStudentDirectoryStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
-import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.StudentBuilder;
 
 /**
  * Exercises student searches through parsing, filtering, and the normal storage path.
@@ -44,13 +44,13 @@ public class FindCommandIntegrationTest {
 
     private Model model;
     private Logic logic;
-    private JsonAddressBookStorage addressBookStorage;
+    private JsonStudentDirectoryStorage studentDirectoryStorage;
 
     @BeforeEach
     public void setUp() {
-        model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
-        addressBookStorage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
-        StorageManager storage = new StorageManager(addressBookStorage,
+        model = new ModelManager(getTypicalStudentDirectory(), new UserPrefs());
+        studentDirectoryStorage = new JsonStudentDirectoryStorage(temporaryFolder.resolve("studentDirectory.json"));
+        StorageManager storage = new StorageManager(studentDirectoryStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
         logic = new LogicManager(model, storage);
     }
@@ -70,7 +70,7 @@ public class FindCommandIntegrationTest {
     @Test
     public void execute_findAfterPreviousFilter_searchesCompleteDirectory() throws Exception {
         logic.execute("list g/t01");
-        assertEquals(List.of(ALICE, BENSON), model.getFilteredPersonList());
+        assertEquals(List.of(ALICE, BENSON), model.getFilteredStudentList());
         assertSearch("find A0000004D", List.of(CARL));
         assertSearch("find Benson", List.of(BENSON));
         assertDirectoryUnchanged();
@@ -80,7 +80,7 @@ public class FindCommandIntegrationTest {
     public void execute_groupFilterAfterSearch_replacesSearchResults() throws Exception {
         assertSearch("find Carl", List.of(CARL));
         logic.execute("list g/t01");
-        assertEquals(List.of(ALICE, BENSON), model.getFilteredPersonList());
+        assertEquals(List.of(ALICE, BENSON), model.getFilteredStudentList());
         assertDirectoryUnchanged();
     }
 
@@ -89,12 +89,12 @@ public class FindCommandIntegrationTest {
         assertSearch("find Carl", List.of(CARL));
         logic.execute("edit 1 n/Charlie Tan");
 
-        Person editedCarl = new PersonBuilder(CARL).withName("Charlie Tan").build();
-        List<Person> expectedStudents = getTypicalPersons();
+        Student editedCarl = new StudentBuilder(CARL).withName("Charlie Tan").build();
+        List<Student> expectedStudents = getTypicalStudents();
         expectedStudents.set(expectedStudents.indexOf(CARL), editedCarl);
-        assertEquals(List.of(), model.getFilteredPersonList());
-        assertEquals(expectedStudents, model.getAddressBook().getPersonList());
-        assertEquals(expectedStudents, addressBookStorage.readAddressBook().orElseThrow().getPersonList());
+        assertEquals(List.of(), model.getFilteredStudentList());
+        assertEquals(expectedStudents, model.getStudentDirectory().getStudentList());
+        assertEquals(expectedStudents, studentDirectoryStorage.readStudentDirectory().orElseThrow().getStudentList());
         assertSearch("find a0000004d", List.of(editedCarl));
     }
 
@@ -103,11 +103,11 @@ public class FindCommandIntegrationTest {
         assertSearch("find Carl", List.of(CARL));
 
         assertThrows(CommandException.class,
-                MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () -> logic.execute("edit 2 n/Charlie Tan"));
+                MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX, () -> logic.execute("edit 2 n/Charlie Tan"));
         assertThrows(CommandException.class,
-                MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () -> logic.execute("delete 2 confirm"));
+                MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX, () -> logic.execute("delete 2 confirm"));
 
-        assertEquals(List.of(CARL), model.getFilteredPersonList());
+        assertEquals(List.of(CARL), model.getFilteredStudentList());
         assertDirectoryUnchanged();
     }
 
@@ -116,18 +116,18 @@ public class FindCommandIntegrationTest {
         assertSearch("find Carl", List.of(CARL));
         logic.execute("add n/Dana Tan m/a7777777z g/t01");
 
-        Person addedStudent = new Person(new Name("Dana Tan"), new MatricNumber("A7777777Z"),
+        Student addedStudent = new Student(new Name("Dana Tan"), new MatricNumber("A7777777Z"),
                 new TutorialGroup("T01"), null, null, null, Set.of());
-        List<Person> expectedStudents = getTypicalPersons();
+        List<Student> expectedStudents = getTypicalStudents();
         expectedStudents.add(addedStudent);
-        assertEquals(expectedStudents, model.getFilteredPersonList());
+        assertEquals(expectedStudents, model.getFilteredStudentList());
         assertSearch("find a7777777z", List.of(addedStudent));
 
-        model = new ModelManager(addressBookStorage.readAddressBook().orElseThrow(), new UserPrefs());
-        logic = new LogicManager(model, new StorageManager(addressBookStorage,
+        model = new ModelManager(studentDirectoryStorage.readStudentDirectory().orElseThrow(), new UserPrefs());
+        logic = new LogicManager(model, new StorageManager(studentDirectoryStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
-        assertEquals(expectedStudents, model.getAddressBook().getPersonList());
-        assertEquals(expectedStudents, model.getFilteredPersonList());
+        assertEquals(expectedStudents, model.getStudentDirectory().getStudentList());
+        assertEquals(expectedStudents, model.getFilteredStudentList());
         assertSearch("find Dana", List.of(addedStudent));
     }
 
@@ -135,7 +135,7 @@ public class FindCommandIntegrationTest {
     public void execute_noMatchThenList_restoresCompleteDirectory() throws Exception {
         assertSearch("find A9999999Z", List.of());
         logic.execute("list");
-        assertEquals(getTypicalPersons(), model.getFilteredPersonList());
+        assertEquals(getTypicalStudents(), model.getFilteredStudentList());
         assertDirectoryUnchanged();
     }
 
@@ -144,7 +144,7 @@ public class FindCommandIntegrationTest {
         assertSearch("find Alice", List.of(ALICE));
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
         assertThrows(ParseException.class, expectedMessage, () -> logic.execute("find \t"));
-        assertEquals(List.of(ALICE), model.getFilteredPersonList());
+        assertEquals(List.of(ALICE), model.getFilteredStudentList());
         assertDirectoryUnchanged();
     }
 
@@ -152,25 +152,25 @@ public class FindCommandIntegrationTest {
     public void execute_searchThenDelete_usesResultIndex() throws Exception {
         assertSearch("find A0000004D", List.of(CARL));
         logic.execute("delete 1");
-        assertEquals(List.of(CARL), model.getFilteredPersonList());
+        assertEquals(List.of(CARL), model.getFilteredStudentList());
         assertDirectoryUnchanged();
         logic.execute("delete 1 confirm");
 
-        List<Person> remaining = getTypicalPersons();
+        List<Student> remaining = getTypicalStudents();
         remaining.remove(CARL);
-        assertEquals(remaining, model.getAddressBook().getPersonList());
-        assertEquals(List.of(), model.getFilteredPersonList());
-        assertEquals(remaining, addressBookStorage.readAddressBook().orElseThrow().getPersonList());
+        assertEquals(remaining, model.getStudentDirectory().getStudentList());
+        assertEquals(List.of(), model.getFilteredStudentList());
+        assertEquals(remaining, studentDirectoryStorage.readStudentDirectory().orElseThrow().getStudentList());
     }
 
-    private void assertSearch(String input, List<Person> expectedStudents) throws Exception {
+    private void assertSearch(String input, List<Student> expectedStudents) throws Exception {
         CommandResult result = logic.execute(input);
         assertEquals(expectedStudents.size() + " student(s) listed!", result.getFeedbackToUser());
-        assertEquals(expectedStudents, model.getFilteredPersonList());
+        assertEquals(expectedStudents, model.getFilteredStudentList());
     }
 
     private void assertDirectoryUnchanged() throws Exception {
-        assertEquals(getTypicalAddressBook(), model.getAddressBook());
-        assertEquals(getTypicalAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+        assertEquals(getTypicalStudentDirectory(), model.getStudentDirectory());
+        assertEquals(getTypicalStudentDirectory(), studentDirectoryStorage.readStudentDirectory().orElseThrow());
     }
 }

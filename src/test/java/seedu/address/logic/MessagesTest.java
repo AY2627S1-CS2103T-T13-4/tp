@@ -6,16 +6,16 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.model.person.MatricNumber;
-import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
-import seedu.address.model.person.TutorialGroup;
+import seedu.address.model.student.MatricNumber;
+import seedu.address.model.student.Name;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.TutorialGroup;
 
 public class MessagesTest {
 
     @Test
     public void format_missingOptionalDetails_showsProfileAndFallbacks() {
-        Person student = new Person(new Name("Alice Tan"), new MatricNumber("A0123456X"),
+        Student student = new Student(new Name("Alice Tan"), new MatricNumber("A0123456X"),
                 new TutorialGroup("T04"), null, null, null, Set.of());
 
         String result = Messages.format(student);

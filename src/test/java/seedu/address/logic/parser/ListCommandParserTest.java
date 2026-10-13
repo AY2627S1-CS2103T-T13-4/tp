@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.ListCommand;
-import seedu.address.model.person.TutorialGroup;
+import seedu.address.model.student.TutorialGroup;
 
 public class ListCommandParserTest {
     private final ListCommandParser parser = new ListCommandParser();

@@ -10,7 +10,7 @@ import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyStudentDirectory;
 
 /** Migrates data files from legacy TutorLink storage locations. */
 public final class DataFileMigrator {
@@ -20,24 +20,24 @@ public final class DataFileMigrator {
     private DataFileMigrator() {}
 
     /**
-     * Migrates address book data from {@code legacyFilePath} to {@code targetFilePath} when only the legacy file
+     * Migrates student directory data from {@code legacyFilePath} to {@code targetFilePath} when only the legacy file
      * exists. The legacy file is preserved, and the target file is replaced atomically where supported.
      */
-    public static void migrateAddressBook(Path legacyFilePath, Path targetFilePath)
+    public static void migrateStudentDirectory(Path legacyFilePath, Path targetFilePath)
             throws DataLoadingException, IOException {
         if (Files.exists(targetFilePath) || Files.notExists(legacyFilePath)) {
             return;
         }
 
-        JsonAddressBookStorage legacyStorage = new JsonAddressBookStorage(legacyFilePath);
-        Optional<ReadOnlyAddressBook> legacyData = legacyStorage.readAddressBook();
+        JsonStudentDirectoryStorage legacyStorage = new JsonStudentDirectoryStorage(legacyFilePath);
+        Optional<ReadOnlyStudentDirectory> legacyData = legacyStorage.readStudentDirectory();
         if (legacyData.isEmpty()) {
             return;
         }
 
         Path temporaryFilePath = targetFilePath.resolveSibling(targetFilePath.getFileName() + ".tmp");
         try {
-            new JsonAddressBookStorage(temporaryFilePath).saveAddressBook(legacyData.get());
+            new JsonStudentDirectoryStorage(temporaryFilePath).saveStudentDirectory(legacyData.get());
             moveTemporaryFile(temporaryFilePath, targetFilePath);
         } finally {
             deleteTemporaryFile(temporaryFilePath);

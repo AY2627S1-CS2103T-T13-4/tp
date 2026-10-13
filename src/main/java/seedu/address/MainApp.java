@@ -17,12 +17,12 @@ import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
-import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.ReadOnlyStudentDirectory;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.DataFileMigrator;
-import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonStudentDirectoryStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
 import seedu.address.storage.StorageManager;
@@ -54,11 +54,11 @@ public class MainApp extends Application {
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(DATA_FILE_PATH);
-        storage = new StorageManager(addressBookStorage, userPrefsStorage);
+        JsonStudentDirectoryStorage studentDirectoryStorage = new JsonStudentDirectoryStorage(DATA_FILE_PATH);
+        storage = new StorageManager(studentDirectoryStorage, userPrefsStorage);
 
         try {
-            DataFileMigrator.migrateAddressBook(LEGACY_DATA_FILE_PATH, DATA_FILE_PATH);
+            DataFileMigrator.migrateStudentDirectory(LEGACY_DATA_FILE_PATH, DATA_FILE_PATH);
             model = initModelManager(storage, userPrefs);
         } catch (DataLoadingException | IOException e) {
             dataLoadingError = "Legacy data file at " + LEGACY_DATA_FILE_PATH
@@ -73,28 +73,28 @@ public class MainApp extends Application {
 
         logic = new LogicManager(model, storage);
 
-        ui = new UiManager(logic, storage.getAddressBookFilePath());
+        ui = new UiManager(logic, storage.getStudentDirectoryFilePath());
     }
 
     /**
-     * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used if {@code storage}'s address book is not found.
-     * An invalid existing data file prevents startup so it cannot be overwritten by an empty address book.
+     * Returns a {@code ModelManager} with the data from {@code storage}'s student directory and {@code userPrefs}. <br>
+     * The data from the sample student directory will be used if {@code storage}'s student directory is not found.
+     * An invalid existing data file prevents startup so it cannot be overwritten by an empty student directory.
      */
     static Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
-        logger.info("Using data file : " + storage.getAddressBookFilePath());
+        logger.info("Using data file : " + storage.getStudentDirectoryFilePath());
 
-        Optional<ReadOnlyAddressBook> addressBookOptional;
-        ReadOnlyAddressBook initialData;
+        Optional<ReadOnlyStudentDirectory> studentDirectoryOptional;
+        ReadOnlyStudentDirectory initialData;
         try {
-            addressBookOptional = storage.readAddressBook();
-            if (addressBookOptional.isEmpty()) {
-                logger.info("Creating a new data file " + storage.getAddressBookFilePath()
+            studentDirectoryOptional = storage.readStudentDirectory();
+            if (studentDirectoryOptional.isEmpty()) {
+                logger.info("Creating a new data file " + storage.getStudentDirectoryFilePath()
                         + " populated with sample TutorLink data.");
             }
-            initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
+            initialData = studentDirectoryOptional.orElseGet(SampleDataUtil::getSampleStudentDirectory);
         } catch (DataLoadingException e) {
-            String message = "Data file at " + storage.getAddressBookFilePath()
+            String message = "Data file at " + storage.getStudentDirectoryFilePath()
                     + " could not be loaded. The original file was not changed; startup has stopped to protect it.";
             logger.severe(message);
             throw new IllegalStateException(message, e);

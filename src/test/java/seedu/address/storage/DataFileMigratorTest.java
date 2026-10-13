@@ -13,8 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
-import seedu.address.model.AddressBook;
-import seedu.address.testutil.PersonBuilder;
+import seedu.address.model.ReadOnlyStudentDirectory;
+import seedu.address.model.StudentDirectory;
+import seedu.address.testutil.StudentBuilder;
 
 public class DataFileMigratorTest {
 
@@ -22,58 +23,61 @@ public class DataFileMigratorTest {
     public Path temporaryFolder;
 
     @Test
-    public void migrateAddressBook_validLegacyFile_migratesWithoutChangingLegacyFile() throws Exception {
+    public void migrateStudentDirectory_validLegacyFile_migratesWithoutChangingLegacyFile() throws Exception {
         Path legacyFile = temporaryFolder.resolve("addressbook.json");
         Path targetFile = temporaryFolder.resolve("tutorlink.json");
-        AddressBook storedData = new AddressBook();
-        storedData.addPerson(new PersonBuilder().build());
-        new JsonAddressBookStorage(legacyFile).saveAddressBook(storedData);
+        StudentDirectory storedData = new StudentDirectory();
+        storedData.addStudent(new StudentBuilder().build());
+        new JsonStudentDirectoryStorage(legacyFile).saveStudentDirectory(storedData);
+        Files.writeString(legacyFile, Files.readString(legacyFile).replace("\"students\"", "\"persons\""));
         String originalLegacyFile = Files.readString(legacyFile);
 
-        DataFileMigrator.migrateAddressBook(legacyFile, targetFile);
+        DataFileMigrator.migrateStudentDirectory(legacyFile, targetFile);
 
         assertTrue(Files.exists(targetFile));
-        assertEquals(storedData, new AddressBook(new JsonAddressBookStorage(targetFile).readAddressBook().get()));
+        ReadOnlyStudentDirectory migratedData = new JsonStudentDirectoryStorage(targetFile)
+                .readStudentDirectory().get();
+        assertEquals(storedData, new StudentDirectory(migratedData));
         assertEquals(originalLegacyFile, Files.readString(legacyFile));
     }
 
     @Test
-    public void migrateAddressBook_targetFileExists_doesNotReadOrChangeEitherFile() throws Exception {
+    public void migrateStudentDirectory_targetFileExists_doesNotReadOrChangeEitherFile() throws Exception {
         Path legacyFile = temporaryFolder.resolve("addressbook.json");
         Path targetFile = temporaryFolder.resolve("tutorlink.json");
         String invalidLegacyData = "not valid json";
         Files.writeString(legacyFile, invalidLegacyData);
-        AddressBook targetData = new AddressBook();
-        targetData.addPerson(new PersonBuilder().build());
-        new JsonAddressBookStorage(targetFile).saveAddressBook(targetData);
+        StudentDirectory targetData = new StudentDirectory();
+        targetData.addStudent(new StudentBuilder().build());
+        new JsonStudentDirectoryStorage(targetFile).saveStudentDirectory(targetData);
         String originalTargetFile = Files.readString(targetFile);
 
-        assertDoesNotThrow(() -> DataFileMigrator.migrateAddressBook(legacyFile, targetFile));
+        assertDoesNotThrow(() -> DataFileMigrator.migrateStudentDirectory(legacyFile, targetFile));
 
         assertEquals(invalidLegacyData, Files.readString(legacyFile));
         assertEquals(originalTargetFile, Files.readString(targetFile));
     }
 
     @Test
-    public void migrateAddressBook_invalidLegacyFile_throwsAndPreservesLegacyFile() throws Exception {
+    public void migrateStudentDirectory_invalidLegacyFile_throwsAndPreservesLegacyFile() throws Exception {
         Path legacyFile = temporaryFolder.resolve("addressbook.json");
         Path targetFile = temporaryFolder.resolve("tutorlink.json");
         String invalidLegacyData = "not valid json";
         Files.writeString(legacyFile, invalidLegacyData);
 
         assertThrows(DataLoadingException.class, () ->
-                DataFileMigrator.migrateAddressBook(legacyFile, targetFile));
+                DataFileMigrator.migrateStudentDirectory(legacyFile, targetFile));
 
         assertEquals(invalidLegacyData, Files.readString(legacyFile));
         assertFalse(Files.exists(targetFile));
     }
 
     @Test
-    public void migrateAddressBook_missingLegacyFile_doesNotCreateTargetFile() {
+    public void migrateStudentDirectory_missingLegacyFile_doesNotCreateTargetFile() {
         Path legacyFile = temporaryFolder.resolve("addressbook.json");
         Path targetFile = temporaryFolder.resolve("tutorlink.json");
 
-        assertDoesNotThrow(() -> DataFileMigrator.migrateAddressBook(legacyFile, targetFile));
+        assertDoesNotThrow(() -> DataFileMigrator.migrateStudentDirectory(legacyFile, targetFile));
 
         assertFalse(Files.exists(targetFile));
     }

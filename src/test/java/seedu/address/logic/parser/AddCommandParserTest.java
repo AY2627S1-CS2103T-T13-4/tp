@@ -31,8 +31,8 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TUTORIAL_GROUP;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
-import static seedu.address.testutil.TypicalPersons.AMY;
-import static seedu.address.testutil.TypicalPersons.BOB;
+import static seedu.address.testutil.TypicalStudents.AMY;
+import static seedu.address.testutil.TypicalStudents.BOB;
 
 import java.util.Set;
 
@@ -40,15 +40,15 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddCommand;
-import seedu.address.model.person.Address;
-import seedu.address.model.person.Email;
-import seedu.address.model.person.MatricNumber;
-import seedu.address.model.person.Name;
-import seedu.address.model.person.Person;
-import seedu.address.model.person.Phone;
-import seedu.address.model.person.TutorialGroup;
+import seedu.address.model.student.Address;
+import seedu.address.model.student.Email;
+import seedu.address.model.student.MatricNumber;
+import seedu.address.model.student.Name;
+import seedu.address.model.student.Phone;
+import seedu.address.model.student.Student;
+import seedu.address.model.student.TutorialGroup;
 import seedu.address.model.tag.Tag;
-import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.StudentBuilder;
 
 public class AddCommandParserTest {
     private static final String VALID_BOB_DETAILS = NAME_DESC_BOB + MATRIC_NUMBER_DESC_BOB
@@ -58,20 +58,20 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_allFieldsPresent_success() {
-        Person expectedPerson = new PersonBuilder(BOB).withTags(VALID_TAG_FRIEND).build();
+        Student expectedStudent = new StudentBuilder(BOB).withTags(VALID_TAG_FRIEND).build();
         assertParseSuccess(parser, PREAMBLE_WHITESPACE + VALID_BOB_DETAILS + TAG_DESC_FRIEND,
-                new AddCommand(expectedPerson));
+                new AddCommand(expectedStudent));
 
-        Person expectedPersonMultipleTags = new PersonBuilder(BOB).withTags(VALID_TAG_FRIEND, VALID_TAG_HUSBAND)
+        Student expectedStudentMultipleTags = new StudentBuilder(BOB).withTags(VALID_TAG_FRIEND, VALID_TAG_HUSBAND)
                 .build();
         assertParseSuccess(parser, VALID_BOB_DETAILS + TAG_DESC_HUSBAND + TAG_DESC_FRIEND,
-                new AddCommand(expectedPersonMultipleTags));
+                new AddCommand(expectedStudentMultipleTags));
     }
 
     @Test
     public void parse_tutorialGroupWithLowercaseAndLeadingZero_success() {
         String input = VALID_BOB_DETAILS.replace(TUTORIAL_GROUP_DESC_BOB, " g/l03");
-        assertParseSuccess(parser, input, new AddCommand(new PersonBuilder(BOB).withTags().build()));
+        assertParseSuccess(parser, input, new AddCommand(new StudentBuilder(BOB).withTags().build()));
     }
 
     @Test
@@ -93,9 +93,9 @@ public class AddCommandParserTest {
     @Test
     public void parse_optionalFieldsMissing_success() {
         String input = NAME_DESC_AMY + MATRIC_NUMBER_DESC_AMY + TUTORIAL_GROUP_DESC_AMY;
-        Person expectedPerson = new Person(AMY.getName(), AMY.getMatricNumber(), AMY.getTutorialGroup(),
+        Student expectedStudent = new Student(AMY.getName(), AMY.getMatricNumber(), AMY.getTutorialGroup(),
                 null, null, null, Set.of(), AMY.getRemark());
-        assertParseSuccess(parser, input, new AddCommand(expectedPerson));
+        assertParseSuccess(parser, input, new AddCommand(expectedStudent));
     }
 
     @Test
