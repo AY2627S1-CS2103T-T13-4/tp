@@ -549,7 +549,7 @@ testers are expected to do more *exploratory* testing.
    1. Download the JAR file and copy it into an empty folder.
 
    1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+      Expected: The GUI opens with a set of sample students. The window size may not be optimal.
 
 1. Saving window preferences
 
@@ -563,7 +563,7 @@ testers are expected to do more *exploratory* testing.
 ### Searching across tutorial groups and editing search results
 
 Use a **disposable test folder** with a copy of the JAR and Java 25. These steps clear its student data; do not run
-them in a folder containing records you want to keep. Start with `java -jar addressbook.jar` from that folder.
+them in a folder containing records you want to keep. Start with `java -jar TutorLink.jar` from that folder.
 
 1. Enter `clear`, then add these synthetic students:
    * `add n/Alice Test m/A1111111A g/T01`
@@ -593,20 +593,20 @@ them in a folder containing records you want to keep. Start with `java -jar addr
 These checks complement the parser/model/storage regression tests in `FindCommandIntegrationTest`. They also check
 the visible student cards and packaged application, which those automated tests do not exercise.
 
-### Deleting a person
+### Deleting a student
 
-1. Deleting a person while all persons are being shown
+1. Deleting a student while all students are being shown
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+   1. Prerequisites: List all students using the `list` command, with multiple students in the list.
 
    1. Test case: `delete 1`<br>
-      Expected: No person is deleted. The status message previews the first student and shows `delete 1 confirm`.
+      Expected: No student is deleted. The status message previews the first student and shows `delete 1 confirm`.
 
    1. Test case: `delete 1 confirm`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+      Expected: The first student is deleted from the list. The status message shows the deleted student's details.
 
    1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+      Expected: No student is deleted. The status message shows error details.
 
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.

@@ -19,12 +19,12 @@ public class ListCommand extends Command {
 
     public static final String COMMAND_WORD = "list";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Lists all persons or only persons in the specified "
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Lists all students or only students in the specified "
             + "tutorial group.\n"
             + "Parameters: [" + PREFIX_TUTORIAL_GROUP + "TUTORIAL_GROUP]\n"
             + "Example: " + COMMAND_WORD + " " + PREFIX_TUTORIAL_GROUP + "T01";
 
-    public static final String MESSAGE_SUCCESS = "Listed all persons.";
+    public static final String MESSAGE_SUCCESS = "Listed all students.";
 
     private final Optional<TutorialGroup> tutorialGroup;
 

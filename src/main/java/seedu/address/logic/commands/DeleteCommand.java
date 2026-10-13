@@ -23,7 +23,7 @@ public class DeleteCommand extends Command {
             + "Parameters: INDEX [confirm] (INDEX must be a positive integer)\n"
             + "Example: " + COMMAND_WORD + " 1 confirm";
 
-    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
+    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted student: %1$s";
 
     public static final String MESSAGE_CONFIRM_DELETE = "Selected student: %1$s\n"
             + "To delete this student, enter: delete %2$d confirm\n"

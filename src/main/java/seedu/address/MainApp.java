@@ -21,6 +21,7 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
+import seedu.address.storage.DataFileMigrator;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
@@ -37,7 +38,8 @@ public class MainApp extends Application {
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
-    private static final Path ADDRESS_BOOK_FILE_PATH = Paths.get("data", "addressbook.json");
+    private static final Path DATA_FILE_PATH = Paths.get("data", "tutorlink.json");
+    private static final Path LEGACY_DATA_FILE_PATH = Paths.get("data", "addressbook.json");
 
     protected Ui ui;
     protected Logic logic;
@@ -47,16 +49,23 @@ public class MainApp extends Application {
 
     @Override
     public void init() throws Exception {
-        logger.info("=============================[ Initializing AddressBook ]===========================");
+        logger.info("==============================[ Initializing TutorLink ]============================");
         super.init();
 
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(USER_PREFS_FILE_PATH);
         UserPrefs userPrefs = initPrefs(userPrefsStorage);
-        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(ADDRESS_BOOK_FILE_PATH);
+        JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(DATA_FILE_PATH);
         storage = new StorageManager(addressBookStorage, userPrefsStorage);
 
         try {
+            DataFileMigrator.migrateAddressBook(LEGACY_DATA_FILE_PATH, DATA_FILE_PATH);
             model = initModelManager(storage, userPrefs);
+        } catch (DataLoadingException | IOException e) {
+            dataLoadingError = "Legacy data file at " + LEGACY_DATA_FILE_PATH
+                    + " could not be migrated to " + DATA_FILE_PATH
+                    + ". The original file was not changed; startup has stopped to protect it.";
+            logger.severe(dataLoadingError);
+            return;
         } catch (IllegalStateException e) {
             dataLoadingError = e.getMessage();
             return;
@@ -81,7 +90,7 @@ public class MainApp extends Application {
             addressBookOptional = storage.readAddressBook();
             if (addressBookOptional.isEmpty()) {
                 logger.info("Creating a new data file " + storage.getAddressBookFilePath()
-                        + " populated with a sample AddressBook.");
+                        + " populated with sample TutorLink data.");
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
@@ -138,13 +147,13 @@ public class MainApp extends Application {
             return;
         }
 
-        logger.info("Starting AddressBook " + MainApp.VERSION);
+        logger.info("Starting TutorLink " + MainApp.VERSION);
         ui.start(primaryStage);
     }
 
     @Override
     public void stop() {
-        logger.info("============================ [ Stopping AddressBook ] =============================");
+        logger.info("============================== [ Stopping TutorLink ] ==============================");
         if (model == null) {
             return;
         }

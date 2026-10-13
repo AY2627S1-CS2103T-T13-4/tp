@@ -165,7 +165,7 @@ public class FindCommandIntegrationTest {
 
     private void assertSearch(String input, List<Person> expectedStudents) throws Exception {
         CommandResult result = logic.execute(input);
-        assertEquals(expectedStudents.size() + " person(s) listed!", result.getFeedbackToUser());
+        assertEquals(expectedStudents.size() + " student(s) listed!", result.getFeedbackToUser());
         assertEquals(expectedStudents, model.getFilteredPersonList());
     }
 

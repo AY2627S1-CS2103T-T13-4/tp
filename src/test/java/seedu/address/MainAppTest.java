@@ -32,7 +32,7 @@ public class MainAppTest {
 
     @Test
     public void initModelManager_missingFile_loadsSampleDataWithoutCreatingFile() {
-        Path dataFile = temporaryFolder.resolve("addressbook.json");
+        Path dataFile = temporaryFolder.resolve("tutorlink.json");
         StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
                 new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
 
@@ -45,7 +45,7 @@ public class MainAppTest {
 
     @Test
     public void initModelManager_validFile_loadsStudentWithoutChangingFile() throws Exception {
-        Path dataFile = temporaryFolder.resolve("addressbook.json");
+        Path dataFile = temporaryFolder.resolve("tutorlink.json");
         AddressBook storedData = new AddressBook();
         storedData.addPerson(new PersonBuilder().build());
         JsonAddressBookStorage addressBookStorage = new JsonAddressBookStorage(dataFile);
@@ -62,7 +62,7 @@ public class MainAppTest {
 
     @Test
     public void initModelManager_incompatibleOldFile_preservesOriginal() throws Exception {
-        Path dataFile = temporaryFolder.resolve("addressbook.json");
+        Path dataFile = temporaryFolder.resolve("tutorlink.json");
         String oldData = "{\"persons\":[{\"name\":\"Alice Tan\",\"phone\":\"98765432\","
                 + "\"email\":\"alice@example.com\",\"address\":\"NUS\",\"tags\":[]}]}";
         Files.writeString(dataFile, oldData);
