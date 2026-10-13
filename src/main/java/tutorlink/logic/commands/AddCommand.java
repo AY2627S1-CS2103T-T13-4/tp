@@ -1,0 +1,85 @@
+package tutorlink.logic.commands;
+
+import static java.util.Objects.requireNonNull;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_ADDRESS;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_MATRIC_NUMBER;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_NAME;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_PHONE;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_TAG;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_TUTORIAL_GROUP;
+
+import tutorlink.commons.util.ToStringBuilder;
+import tutorlink.logic.Messages;
+import tutorlink.logic.commands.exceptions.CommandException;
+import tutorlink.model.Model;
+import tutorlink.model.student.Student;
+
+/**
+ * Adds a student to the student directory.
+ */
+public class AddCommand extends Command {
+
+    public static final String COMMAND_WORD = "add";
+
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a student to the roster. "
+            + "Parameters: "
+            + PREFIX_NAME + "NAME "
+            + PREFIX_MATRIC_NUMBER + "MATRIC_NUMBER "
+            + PREFIX_TUTORIAL_GROUP + "TUTORIAL_GROUP "
+            + "[" + PREFIX_PHONE + "PHONE] "
+            + "[" + PREFIX_EMAIL + "EMAIL] "
+            + "[" + PREFIX_ADDRESS + "ADDRESS] "
+            + "[" + PREFIX_TAG + "TAG]...\n"
+            + "Example: " + COMMAND_WORD + " "
+            + PREFIX_NAME + "John Doe "
+            + PREFIX_MATRIC_NUMBER + "A0123456X "
+            + PREFIX_TUTORIAL_GROUP + "T01 "
+            + PREFIX_EMAIL + "johnd@example.com";
+
+    public static final String MESSAGE_SUCCESS = "New student added: %1$s";
+    public static final String MESSAGE_DUPLICATE_STUDENT = "This student already exists in TutorLink.";
+
+    private final Student toAdd;
+
+    /**
+     * Creates an AddCommand to add the specified {@code Student}
+     */
+    public AddCommand(Student student) {
+        requireNonNull(student);
+        toAdd = student;
+    }
+
+    @Override
+    public CommandResult execute(Model model) throws CommandException {
+        requireNonNull(model);
+
+        if (model.hasStudent(toAdd)) {
+            throw new CommandException(MESSAGE_DUPLICATE_STUDENT);
+        }
+
+        model.addStudent(toAdd);
+        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == this) {
+            return true;
+        }
+
+        // instanceof handles nulls
+        if (!(other instanceof AddCommand otherAddCommand)) {
+            return false;
+        }
+
+        return toAdd.equals(otherAddCommand.toAdd);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .add("toAdd", toAdd)
+                .toString();
+    }
+}
