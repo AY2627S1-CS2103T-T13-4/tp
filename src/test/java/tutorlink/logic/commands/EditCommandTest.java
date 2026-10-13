@@ -28,6 +28,8 @@ import tutorlink.model.StudentDirectory;
 import tutorlink.model.UserPrefs;
 import tutorlink.model.student.NameContainsKeywordsPredicate;
 import tutorlink.model.student.Student;
+import tutorlink.model.student.TutorialGroup;
+import tutorlink.model.student.TutorialGroupMatchesPredicate;
 import tutorlink.testutil.EditStudentDescriptorBuilder;
 import tutorlink.testutil.StudentBuilder;
 
@@ -85,12 +87,56 @@ public class EditCommandTest {
         Student withRemark = new StudentBuilder(original).withRemark("Needs follow-up").build();
         model.setStudent(original, withRemark);
         EditCommand editCommand = new EditCommand(INDEX_FIRST_STUDENT,
-                new EditStudentDescriptorBuilder().withName(VALID_NAME_BOB).build());
+                new EditStudentDescriptorBuilder().withMatricNumber("A1234567Z")
+                        .withTutorialGroup("W12").build());
 
         editCommand.execute(model);
 
         Student editedStudent = model.getFilteredStudentList().get(INDEX_FIRST_STUDENT.getZeroBased());
         assertEquals("Needs follow-up", editedStudent.getRemark());
+    }
+
+    @Test
+    public void execute_matricNumberOnly_preservesOtherDetails() {
+        Student original = model.getFilteredStudentList().get(0);
+        Student editedStudent = new StudentBuilder(original).withMatricNumber("a1234567z").build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_STUDENT,
+                new EditStudentDescriptorBuilder().withMatricNumber("a1234567z").build());
+        Model expectedModel = new ModelManager(new StudentDirectory(model.getStudentDirectory()), new UserPrefs());
+        expectedModel.setStudent(original, editedStudent);
+
+        assertCommandSuccess(editCommand, model,
+                String.format(EditCommand.MESSAGE_EDIT_STUDENT_SUCCESS, Messages.format(editedStudent)), expectedModel);
+    }
+
+    @Test
+    public void execute_duplicateMatricNumberFilteredList_failure() {
+        Student firstStudent = model.getFilteredStudentList().get(0);
+        Student secondStudent = model.getFilteredStudentList().get(1);
+        model.updateFilteredStudentList(student -> student.equals(firstStudent));
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_STUDENT,
+                new EditStudentDescriptorBuilder()
+                        .withMatricNumber(secondStudent.getMatricNumber().toString().toLowerCase()).build());
+
+        assertCommandFailure(editCommand, model, EditCommand.MESSAGE_DUPLICATE_STUDENT);
+        assertEquals(firstStudent, model.getFilteredStudentList().get(0));
+    }
+
+    @Test
+    public void execute_tutorialGroupChangedWhileFiltered_studentDisappears() throws Exception {
+        Student original = model.getFilteredStudentList().get(0);
+        TutorialGroup originalGroup = original.getTutorialGroup();
+        model.updateFilteredStudentList(new TutorialGroupMatchesPredicate(originalGroup));
+        int originalFilteredSize = model.getFilteredStudentList().size();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_STUDENT,
+                new EditStudentDescriptorBuilder().withTutorialGroup("w12").build());
+
+        editCommand.execute(model);
+
+        Student editedStudent = new StudentBuilder(original).withTutorialGroup("W12").build();
+        assertEquals(originalFilteredSize - 1, model.getFilteredStudentList().size());
+        assertTrue(model.getStudentDirectory().getStudentList().contains(editedStudent));
+        assertFalse(model.getFilteredStudentList().contains(editedStudent));
     }
 
     @Test

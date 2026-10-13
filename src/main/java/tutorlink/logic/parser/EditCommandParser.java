@@ -4,9 +4,11 @@ import static java.util.Objects.requireNonNull;
 import static tutorlink.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_MATRIC_NUMBER;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_NAME;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_PHONE;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_TAG;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_TUTORIAL_GROUP;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -32,7 +34,8 @@ public class EditCommandParser implements Parser<EditCommand> {
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap argMultimap =
-                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG);
+                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_MATRIC_NUMBER, PREFIX_TUTORIAL_GROUP,
+                        PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS, PREFIX_TAG);
 
         Index index;
 
@@ -42,12 +45,21 @@ public class EditCommandParser implements Parser<EditCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE), pe);
         }
 
-        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS);
+        argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_NAME, PREFIX_MATRIC_NUMBER, PREFIX_TUTORIAL_GROUP,
+                PREFIX_PHONE, PREFIX_EMAIL, PREFIX_ADDRESS);
 
         EditStudentDescriptor editStudentDescriptor = new EditStudentDescriptor();
 
         if (argMultimap.getValue(PREFIX_NAME).isPresent()) {
             editStudentDescriptor.setName(ParserUtil.parseName(argMultimap.getValue(PREFIX_NAME).get()));
+        }
+        if (argMultimap.getValue(PREFIX_MATRIC_NUMBER).isPresent()) {
+            editStudentDescriptor.setMatricNumber(
+                    ParserUtil.parseMatricNumber(argMultimap.getValue(PREFIX_MATRIC_NUMBER).get()));
+        }
+        if (argMultimap.getValue(PREFIX_TUTORIAL_GROUP).isPresent()) {
+            editStudentDescriptor.setTutorialGroup(
+                    ParserUtil.parseTutorialGroup(argMultimap.getValue(PREFIX_TUTORIAL_GROUP).get()));
         }
         if (argMultimap.getValue(PREFIX_PHONE).isPresent()) {
             editStudentDescriptor.setPhone(ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get()));

@@ -15,6 +15,8 @@ import static tutorlink.testutil.TypicalStudents.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,14 +24,17 @@ import org.junit.jupiter.api.io.TempDir;
 
 import tutorlink.logic.commands.AddCommand;
 import tutorlink.logic.commands.CommandResult;
+import tutorlink.logic.commands.EditCommand;
 import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.commands.exceptions.CommandException;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.Model;
 import tutorlink.model.ModelManager;
 import tutorlink.model.ReadOnlyStudentDirectory;
+import tutorlink.model.StudentDirectory;
 import tutorlink.model.UserPrefs;
 import tutorlink.model.student.Student;
+import tutorlink.model.student.TutorialGroup;
 import tutorlink.storage.JsonStudentDirectoryStorage;
 import tutorlink.storage.JsonUserPrefsStorage;
 import tutorlink.storage.StorageManager;
@@ -70,6 +75,48 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_editMatricNumberAndGroup_persistsAcrossRestart() throws Exception {
+        Path studentDirectoryPath = temporaryFolder.resolve("studentDirectory.json");
+        logic.execute("add n/Amy Bee m/A0000011K g/T01 t/friend");
+        logic.execute("list g/t01");
+
+        logic.execute("edit 1 m/a1234567z g/l03");
+
+        assertEquals(0, logic.getFilteredStudentList().size());
+        Student editedStudent = model.getStudentDirectory().getStudentList().get(0);
+        assertEquals("A1234567Z", editedStudent.getMatricNumber().toString());
+        assertEquals("L03", editedStudent.getTutorialGroup().toString());
+        assertEquals(1, editedStudent.getTags().size());
+
+        ReadOnlyStudentDirectory restored = new JsonStudentDirectoryStorage(studentDirectoryPath)
+                .readStudentDirectory().get();
+        assertEquals(model.getStudentDirectory(), restored);
+        assertEquals(editedStudent, restored.getStudentList().get(0));
+
+        Model restartedModel = new ModelManager(restored, new UserPrefs());
+        assertEquals(editedStudent, restartedModel.getFilteredStudentList().get(0));
+    }
+
+    @Test
+    public void execute_invalidOrDuplicateEdit_filteredListAndRecordsUnchanged() throws Exception {
+        logic.execute("add n/Amy Bee m/A0000011K g/T01");
+        logic.execute("add n/Bob Choo m/A0000012L g/L03");
+        logic.execute("list g/T01");
+        ReadOnlyStudentDirectory originalStudentDirectory = new StudentDirectory(model.getStudentDirectory());
+        List<Student> originalList = new ArrayList<>(logic.getFilteredStudentList());
+
+        assertThrows(ParseException.class, () -> logic.execute("edit 1 g/T123"));
+        assertEquals(originalStudentDirectory, model.getStudentDirectory());
+        assertEquals(originalList, logic.getFilteredStudentList());
+
+        assertThrows(CommandException.class, EditCommand.MESSAGE_DUPLICATE_STUDENT, () -> logic.execute(
+                "edit 1 m/a0000012l"));
+        assertEquals(originalStudentDirectory, model.getStudentDirectory());
+        assertEquals(originalList, logic.getFilteredStudentList());
+        assertEquals(new TutorialGroup("T01"), logic.getFilteredStudentList().get(0).getTutorialGroup());
     }
 
     @Test

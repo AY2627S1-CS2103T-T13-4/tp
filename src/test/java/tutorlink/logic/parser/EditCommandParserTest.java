@@ -7,25 +7,33 @@ import static tutorlink.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static tutorlink.logic.commands.CommandTestUtil.EMAIL_DESC_BOB;
 import static tutorlink.logic.commands.CommandTestUtil.INVALID_ADDRESS_DESC;
 import static tutorlink.logic.commands.CommandTestUtil.INVALID_EMAIL_DESC;
+import static tutorlink.logic.commands.CommandTestUtil.INVALID_MATRIC_NUMBER_DESC;
 import static tutorlink.logic.commands.CommandTestUtil.INVALID_NAME_DESC;
 import static tutorlink.logic.commands.CommandTestUtil.INVALID_PHONE_DESC;
 import static tutorlink.logic.commands.CommandTestUtil.INVALID_TAG_DESC;
+import static tutorlink.logic.commands.CommandTestUtil.INVALID_TUTORIAL_GROUP_DESC;
+import static tutorlink.logic.commands.CommandTestUtil.MATRIC_NUMBER_DESC_BOB;
 import static tutorlink.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static tutorlink.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static tutorlink.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
 import static tutorlink.logic.commands.CommandTestUtil.TAG_DESC_FRIEND;
 import static tutorlink.logic.commands.CommandTestUtil.TAG_DESC_HUSBAND;
+import static tutorlink.logic.commands.CommandTestUtil.TUTORIAL_GROUP_DESC_BOB;
 import static tutorlink.logic.commands.CommandTestUtil.VALID_ADDRESS_AMY;
 import static tutorlink.logic.commands.CommandTestUtil.VALID_EMAIL_AMY;
+import static tutorlink.logic.commands.CommandTestUtil.VALID_MATRIC_NUMBER_BOB;
 import static tutorlink.logic.commands.CommandTestUtil.VALID_NAME_AMY;
 import static tutorlink.logic.commands.CommandTestUtil.VALID_PHONE_AMY;
 import static tutorlink.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static tutorlink.logic.commands.CommandTestUtil.VALID_TAG_FRIEND;
 import static tutorlink.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
+import static tutorlink.logic.commands.CommandTestUtil.VALID_TUTORIAL_GROUP_BOB;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_MATRIC_NUMBER;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_PHONE;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_TAG;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_TUTORIAL_GROUP;
 import static tutorlink.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static tutorlink.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static tutorlink.testutil.TypicalIndexes.INDEX_FIRST_STUDENT;
@@ -40,8 +48,10 @@ import tutorlink.logic.commands.EditCommand;
 import tutorlink.logic.commands.EditCommand.EditStudentDescriptor;
 import tutorlink.model.student.Address;
 import tutorlink.model.student.Email;
+import tutorlink.model.student.MatricNumber;
 import tutorlink.model.student.Name;
 import tutorlink.model.student.Phone;
+import tutorlink.model.student.TutorialGroup;
 import tutorlink.model.tag.Tag;
 import tutorlink.testutil.EditStudentDescriptorBuilder;
 
@@ -84,6 +94,8 @@ public class EditCommandParserTest {
     @Test
     public void parse_invalidValue_failure() {
         assertParseFailure(parser, "1" + INVALID_NAME_DESC, Name.MESSAGE_CONSTRAINTS); // invalid name
+        assertParseFailure(parser, "1" + INVALID_MATRIC_NUMBER_DESC, MatricNumber.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, "1" + INVALID_TUTORIAL_GROUP_DESC, TutorialGroup.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, "1" + INVALID_PHONE_DESC, Phone.MESSAGE_CONSTRAINTS); // invalid phone
         assertParseFailure(parser, "1" + INVALID_EMAIL_DESC, Email.MESSAGE_CONSTRAINTS); // invalid email
         assertParseFailure(parser, "1" + INVALID_ADDRESS_DESC, Address.MESSAGE_CONSTRAINTS); // invalid address
@@ -130,12 +142,35 @@ public class EditCommandParserTest {
     }
 
     @Test
+    public void parse_matricNumberAndTutorialGroup_normalizesCase() {
+        EditStudentDescriptor descriptor = new EditStudentDescriptorBuilder()
+                .withMatricNumber(VALID_MATRIC_NUMBER_BOB)
+                .withTutorialGroup(VALID_TUTORIAL_GROUP_BOB).build();
+
+        assertParseSuccess(parser, "1 m/a0000012l g/l03", new EditCommand(INDEX_FIRST_STUDENT, descriptor));
+        assertParseSuccess(parser, "1" + MATRIC_NUMBER_DESC_BOB + TUTORIAL_GROUP_DESC_BOB,
+                new EditCommand(INDEX_FIRST_STUDENT, descriptor));
+    }
+
+    @Test
     public void parse_oneFieldSpecified_success() {
         // name
         Index targetIndex = INDEX_THIRD_STUDENT;
         String userInput = targetIndex.getOneBased() + NAME_DESC_AMY;
         EditStudentDescriptor descriptor = new EditStudentDescriptorBuilder().withName(VALID_NAME_AMY).build();
         EditCommand expectedCommand = new EditCommand(targetIndex, descriptor);
+        assertParseSuccess(parser, userInput, expectedCommand);
+
+        // matriculation number
+        userInput = targetIndex.getOneBased() + MATRIC_NUMBER_DESC_BOB;
+        descriptor = new EditStudentDescriptorBuilder().withMatricNumber(VALID_MATRIC_NUMBER_BOB).build();
+        expectedCommand = new EditCommand(targetIndex, descriptor);
+        assertParseSuccess(parser, userInput, expectedCommand);
+
+        // tutorial group
+        userInput = targetIndex.getOneBased() + TUTORIAL_GROUP_DESC_BOB;
+        descriptor = new EditStudentDescriptorBuilder().withTutorialGroup(VALID_TUTORIAL_GROUP_BOB).build();
+        expectedCommand = new EditCommand(targetIndex, descriptor);
         assertParseSuccess(parser, userInput, expectedCommand);
 
         // phone
@@ -173,6 +208,11 @@ public class EditCommandParserTest {
         String userInput = targetIndex.getOneBased() + INVALID_PHONE_DESC + PHONE_DESC_BOB;
 
         assertParseFailure(parser, userInput, Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
+
+        assertParseFailure(parser, "1 m/A0000012L m/A0000013M",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_MATRIC_NUMBER));
+        assertParseFailure(parser, "1 g/T01 g/T02",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_TUTORIAL_GROUP));
 
         // invalid followed by valid
         userInput = targetIndex.getOneBased() + PHONE_DESC_BOB + INVALID_PHONE_DESC;

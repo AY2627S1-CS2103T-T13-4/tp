@@ -7,9 +7,11 @@ import java.util.stream.Stream;
 import tutorlink.logic.commands.EditCommand.EditStudentDescriptor;
 import tutorlink.model.student.Address;
 import tutorlink.model.student.Email;
+import tutorlink.model.student.MatricNumber;
 import tutorlink.model.student.Name;
 import tutorlink.model.student.Phone;
 import tutorlink.model.student.Student;
+import tutorlink.model.student.TutorialGroup;
 import tutorlink.model.tag.Tag;
 
 /**
@@ -44,6 +46,18 @@ public class EditStudentDescriptorBuilder {
      */
     public EditStudentDescriptorBuilder withName(String name) {
         descriptor.setName(new Name(name));
+        return this;
+    }
+
+    /** Sets the matriculation number of the descriptor being built. */
+    public EditStudentDescriptorBuilder withMatricNumber(String matricNumber) {
+        descriptor.setMatricNumber(new MatricNumber(matricNumber));
+        return this;
+    }
+
+    /** Sets the tutorial group of the descriptor being built. */
+    public EditStudentDescriptorBuilder withTutorialGroup(String tutorialGroup) {
+        descriptor.setTutorialGroup(new TutorialGroup(tutorialGroup));
         return this;
     }
 

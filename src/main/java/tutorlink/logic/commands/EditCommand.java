@@ -3,9 +3,11 @@ package tutorlink.logic.commands;
 import static java.util.Objects.requireNonNull;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_ADDRESS;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_EMAIL;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_MATRIC_NUMBER;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_NAME;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_PHONE;
 import static tutorlink.logic.parser.CliSyntax.PREFIX_TAG;
+import static tutorlink.logic.parser.CliSyntax.PREFIX_TUTORIAL_GROUP;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,9 +24,11 @@ import tutorlink.logic.commands.exceptions.CommandException;
 import tutorlink.model.Model;
 import tutorlink.model.student.Address;
 import tutorlink.model.student.Email;
+import tutorlink.model.student.MatricNumber;
 import tutorlink.model.student.Name;
 import tutorlink.model.student.Phone;
 import tutorlink.model.student.Student;
+import tutorlink.model.student.TutorialGroup;
 import tutorlink.model.tag.Tag;
 
 /**
@@ -39,6 +43,8 @@ public class EditCommand extends Command {
             + "Existing values will be overwritten by the input values.\n"
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
+            + "[" + PREFIX_MATRIC_NUMBER + "MATRIC_NUMBER] "
+            + "[" + PREFIX_TUTORIAL_GROUP + "TUTORIAL_GROUP] "
             + "[" + PREFIX_PHONE + "PHONE] "
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
@@ -94,12 +100,16 @@ public class EditCommand extends Command {
         assert studentToEdit != null;
 
         Name updatedName = editStudentDescriptor.getName().orElse(studentToEdit.getName());
+        MatricNumber updatedMatricNumber = editStudentDescriptor.getMatricNumber()
+                .orElse(studentToEdit.getMatricNumber());
+        TutorialGroup updatedTutorialGroup = editStudentDescriptor.getTutorialGroup()
+                .orElse(studentToEdit.getTutorialGroup());
         Phone updatedPhone = editStudentDescriptor.getPhone().orElse(studentToEdit.getPhone());
         Email updatedEmail = editStudentDescriptor.getEmail().orElse(studentToEdit.getEmail());
         Address updatedAddress = editStudentDescriptor.getAddress().orElse(studentToEdit.getAddress());
         Set<Tag> updatedTags = editStudentDescriptor.getTags().orElse(studentToEdit.getTags());
 
-        return new Student(updatedName, studentToEdit.getMatricNumber(), studentToEdit.getTutorialGroup(),
+        return new Student(updatedName, updatedMatricNumber, updatedTutorialGroup,
                 updatedPhone, updatedEmail, updatedAddress, updatedTags, studentToEdit.getRemark());
     }
 
@@ -132,6 +142,8 @@ public class EditCommand extends Command {
      */
     public static class EditStudentDescriptor {
         private Name name;
+        private MatricNumber matricNumber;
+        private TutorialGroup tutorialGroup;
         private Phone phone;
         private Email email;
         private Address address;
@@ -145,6 +157,8 @@ public class EditCommand extends Command {
          */
         public EditStudentDescriptor(EditStudentDescriptor toCopy) {
             setName(toCopy.name);
+            setMatricNumber(toCopy.matricNumber);
+            setTutorialGroup(toCopy.tutorialGroup);
             setPhone(toCopy.phone);
             setEmail(toCopy.email);
             setAddress(toCopy.address);
@@ -155,7 +169,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, email, address, tags);
+            return CollectionUtil.isAnyNonNull(name, matricNumber, tutorialGroup, phone, email, address, tags);
         }
 
         public void setName(Name name) {
@@ -164,6 +178,22 @@ public class EditCommand extends Command {
 
         public Optional<Name> getName() {
             return Optional.ofNullable(name);
+        }
+
+        public void setMatricNumber(MatricNumber matricNumber) {
+            this.matricNumber = matricNumber;
+        }
+
+        public Optional<MatricNumber> getMatricNumber() {
+            return Optional.ofNullable(matricNumber);
+        }
+
+        public void setTutorialGroup(TutorialGroup tutorialGroup) {
+            this.tutorialGroup = tutorialGroup;
+        }
+
+        public Optional<TutorialGroup> getTutorialGroup() {
+            return Optional.ofNullable(tutorialGroup);
         }
 
         public void setPhone(Phone phone) {
@@ -219,6 +249,8 @@ public class EditCommand extends Command {
             }
 
             return Objects.equals(name, otherEditStudentDescriptor.name)
+                    && Objects.equals(matricNumber, otherEditStudentDescriptor.matricNumber)
+                    && Objects.equals(tutorialGroup, otherEditStudentDescriptor.tutorialGroup)
                     && Objects.equals(phone, otherEditStudentDescriptor.phone)
                     && Objects.equals(email, otherEditStudentDescriptor.email)
                     && Objects.equals(address, otherEditStudentDescriptor.address)
@@ -229,6 +261,8 @@ public class EditCommand extends Command {
         public String toString() {
             return new ToStringBuilder(this)
                     .add("name", name)
+                    .add("matricNumber", matricNumber)
+                    .add("tutorialGroup", tutorialGroup)
                     .add("phone", phone)
                     .add("email", email)
                     .add("address", address)

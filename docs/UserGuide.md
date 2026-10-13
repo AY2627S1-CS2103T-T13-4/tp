@@ -125,11 +125,13 @@ Examples:
 
 Edits an existing student record.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+Format: `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...`
 
 * Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
-* Existing values will be updated to the input values.
+* Supplied fields replace their existing values; omitted fields keep their existing values.
+* Matriculation numbers and tutorial groups follow the same formats as in `add` and are saved in uppercase.
+  A matriculation number already used by another student is rejected, regardless of letter case.
 * The current filtered view remains active after an edit. If the edited student no longer matches the active filter,
   the student disappears from the displayed list. Use `list` to show all students again.
 * When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
@@ -138,6 +140,9 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st student to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd student to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 m/a1234567z` Changes only the 1st student's matriculation number to `A1234567Z`.
+*  `edit 1 g/l03` Moves the 1st student to tutorial group `L03`. If `list g/T01` is active, that student
+   disappears from the displayed list while the `T01` filter remains active.
 
 ### Finding students by name or matriculation number: `find`
 

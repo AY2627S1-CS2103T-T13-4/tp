@@ -299,11 +299,11 @@ _{Explain here how the data archiving feature will be implemented}_
 * is reasonably comfortable using a desktop application and concise CLI commands for repetitive tasks
 * values fast, keyboard-driven workflows, clear validation, and protection against duplicate student records
 
-**Value proposition**: TutorLink helps university tutors manage student rosters quickly and accurately from a desktop application. Concise commands make it easy to add, view, filter, edit, delete, and list students, while input validation and duplicate matriculation checks reduce roster errors.
+**Value proposition**: TutorLink helps university tutors manage student rosters quickly and accurately from a desktop application. Concise commands make it easy to add, filter, edit, delete, and list students. The list cards show each student's stored details, while input validation and duplicate matriculation checks reduce roster errors.
 
 ### MVP student data contract
 
-The following decisions define the intended MVP behaviour for the model, commands, storage, and UI. They are implementation requirements; the current code and User Guide may not yet match them.
+The following decisions define the MVP behaviour for the model, commands, storage, and UI.
 
 | Field | Requirement | Missing value |
 |-------|-------------|---------------|
@@ -315,6 +315,11 @@ The following decisions define the intended MVP behaviour for the model, command
 | Remark | Preserve any existing remark when loading, editing, or saving a student | Use `null` when absent; adding or changing remarks is outside the profile data contract |
 
 An `add` command must accept a name, matriculation number, and tutorial group without requiring phone, email, or address. Existing `p/`, `e/`, `a/`, and `t/` inputs remain supported as optional details. Commands and UI components must handle absent optional values without dereferencing `null`. An `edit` command leaves omitted fields unchanged; it must not interpret omission as a request to clear a field.
+
+The current list cards are the student profile view. They show the name, matriculation number, tutorial group, optional
+contact fields, and tags without a separate `view INDEX`
+command. A tutorial group is an attribute of each student; the MVP supports group filtering and changing a student's
+group through `edit`, rather than independent tutorial-group records or management commands.
 
 Names are trimmed at both ends, and consecutive internal spaces are collapsed to one before the 70-character limit is checked. For example, `John  Doe` is stored as `John Doe`. Letter case is preserved; punctuation and other internal whitespace are invalid.
 
@@ -336,7 +341,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | new tutor                                  | see usage instructions           | learn how to use TutorLink effectively                                |
 | `* * *`  | tutor                                      | add a student's details          | create a roster record for a newly assigned student                    |
 | `* * *`  | tutor                                      | list all students                | inspect the complete roster and reset an active group filter           |
-| `* * *`  | tutor                                      | view a student's full details    | inspect a student's academic and contact information                   |
+| `* * *`  | tutor                                      | see a student's details on the list card | inspect academic and contact information in the current list    |
 | `* * *`  | tutor                                      | filter students by tutorial group | focus on students attending a particular tutorial session            |
 | `* * *`  | tutor                                      | edit a student's details         | correct errors or update a student's matriculation number or group     |
 | `* * *`  | tutor                                      | delete a student's record        | remove students who drop the course or change tutorials                |
@@ -403,14 +408,13 @@ An index refers to the student's one-based position in the current list, includi
 
 #### UC02: View a student in a tutorial group
 
-**Related requirements**: View students in a specified tutorial group; view a student's full details.
+**Related requirements**: View students in a specified tutorial group; inspect a student's displayed details.
 
 **MSS**
 
-1. Tutor requests the students in a specified tutorial group.
-2. TutorLink shows the matching students and the number of matches.
-3. Tutor requests the full details of a student using their index in the current list.
-4. TutorLink shows that student's full stored details.
+1. Tutor requests the students in a specified tutorial group with `list g/TUTORIAL_GROUP`.
+2. TutorLink shows the matching students, the number of matches, and each student's profile fields on a list card.
+3. Tutor reads a student's academic and contact details from that card.
 
    Use case ends.
 
@@ -427,12 +431,6 @@ An index refers to the student's one-based position in the current list, includi
   * 2a1. TutorLink shows an empty list and reports zero matching students.
 
     Use case ends.
-
-* 3a. The given index or request format is invalid.
-
-  * 3a1. TutorLink explains the input error without changing the current list.
-
-    Use case resumes at step 3.
 
 #### UC03: Edit a student's details
 
