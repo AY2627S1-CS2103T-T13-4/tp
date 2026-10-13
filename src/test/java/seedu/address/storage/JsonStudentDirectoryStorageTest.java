@@ -78,7 +78,6 @@ public class JsonStudentDirectoryStorageTest {
         jsonStudentDirectoryStorage.saveStudentDirectory(original, filePath);
         String savedJson = Files.readString(filePath);
         assertTrue(savedJson.contains("\"students\""));
-        assertFalse(savedJson.contains("\"persons\""));
         ReadOnlyStudentDirectory readBack = jsonStudentDirectoryStorage.readStudentDirectory(filePath).get();
         assertEquals(original, new StudentDirectory(readBack));
 

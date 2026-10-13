@@ -1,6 +1,6 @@
 {
   "_comment": "StudentDirectory save file which contains the same Student values as in TypicalStudents#getTypicalStudentDirectory()",
-  "persons" : [ {
+  "students" : [ {
     "name" : "Alice Pauline",
     "matricNumber" : "A0000002B",
     "tutorialGroup" : "T1",

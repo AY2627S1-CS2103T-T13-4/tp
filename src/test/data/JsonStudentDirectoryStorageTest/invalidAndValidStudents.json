@@ -1,5 +1,5 @@
 {
-  "persons": [ {
+  "students": [ {
     "name": "Valid Student",
     "matricNumber": "A0000013M",
     "tutorialGroup": "T1",

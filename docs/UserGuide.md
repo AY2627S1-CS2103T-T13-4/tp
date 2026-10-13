@@ -202,8 +202,6 @@ TutorLink automatically saves data after every command. You do not need to save 
 
 TutorLink data is saved automatically as a JSON file `[JAR file location]/data/tutorlink.json`. Advanced users are welcome to update data directly by editing that data file.
 
-If `data/tutorlink.json` does not exist but a legacy `data/addressbook.json` file does, TutorLink validates and migrates the legacy data to the new filename. The original legacy file is preserved. If both files exist, TutorLink uses `data/tutorlink.json`.
-
 <box type="warning" seamless>
 
 **Caution:**

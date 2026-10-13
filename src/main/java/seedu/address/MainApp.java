@@ -21,7 +21,6 @@ import seedu.address.model.ReadOnlyStudentDirectory;
 import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
-import seedu.address.storage.DataFileMigrator;
 import seedu.address.storage.JsonStudentDirectoryStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.Storage;
@@ -39,7 +38,6 @@ public class MainApp extends Application {
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
     private static final Path USER_PREFS_FILE_PATH = Paths.get("preferences.json");
     private static final Path DATA_FILE_PATH = Paths.get("data", "tutorlink.json");
-    private static final Path LEGACY_DATA_FILE_PATH = Paths.get("data", "addressbook.json");
 
     protected Ui ui;
     protected Logic logic;
@@ -58,14 +56,7 @@ public class MainApp extends Application {
         storage = new StorageManager(studentDirectoryStorage, userPrefsStorage);
 
         try {
-            DataFileMigrator.migrateStudentDirectory(LEGACY_DATA_FILE_PATH, DATA_FILE_PATH);
             model = initModelManager(storage, userPrefs);
-        } catch (DataLoadingException | IOException e) {
-            dataLoadingError = "Legacy data file at " + LEGACY_DATA_FILE_PATH
-                    + " could not be migrated to " + DATA_FILE_PATH
-                    + ". The original file was not changed; startup has stopped to protect it.";
-            logger.severe(dataLoadingError);
-            return;
         } catch (IllegalStateException e) {
             dataLoadingError = e.getMessage();
             return;

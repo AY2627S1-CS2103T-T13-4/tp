@@ -22,7 +22,7 @@ public class JsonSerializableStudentDirectoryTest {
     private static final Path DUPLICATE_STUDENT_FILE = TEST_DATA_FOLDER.resolve("duplicateStudents.json");
 
     @Test
-    public void toModelType_legacyPersonsProperty_success() throws Exception {
+    public void toModelType_typicalStudentsFile_success() throws Exception {
         JsonSerializableStudentDirectory dataFromFile = JsonUtil.readJsonFile(TYPICAL_STUDENTS_FILE,
                 JsonSerializableStudentDirectory.class).get();
         StudentDirectory studentDirectoryFromFile = dataFromFile.toModelType();
@@ -43,14 +43,6 @@ public class JsonSerializableStudentDirectoryTest {
                 JsonSerializableStudentDirectory.class).get();
         assertThrows(IllegalValueException.class, JsonSerializableStudentDirectory.MESSAGE_DUPLICATE_STUDENTS,
                 dataFromFile::toModelType);
-    }
-
-    @Test
-    public void toModelType_missingStudentList_throwsIllegalValueException() {
-        JsonSerializableStudentDirectory studentDirectory = new JsonSerializableStudentDirectory(null, null);
-
-        assertThrows(IllegalValueException.class, JsonSerializableStudentDirectory.MESSAGE_MISSING_STUDENTS,
-                studentDirectory::toModelType);
     }
 
 }

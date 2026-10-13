@@ -20,22 +20,15 @@ import seedu.address.model.student.Student;
 class JsonSerializableStudentDirectory {
 
     public static final String MESSAGE_DUPLICATE_STUDENTS = "Student list contains duplicate students.";
-    public static final String MESSAGE_MISSING_STUDENTS = "Student list is missing.";
 
     private final List<JsonAdaptedStudent> students = new ArrayList<>();
-    private final boolean hasStudentList;
 
     /**
      * Constructs a {@code JsonSerializableStudentDirectory} with the given students.
      */
     @JsonCreator
-    public JsonSerializableStudentDirectory(@JsonProperty("students") List<JsonAdaptedStudent> students,
-            @JsonProperty("persons") List<JsonAdaptedStudent> legacyStudents) {
-        List<JsonAdaptedStudent> storedStudents = students == null ? legacyStudents : students;
-        hasStudentList = storedStudents != null;
-        if (storedStudents != null) {
-            this.students.addAll(storedStudents);
-        }
+    public JsonSerializableStudentDirectory(@JsonProperty("students") List<JsonAdaptedStudent> students) {
+        this.students.addAll(students);
     }
 
     /**
@@ -44,7 +37,6 @@ class JsonSerializableStudentDirectory {
      * @param source future changes to this will not affect the created {@code JsonSerializableStudentDirectory}.
      */
     public JsonSerializableStudentDirectory(ReadOnlyStudentDirectory source) {
-        hasStudentList = true;
         students.addAll(source.getStudentList().stream().map(JsonAdaptedStudent::new).collect(Collectors.toList()));
     }
 
@@ -54,9 +46,6 @@ class JsonSerializableStudentDirectory {
      * @throws IllegalValueException if there were any data constraints violated.
      */
     public StudentDirectory toModelType() throws IllegalValueException {
-        if (!hasStudentList) {
-            throw new IllegalValueException(MESSAGE_MISSING_STUDENTS);
-        }
         StudentDirectory studentDirectory = new StudentDirectory();
         for (JsonAdaptedStudent jsonAdaptedStudent : students) {
             Student student = jsonAdaptedStudent.toModelType();
