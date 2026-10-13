@@ -65,7 +65,7 @@
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
         "searching-across-tutorial-groups-and-editing-search-results": "Searching across tutorial groups and editing search results",
-        "deleting-a-person": "Deleting a person",
+        "deleting-a-student": "Deleting a student",
         "saving-data": "Saving data"
       },
       "headingKeywords": {}
@@ -114,9 +114,9 @@
         "quick-start": "Quick start",
         "features": "Features",
         "viewing-help-help": "Viewing help: help",
-        "adding-a-person-add": "Adding a person: add",
-        "listing-persons-list": "Listing persons: list",
-        "editing-a-person-edit": "Editing a person: edit",
+        "adding-a-student-add": "Adding a student: add",
+        "listing-students-list": "Listing students: list",
+        "editing-a-student-edit": "Editing a student: edit",
         "finding-students-by-name-or-matriculation-number-find": "Finding students by name or matriculation number: find",
         "deleting-a-student-with-confirmation-delete": "Deleting a student with confirmation: delete",
         "clearing-all-entries-clear": "Clearing all entries: clear",
