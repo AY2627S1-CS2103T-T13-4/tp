@@ -15,6 +15,8 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,14 +24,17 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.TutorialGroup;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -70,6 +75,47 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_editMatricNumberAndGroup_persistsAcrossRestart() throws Exception {
+        Path addressBookPath = temporaryFolder.resolve("addressBook.json");
+        logic.execute("add n/Amy Bee m/A0000011K g/T01 t/friend");
+        logic.execute("list g/t01");
+
+        logic.execute("edit 1 m/a1234567z g/l03");
+
+        assertEquals(0, logic.getFilteredPersonList().size());
+        Person editedPerson = model.getAddressBook().getPersonList().get(0);
+        assertEquals("A1234567Z", editedPerson.getMatricNumber().toString());
+        assertEquals("L03", editedPerson.getTutorialGroup().toString());
+        assertEquals(1, editedPerson.getTags().size());
+
+        ReadOnlyAddressBook restored = new JsonAddressBookStorage(addressBookPath).readAddressBook().get();
+        assertEquals(model.getAddressBook(), restored);
+        assertEquals(editedPerson, restored.getPersonList().get(0));
+
+        Model restartedModel = new ModelManager(restored, new UserPrefs());
+        assertEquals(editedPerson, restartedModel.getFilteredPersonList().get(0));
+    }
+
+    @Test
+    public void execute_invalidOrDuplicateEdit_filteredListAndRecordsUnchanged() throws Exception {
+        logic.execute("add n/Amy Bee m/A0000011K g/T01");
+        logic.execute("add n/Bob Choo m/A0000012L g/L03");
+        logic.execute("list g/T01");
+        ReadOnlyAddressBook originalAddressBook = new AddressBook(model.getAddressBook());
+        List<Person> originalList = new ArrayList<>(logic.getFilteredPersonList());
+
+        assertThrows(ParseException.class, () -> logic.execute("edit 1 g/T123"));
+        assertEquals(originalAddressBook, model.getAddressBook());
+        assertEquals(originalList, logic.getFilteredPersonList());
+
+        assertThrows(CommandException.class, EditCommand.MESSAGE_DUPLICATE_PERSON, () -> logic.execute(
+                "edit 1 m/a0000012l"));
+        assertEquals(originalAddressBook, model.getAddressBook());
+        assertEquals(originalList, logic.getFilteredPersonList());
+        assertEquals(new TutorialGroup("T01"), logic.getFilteredPersonList().get(0).getTutorialGroup());
     }
 
     @Test

@@ -7,9 +7,11 @@ import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_ADDRESS_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_MATRIC_NUMBER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_TAG_HUSBAND;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_TUTORIAL_GROUP_BOB;
 
 import org.junit.jupiter.api.Test;
 
@@ -40,6 +42,16 @@ public class EditPersonDescriptorTest {
         EditPersonDescriptor editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withName(VALID_NAME_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
 
+        // different matriculation number
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY)
+                .withMatricNumber(VALID_MATRIC_NUMBER_BOB).build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
+        // different tutorial group
+        editedAmy = new EditPersonDescriptorBuilder(DESC_AMY)
+                .withTutorialGroup(VALID_TUTORIAL_GROUP_BOB).build();
+        assertFalse(DESC_AMY.equals(editedAmy));
+
         // different phone -> returns false
         editedAmy = new EditPersonDescriptorBuilder(DESC_AMY).withPhone(VALID_PHONE_BOB).build();
         assertFalse(DESC_AMY.equals(editedAmy));
@@ -61,7 +73,9 @@ public class EditPersonDescriptorTest {
     public void toStringMethod() {
         EditPersonDescriptor editPersonDescriptor = new EditPersonDescriptor();
         String expected = EditPersonDescriptor.class.getCanonicalName() + "{name="
-                + editPersonDescriptor.getName().orElse(null) + ", phone="
+                + editPersonDescriptor.getName().orElse(null) + ", matricNumber="
+                + editPersonDescriptor.getMatricNumber().orElse(null) + ", tutorialGroup="
+                + editPersonDescriptor.getTutorialGroup().orElse(null) + ", phone="
                 + editPersonDescriptor.getPhone().orElse(null) + ", email="
                 + editPersonDescriptor.getEmail().orElse(null) + ", address="
                 + editPersonDescriptor.getAddress().orElse(null) + ", tags="
