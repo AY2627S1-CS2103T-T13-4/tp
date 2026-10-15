@@ -15,14 +15,19 @@ TutorLink is a **desktop application for managing student records, optimized for
 
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
-   **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
+1. Ensure that Java `25` is installed on your computer. Run `java -version` to check.
 
-1. Download the latest `.jar` file from the [TutorLink releases page](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases).
+1. Download the package matching your Java runtime from the [TutorLink releases page](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases):
+   * **Windows, Linux, or Intel Mac with x64 Java:** `TutorLink.jar`.
+   * **Apple Silicon Mac (M-series) with ARM64 Java:** `TutorLink-mac-aarch64.jar`.
+   * On an Apple Silicon Mac using x64 Java through Rosetta, use `TutorLink.jar`.
+     Run `java -XshowSettings:properties -version` and look for `os.arch`: `aarch64` means ARM64;
+     `x86_64` or `amd64` means x64. The JAR must match the Java runtime's architecture.
 
 1. Copy the file to the folder you want to use as the _home folder_ for TutorLink.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar TutorLink.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar TutorLink.jar`
+   (or `java -jar TutorLink-mac-aarch64.jar` for the ARM64 package).<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -109,7 +114,7 @@ Shows all students, or only students from a specified tutorial group.
 
 Format: `list [g/TUTORIAL_GROUP]`
 
-* `list` shows all students and resets any active tutorial group filter.
+* `list` shows all students and resets any active search or tutorial group filter.
 * `list g/TUTORIAL_GROUP` shows only students whose tutorial group exactly matches the specified group.
 * The tutorial group must be one letter followed by exactly two digits. Lowercase letters are accepted, so `g/t01`
   is interpreted as `g/T01`.
@@ -205,7 +210,9 @@ TutorLink automatically saves data after every command. You do not need to save 
 
 ### Editing the data file
 
-TutorLink data is saved automatically as a JSON file `[JAR file location]/data/tutorlink.json`. Advanced users are welcome to update data directly by editing that data file.
+TutorLink data is saved automatically as `data/tutorlink.json` inside the folder from which you launch the app.
+Following the quick start keeps this in the same folder as the JAR. Always launch from that folder to use the same roster.
+Advanced users are welcome to update data directly by editing that data file.
 
 <box type="warning" seamless>
 
@@ -241,7 +248,8 @@ Action     | Format, Examples
 **Add**    | `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... ` <br> e.g., `add n/James Ho m/A2345678Z g/T05 e/jamesho@example.com`
 **Clear**  | `clear`
 **Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
+**Edit**   | `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 m/A1234567Z g/T02`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **List**   | `list [g/TUTORIAL_GROUP]`<br> e.g., `list g/T01`
 **Help**   | `help`
+**Exit**   | `exit`
