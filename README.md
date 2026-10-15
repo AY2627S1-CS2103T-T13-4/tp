@@ -21,7 +21,7 @@ TutorLink is intended for tutors who manage one or more tutorial groups and need
 * **Group filtering** — Show all students or only those in a specified tutorial group with `list`.
 * **Student details** — Read academic and contact details directly on each student list card.
 * **Search** — Find students by name or matriculation number.
-* **Data persistence** — Save student records automatically after every command.
+* **Data persistence** — Save student records automatically after every successful command.
 
 ## Current release scope
 

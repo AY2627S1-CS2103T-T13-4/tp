@@ -16,6 +16,8 @@ TutorLink is a **desktop application for managing student records, optimized for
 ## Quick start
 
 1. Ensure that Java `25` is installed on your computer. Run `java -version` to check.
+   **Mac users:** Install Azul JDK **with JavaFX** `25.0.3.fx-zulu`, following the
+   [course installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
 1. Download the package matching your Java runtime from the [TutorLink releases page](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases):
    * **Windows, Linux, or Intel Mac with x64 Java:** `TutorLink.jar`.
