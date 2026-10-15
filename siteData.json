@@ -102,7 +102,8 @@
       "headings": {
         "testing-guide": "Testing guide",
         "running-tests": "Running tests",
-        "types-of-tests": "Types of tests"
+        "types-of-tests": "Types of tests",
+        "testing-the-packaged-application": "Testing the packaged application"
       },
       "headingKeywords": {}
     },
@@ -144,6 +145,18 @@
       "title": "John Doe's Project Portfolio Page",
       "headings": {
         "project-addressbook-level-3": "Project: AddressBook Level 3"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "testing/v1.3-packaged-smoke.md",
+      "title": "v1.3 packaged-JAR test record",
+      "headings": {
+        "v1-3-packaged-jar-smoke-test-15-october-2026-singapore-time": "v1.3 packaged-JAR smoke test — 15 October 2026, Singapore time",
+        "candidate-and-environment": "Candidate and environment",
+        "results-on-azul-25-0-3-fx": "Results on Azul 25.0.3 FX",
+        "bugs-and-remaining-coverage": "Bugs and remaining coverage",
+        "post-fix-verification": "Post-fix verification"
       },
       "headingKeywords": {}
     }
