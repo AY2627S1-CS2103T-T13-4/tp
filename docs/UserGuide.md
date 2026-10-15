@@ -16,6 +16,8 @@ TutorLink is a **desktop application for managing student records, optimized for
 ## Quick start
 
 1. Ensure that Java `25` is installed on your computer. Run `java -version` to check.
+   **Mac users:** Install Azul JDK **with JavaFX** `25.0.3.fx-zulu`, following the
+   [course installation guide](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
 1. Download the package matching your Java runtime from the [TutorLink releases page](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases):
    * **Windows, Linux, or Intel Mac with x64 Java:** `TutorLink.jar`.
@@ -40,6 +42,8 @@ TutorLink is a **desktop application for managing student records, optimized for
 
    * `add n/John Doe m/A0123456X g/T01 e/johnd@example.com` : Adds a student named `John Doe` to TutorLink.
 
+   * `find John` : Finds students whose names contain the whole word `John`.
+
    * `delete 3` : Previews the 3rd student; use `delete 3 confirm` to delete them.
 
    * `clear` : Deletes all student records.
@@ -51,6 +55,12 @@ TutorLink is a **desktop application for managing student records, optimized for
 --------------------------------------------------------------------------------------------------------------------
 
 ## Features
+
+### v1.3 MVP scope
+
+This release focuses on managing a student roster. Tutorial groups are stored as part of each student's record and can be used to filter the roster with `list g/TUTORIAL_GROUP`. Standalone tutorial-group creation, editing, and deletion are not available in this release.
+
+Attendance tracking, participation records, and student remarks are future enhancements and are not available in v1.3.
 
 <box type="info" seamless>
 
@@ -76,7 +86,7 @@ TutorLink is a **desktop application for managing student records, optimized for
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
+Opens a Help window containing the link to the online User Guide. Use the **Copy URL** button in the Help window to copy the link.
 
 ![help message](images/helpMessage.png)
 
@@ -195,7 +205,7 @@ Examples:
 * `list`, then `delete 2` previews the 2nd student. `delete 2 confirm` removes that student if the list is unchanged.
 * `find Betsy`, then `delete 1` previews the 1st student in the search results. `delete 1 confirm` removes that student if the results are unchanged.
 
-### Clearing all entries: `clear`
+### Clearing all students: `clear`
 
 Clears all student records from TutorLink.
 
@@ -251,7 +261,7 @@ Action     | Format, Examples
 **Add**    | `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... ` <br> e.g., `add n/James Ho m/A2345678Z g/T05 e/jamesho@example.com`
 **Clear**  | `clear`
 **Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
-**Edit**   | `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 m/A1234567Z g/T02`
+**Edit**   | `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g., `edit 2 m/A1234567Z g/T02`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **List**   | `list [g/TUTORIAL_GROUP]`<br> e.g., `list g/T01`
 **Help**   | `help`
