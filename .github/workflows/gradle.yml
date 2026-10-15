@@ -1,6 +1,9 @@
 name: Java CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -29,7 +32,23 @@ jobs:
           java-package: jdk+fx
 
       - name: Build and check with Gradle
-        run: ./gradlew check coverage
+        run: ./gradlew check coverage shadowJar
+
+      - name: Build Apple Silicon package
+        if: runner.os == 'macOS'
+        run: ./gradlew -PmacJavafxPlatform=mac-aarch64 shadowJar
+
+      - name: Setup plain JDK for packaged launch
+        if: runner.os == 'macOS'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '25'
+          java-package: jdk
+
+      - name: Smoke-test packaged app on macOS
+        if: runner.os == 'macOS'
+        run: python3 .github/smoke-test.py
 
       - name: Upload coverage reports to Codecov
         if: runner.os == 'Linux'
