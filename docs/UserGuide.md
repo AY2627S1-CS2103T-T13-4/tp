@@ -174,6 +174,9 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
+Searching with `find a1234567b` also finds a student whose optional contact details were not supplied:<br>
+![Matriculation-number search with optional details omitted](images/findMatricNumberResult.png)
+
 ### Deleting a student with confirmation: `delete`
 
 Shows the selected student before deletion. Add `confirm` to explicitly authorise removal.

@@ -70,6 +70,7 @@ public class PackagedSmoke {
                         command("find bob", 1, false);
                         check(items().get(0).toString().contains("Bob Lee"), "search replaces group filter");
                         command("find a1234567b", 1, false);
+                        snapshot(scene, "findMatricNumberResult.png");
                         command("edit 1 m/a1234567z g/l03", 0, false);
                         command("find a1234567z", 1, false);
                         check(items().get(0).toString().contains("L03"), "edited group normalized");
