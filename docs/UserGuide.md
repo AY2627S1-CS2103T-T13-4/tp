@@ -6,7 +6,7 @@
 
 # TutorLink User Guide
 
-TutorLink is a **desktop application for managing student records, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, TutorLink can help you manage a student roster faster than traditional GUI applications.
+TutorLink is a **desktop application for managing student records, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, TutorLink can help you manage students faster than traditional GUI applications.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -22,7 +22,7 @@ TutorLink is a **desktop application for managing student records, optimized for
 
 1. Copy the file to the folder you want to use as the _home folder_ for TutorLink.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar TutorLink.jar`.<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -37,9 +37,9 @@ TutorLink is a **desktop application for managing student records, optimized for
 
    * `find John` : Finds students whose names contain the whole word `John`.
 
-   * `delete 3` : Previews the 3rd student; use `delete 3 confirm` to delete it.
+   * `delete 3` : Previews the 3rd student; use `delete 3 confirm` to delete them.
 
-   * `clear` : Deletes all students.
+   * `clear` : Deletes all student records.
 
    * `exit` : Exits the app.
 
@@ -86,9 +86,9 @@ Opens a Help window containing the link to the online User Guide. Use the **Copy
 Format: `help`
 
 
-### Adding a person: `add`
+### Adding a student: `add`
 
-Adds a student to the roster.
+Adds a student to TutorLink.
 
 Format: `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
 
@@ -103,7 +103,7 @@ in uppercase, while leading zeros are kept, so `l03` is stored as `L03`.
 
 <box type="tip" seamless>
 
-**Tip:** A person can have any number of tags, including zero.
+**Tip:** A student can have any number of tags, including zero.
 </box>
 
 Examples:
@@ -111,7 +111,7 @@ Examples:
 * `add n/John Doe m/A0123456X g/T01 p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe m/A1234567Y g/l03 t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
-### Listing persons: `list`
+### Listing students: `list`
 
 Shows all students, or only students from a specified tutorial group.
 
@@ -131,21 +131,26 @@ Examples:
 
 ### Editing a student: `edit`
 
-Edits an existing student.
+Edits an existing student record.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]... `
+Format: `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE] [e/EMAIL] [a/ADDRESS] [t/TAG]...`
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
-* Existing values will be updated to the input values.
+* Supplied fields replace their existing values; omitted fields keep their existing values.
+* Matriculation numbers and tutorial groups follow the same formats as in `add` and are saved in uppercase.
+  A matriculation number already used by another student is rejected, regardless of letter case.
 * The current filtered view remains active after an edit. If the edited student no longer matches the active filter,
   the student disappears from the displayed list. Use `list` to show all students again.
-* When editing tags, all of the person's existing tags are removed; adding tags is not cumulative.
-* To remove all of a person's tags, enter `t/` without a tag after it.
+* When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
+* To remove all of a student's tags, enter `t/` without a tag after it.
 
 Examples:
-*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
-*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st student to be `91234567` and `johndoe@example.com` respectively.
+*  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd student to be `Betsy Crower` and clears all existing tags.
+*  `edit 1 m/a1234567z` Changes only the 1st student's matriculation number to `A1234567Z`.
+*  `edit 1 g/l03` Moves the 1st student to tutorial group `L03`. If `list g/T01` is active, that student
+   disappears from the displayed list while the `T01` filter remains active.
 
 ### Finding students by name or matriculation number: `find`
 
@@ -192,7 +197,7 @@ Examples:
 
 ### Clearing all students: `clear`
 
-Clears all students from TutorLink.
+Clears all student records from TutorLink.
 
 Format: `clear`
 
@@ -208,7 +213,7 @@ TutorLink automatically saves data after every command. You do not need to save 
 
 ### Editing the data file
 
-TutorLink data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+TutorLink data is saved automatically as a JSON file `[JAR file location]/data/tutorlink.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <box type="warning" seamless>
 

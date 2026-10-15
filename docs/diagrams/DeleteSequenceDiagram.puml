@@ -4,7 +4,7 @@ skinparam ArrowFontStyle plain
 
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
-participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":TutorLinkParser" as TutorLinkParser LOGIC_COLOR
 participant ":DeleteCommandParser" as DeleteCommandParser LOGIC_COLOR
 participant "d:DeleteCommand" as DeleteCommand LOGIC_COLOR
 participant "r:CommandResult" as CommandResult LOGIC_COLOR
@@ -17,17 +17,17 @@ end box
 [-> LogicManager : execute("delete 1 confirm")
 activate LogicManager
 
-LogicManager -> AddressBookParser : parseCommand("delete 1 confirm")
-activate AddressBookParser
+LogicManager -> TutorLinkParser : parseCommand("delete 1 confirm")
+activate TutorLinkParser
 
 create DeleteCommandParser
-AddressBookParser -> DeleteCommandParser
+TutorLinkParser -> DeleteCommandParser
 activate DeleteCommandParser
 
-DeleteCommandParser --> AddressBookParser
+DeleteCommandParser --> TutorLinkParser
 deactivate DeleteCommandParser
 
-AddressBookParser -> DeleteCommandParser : parse("1 confirm")
+TutorLinkParser -> DeleteCommandParser : parse("1 confirm")
 activate DeleteCommandParser
 
 create DeleteCommand
@@ -37,19 +37,19 @@ activate DeleteCommand
 DeleteCommand --> DeleteCommandParser :
 deactivate DeleteCommand
 
-DeleteCommandParser --> AddressBookParser : d
+DeleteCommandParser --> TutorLinkParser : d
 deactivate DeleteCommandParser
 'Hidden arrow to position the destroy marker below the end of the activation bar.
-DeleteCommandParser -[hidden]-> AddressBookParser
+DeleteCommandParser -[hidden]-> TutorLinkParser
 destroy DeleteCommandParser
 
-AddressBookParser --> LogicManager : d
-deactivate AddressBookParser
+TutorLinkParser --> LogicManager : d
+deactivate TutorLinkParser
 
 LogicManager -> DeleteCommand : execute(m)
 activate DeleteCommand
 
-DeleteCommand -> Model : deletePerson(1)
+DeleteCommand -> Model : deleteStudent(1)
 activate Model
 
 Model --> DeleteCommand

@@ -6,9 +6,10 @@
 
 ## Overview
 
-TutorLink is a desktop application designed to help tutors manage their student roster efficiently.
+TutorLink is a desktop application for managing student rosters across tutorial groups.
 
-It brings student records together in one place, allowing tutors to organise students by tutorial group and access their contact details. TutorLink combines a graphical user interface with command-based interactions for a fast and convenient workflow.
+Tutors can add, edit, find, filter, and delete student records through concise commands. The graphical list cards show
+each student's stored details, including their tutorial group and optional contact information.
 
 ## Target Users
 
@@ -16,10 +17,10 @@ TutorLink is intended for tutors who manage one or more tutorial groups and need
 
 ## Key Features
 
-* **Student management** — Add, edit, list, and delete student records.
-* **Tutorial-group filtering** — View students belonging to a specified tutorial group.
-* **Student search** — Find students by whole name words or complete matriculation numbers.
-* **Contact details** — Store optional phone numbers, email addresses, addresses, and tags for each student.
+* **Student rosters** — Add, edit, and delete students with unique matriculation numbers and tutorial groups.
+* **Group filtering** — Show all students or only those in a specified tutorial group with `list`.
+* **Student details** — Read academic and contact details directly on each student list card.
+* **Search** — Find students by name or matriculation number.
 * **Data persistence** — Save student records automatically after every command.
 
 ## Current release scope
