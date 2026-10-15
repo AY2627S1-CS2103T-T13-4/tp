@@ -76,6 +76,7 @@ launch(workflow, "restart")
 assert (workflow / "data/tutorlink.json").read_bytes() == saved, "restart changed saved data"
 
 for name, invalid in [("corrupt", b"{not valid JSON"),
+                      ("json-null", b"null\n"),
                       ("missing-required", b'{"students":[{"name":"Protected Student","tags":[]}]}')]:
     folder = work / name
     (folder / "data").mkdir(parents=True)
