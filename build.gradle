@@ -45,21 +45,27 @@ task coverage(type: JacocoReport) {
     }
 }
 
+// mac and mac-aarch64 contain identically named native libraries and must not be mixed.
+def macJavafxPlatform = providers.gradleProperty('macJavafxPlatform').getOrElse('mac')
+if (!(macJavafxPlatform in ['mac', 'mac-aarch64'])) {
+    throw new GradleException('macJavafxPlatform must be mac or mac-aarch64')
+}
+
 dependencies {
     String jUnitVersion = '5.14.4'
     String javaFxVersion = '17.0.7'
 
     implementation "org.openjfx:javafx-base:${javaFxVersion}:win"
-    implementation "org.openjfx:javafx-base:${javaFxVersion}:mac"
+    implementation "org.openjfx:javafx-base:${javaFxVersion}:${macJavafxPlatform}"
     implementation "org.openjfx:javafx-base:${javaFxVersion}:linux"
     implementation "org.openjfx:javafx-controls:${javaFxVersion}:win"
-    implementation "org.openjfx:javafx-controls:${javaFxVersion}:mac"
+    implementation "org.openjfx:javafx-controls:${javaFxVersion}:${macJavafxPlatform}"
     implementation "org.openjfx:javafx-controls:${javaFxVersion}:linux"
     implementation "org.openjfx:javafx-fxml:${javaFxVersion}:win"
-    implementation "org.openjfx:javafx-fxml:${javaFxVersion}:mac"
+    implementation "org.openjfx:javafx-fxml:${javaFxVersion}:${macJavafxPlatform}"
     implementation "org.openjfx:javafx-fxml:${javaFxVersion}:linux"
     implementation "org.openjfx:javafx-graphics:${javaFxVersion}:win"
-    implementation "org.openjfx:javafx-graphics:${javaFxVersion}:mac"
+    implementation "org.openjfx:javafx-graphics:${javaFxVersion}:${macJavafxPlatform}"
     implementation "org.openjfx:javafx-graphics:${javaFxVersion}:linux"
 
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.7.0'
@@ -72,7 +78,7 @@ dependencies {
 }
 
 shadowJar {
-    archiveFileName = 'TutorLink.jar'
+    archiveFileName = macJavafxPlatform == 'mac-aarch64' ? 'TutorLink-mac-aarch64.jar' : 'TutorLink.jar'
 }
 
 defaultTasks 'clean', 'test'
