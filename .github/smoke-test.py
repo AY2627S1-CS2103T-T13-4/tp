@@ -75,6 +75,25 @@ assert students[0]["tutorialGroup"] == "L03", students
 launch(workflow, "restart")
 assert (workflow / "data/tutorlink.json").read_bytes() == saved, "restart changed saved data"
 
+followup = work / "followup"
+(followup / "data").mkdir(parents=True)
+(followup / "data/tutorlink.json").write_text(json.dumps({"students": [
+    {"name": "Other Student", "matricNumber": "A7777777Z", "tutorialGroup": "T02", "tags": []},
+    {"name": "Casey Tan", "matricNumber": "A6666666Z", "tutorialGroup": "T01",
+     "remark": "Discuss recursion", "tags": ["original"]}
+]}))
+launch(followup, "followup-mark")
+marked = json.loads((followup / "data/tutorlink.json").read_text())["students"]
+assert [student["requiresFollowUp"] for student in marked] == [False, True], marked
+assert marked[1]["remark"] == "Discuss recursion" and marked[1]["tutorialGroup"] == "L03", marked
+assert marked[1]["tags"] == [], marked
+launch(followup, "followup-complete")
+completed = json.loads((followup / "data/tutorlink.json").read_text())["students"]
+assert [student["requiresFollowUp"] for student in completed] == [False, False], completed
+assert completed[1] == dict(marked[1], requiresFollowUp=False), "completion changed unrelated fields"
+launch(followup, "followup-verify")
+assert json.loads((followup / "data/tutorlink.json").read_text())["students"] == completed
+
 for name, invalid in [("corrupt", b"{not valid JSON"),
                       ("json-null", b"null\n"),
                       ("missing-required", b'{"students":[{"name":"Protected Student","tags":[]}]}')]:

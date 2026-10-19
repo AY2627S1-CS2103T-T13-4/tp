@@ -43,7 +43,9 @@ public class PackagedSmoke {
                     Stage stage = (Stage) Window.getWindows().stream().filter(w -> w instanceof Stage
                             && ((Stage) w).getTitle().equals("TutorLink")).findFirst().orElseThrow();
                     scene = stage.getScene();
-                    if (phase.equals("workflow")) {
+                    if (phase.startsWith("followup-")) {
+                        followUpWorkflow(phase);
+                    } else if (phase.equals("workflow")) {
                         command("find alex david", 2, false);
                         snapshot(scene, "findAlexDavidResult.png");
                         command("help", 2, false);
@@ -132,6 +134,69 @@ public class PackagedSmoke {
             Thread.sleep(100);
         }
         throw new AssertionError("Application did not open a window");
+    }
+
+    private static void followUpWorkflow(String phase) throws Exception {
+        if (phase.equals("followup-mark")) {
+            command("find A6666666Z", 1, false);
+            check(!student().requiresFollowUp(), "older record defaults to no follow-up");
+            check(student().getRemark().equals("Discuss recursion"), "older remark retained");
+            command("followup 1 on", 1, false);
+            check(student().requiresFollowUp(), "mark uses displayed index");
+            command("followup 1 on", 1, false);
+            check(feedback().startsWith("Already requires follow-up:"), "repeated marking feedback");
+            command("edit 1 g/L03 t/needsHelp", 1, false);
+            check(student().requiresFollowUp(), "group and tag edits retain status");
+            check(student().getRemark().equals("Discuss recursion"), "mark and edits retain remark");
+            command("findtag NEEDSHELP", 1, false);
+            command("edit 1 t/", 0, false);
+            command("list g/T02", 1, false);
+            command("followups", 1, false);
+            check(student().getMatricNumber().value.equals("A6666666Z"), "followups searches full roster");
+            check(student().getTutorialGroup().value.equals("L03"), "followups retains group move");
+            check(student().getTags().isEmpty(), "followups retains cleared tags");
+            check(student().getPhone() == null, "followups retains absent optional details");
+            check(student().getRemark().equals("Discuss recursion"), "followups retains remark");
+            String saved = data();
+            command("followup 2 done", 1, true);
+            command("followup 0 on", 1, true);
+            command("followup 1 off", 1, true);
+            command("followups g/T02", 1, true);
+            check(data().equals(saved), "followup errors preserve data and filter");
+            command("followups", 1, false);
+            scene.getRoot().applyCss();
+            scene.getRoot().layout();
+            check(scene.getRoot().lookupAll(".label").stream().anyMatch(node -> node instanceof Label
+                    && ((Label) node).getText().equals("Follow-up: Required")), "follow-up card label");
+            snapshot(scene, "followUpMarked.png");
+        } else if (phase.equals("followup-complete")) {
+            command("list g/T02", 1, false);
+            command("followups", 1, false);
+            check(student().requiresFollowUp(), "follow-up status survives process restart");
+            check(student().getRemark().equals("Discuss recursion"), "remark survives process restart");
+            snapshot(scene, "followUpAfterRestart.png");
+            command("followup 1 done", 0, false);
+            command("followups", 0, false);
+            check(feedback().equals("No students require follow-up."), "empty follow-up list feedback");
+            snapshot(scene, "followUpCompleted.png");
+            command("find A6666666Z", 1, false);
+            command("followup 1 done", 1, false);
+            check(feedback().startsWith("No outstanding follow-up:"), "repeated completion feedback");
+            check(!student().requiresFollowUp(), "completed student record retained");
+            check(student().getRemark().equals("Discuss recursion"), "completion retains remark");
+        } else {
+            command("followups", 0, false);
+            check(feedback().equals("No students require follow-up."), "completion survives process restart");
+            command("list", 2, false);
+        }
+    }
+
+    private static tutorlink.model.student.Student student() {
+        return (tutorlink.model.student.Student) items().get(0);
+    }
+
+    private static String feedback() {
+        return ((TextArea) scene.lookup("#resultDisplay")).getText();
     }
 
     private static <T> T fx(Callable<T> action) throws Exception {
