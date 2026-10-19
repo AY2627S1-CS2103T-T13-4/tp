@@ -244,7 +244,8 @@ current view unchanged.
 * Marking or completing retains the current filter. Completing a student in the follow-up view removes them
   immediately; the remaining students are renumbered. Check the displayed index before the next update.
 * Repeating `on` for an already marked student or `done` for a student with no outstanding follow-up leaves
-  the status unchanged. Follow-up history is not recorded.
+  the status unchanged. The feedback says `Already requires follow-up: ...` or `No outstanding follow-up: ...`.
+  Follow-up history is not recorded.
 * Follow-up changes retain the student's identity, contact details, tutorial group, tags, and existing remark.
   Ordinary edits, group moves using `edit INDEX g/GROUP`, and tag replacement or clearing retain follow-up status.
 * Use `list` to restore the full roster. `find`, `findtag`, and `list g/GROUP` replace the follow-up filter.
@@ -262,6 +263,11 @@ Example acceptance workflow (use an unused matriculation number):
 5. `exit`, then relaunch the same JAR from the same folder and enter `followups`. Casey is still listed.
 6. Enter `followup INDEX done` using Casey's current displayed index. Casey immediately leaves the follow-up list.
 7. Enter `followups` again to confirm Casey is absent. `find A6666666Z` still finds Casey's student record.
+
+The packaged app retains Casey after restarting, then shows an empty follow-up list after completion:
+
+![Casey requiring follow-up after restarting](images/followUpAfterRestart.png)
+![No outstanding follow-ups after completing Casey](images/followUpCompleted.png)
 
 ### Deleting a student with confirmation: `delete`
 
