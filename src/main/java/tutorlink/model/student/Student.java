@@ -27,6 +27,7 @@ public class Student {
     private final Email email;
     private final Address address;
     private final String remark;
+    private final boolean requiresFollowUp;
     private final Set<Tag> tags = new HashSet<>();
 
     /**
@@ -42,6 +43,14 @@ public class Student {
      */
     public Student(Name name, MatricNumber matricNumber, TutorialGroup tutorialGroup,
             Phone phone, Email email, Address address, Set<Tag> tags, String remark) {
+        this(name, matricNumber, tutorialGroup, phone, email, address, tags, remark, false);
+    }
+
+    /**
+     * Creates a student with an optional remark and current follow-up status.
+     */
+    public Student(Name name, MatricNumber matricNumber, TutorialGroup tutorialGroup,
+            Phone phone, Email email, Address address, Set<Tag> tags, String remark, boolean requiresFollowUp) {
         requireAllNonNull(name, matricNumber, tutorialGroup, tags);
         this.name = name;
         this.matricNumber = matricNumber;
@@ -50,6 +59,7 @@ public class Student {
         this.email = email;
         this.address = address;
         this.remark = remark;
+        this.requiresFollowUp = requiresFollowUp;
         this.tags.addAll(tags);
     }
 
@@ -79,6 +89,24 @@ public class Student {
 
     public String getRemark() {
         return remark;
+    }
+
+    public boolean requiresFollowUp() {
+        return requiresFollowUp;
+    }
+
+    /**
+     * Returns a copy with the given follow-up status, retaining every other field.
+     */
+    public Student withFollowUp(boolean requiresFollowUp) {
+        return new Student(name, matricNumber, tutorialGroup, phone, email, address, tags, remark, requiresFollowUp);
+    }
+
+    /**
+     * Returns a copy with the given remark, retaining the follow-up status and all other fields.
+     */
+    public Student withRemark(String remark) {
+        return new Student(name, matricNumber, tutorialGroup, phone, email, address, tags, remark, requiresFollowUp);
     }
 
     /**
@@ -124,13 +152,14 @@ public class Student {
                 && Objects.equals(email, otherStudent.email)
                 && Objects.equals(address, otherStudent.address)
                 && Objects.equals(remark, otherStudent.remark)
+                && requiresFollowUp == otherStudent.requiresFollowUp
                 && tags.equals(otherStudent.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, matricNumber, tutorialGroup, phone, email, address, remark, tags);
+        return Objects.hash(name, matricNumber, tutorialGroup, phone, email, address, remark, requiresFollowUp, tags);
     }
 
     @Override
@@ -143,6 +172,7 @@ public class Student {
                 .add("email", email)
                 .add("address", address)
                 .add("remark", remark)
+                .add("requiresFollowUp", requiresFollowUp)
                 .add("tags", tags)
                 .toString();
     }

@@ -32,6 +32,7 @@ public class StudentBuilder {
     private Email email;
     private Address address;
     private String remark;
+    private boolean requiresFollowUp;
     private Set<Tag> tags;
 
     /**
@@ -58,6 +59,7 @@ public class StudentBuilder {
         email = studentToCopy.getEmail();
         address = studentToCopy.getAddress();
         remark = studentToCopy.getRemark();
+        requiresFollowUp = studentToCopy.requiresFollowUp();
         tags = new HashSet<>(studentToCopy.getTags());
     }
 
@@ -126,7 +128,15 @@ public class StudentBuilder {
     }
 
     public Student build() {
-        return new Student(name, matricNumber, tutorialGroup, phone, email, address, tags, remark);
+        return new Student(name, matricNumber, tutorialGroup, phone, email, address, tags, remark, requiresFollowUp);
+    }
+
+    /**
+     * Sets the current follow-up status of the student that we are building.
+     */
+    public StudentBuilder withFollowUp(boolean requiresFollowUp) {
+        this.requiresFollowUp = requiresFollowUp;
+        return this;
     }
 
 }

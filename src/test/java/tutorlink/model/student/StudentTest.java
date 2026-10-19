@@ -156,7 +156,8 @@ public class StudentTest {
                 + ", matricNumber=" + ALICE.getMatricNumber() + ", tutorialGroup=" + ALICE.getTutorialGroup()
                 + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail() + ", address=" + ALICE.getAddress()
-                + ", remark=" + ALICE.getRemark() + ", tags=" + ALICE.getTags() + "}";
+                + ", remark=" + ALICE.getRemark() + ", requiresFollowUp=" + ALICE.requiresFollowUp()
+                + ", tags=" + ALICE.getTags() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }
