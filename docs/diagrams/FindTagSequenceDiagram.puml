@@ -1,0 +1,57 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+hide footbox
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":TutorLinkParser" as TutorLinkParser LOGIC_COLOR
+participant ":FindTagCommandParser" as Parser LOGIC_COLOR
+participant "command:FindTagCommand" as Command LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "model:ModelManager" as Model MODEL_COLOR
+end box
+
+[-> LogicManager : execute("findtag needsHelp")
+activate LogicManager
+LogicManager -> TutorLinkParser : parseCommand("findtag needsHelp")
+activate TutorLinkParser
+create Parser
+TutorLinkParser -> Parser
+TutorLinkParser -> Parser : parse(" needsHelp")
+activate Parser
+note right of Parser
+  Validate the tag with ParserUtil.parseTag().
+  Create a TagMatchesPredicate for exact,
+  case-insensitive matching.
+end note
+create Command
+Parser -> Command : new FindTagCommand(predicate)
+Parser --> TutorLinkParser : command
+deactivate Parser
+TutorLinkParser --> LogicManager : command
+deactivate TutorLinkParser
+
+LogicManager -> Command : execute(model)
+activate Command
+Command -> Model : updateFilteredStudentList(predicate)
+activate Model
+note right of Model
+  Replace the active predicate on the
+  FilteredList backed by the full roster.
+  Student records remain unchanged.
+end note
+Model --> Command
+deactivate Model
+Command -> Model : getFilteredStudentList()
+Model --> Command : matching students
+Command --> LogicManager : CommandResult with match count
+deactivate Command
+ref over LogicManager, Model
+  LogicManager saves the complete roster through Storage.
+end ref
+[<-- LogicManager : CommandResult
+deactivate LogicManager
+@enduml

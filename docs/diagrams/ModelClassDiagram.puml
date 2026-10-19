@@ -17,6 +17,8 @@ Class Student
 Class Address
 Class Email
 Class Name
+Class MatricNumber
+Class TutorialGroup
 Class Phone
 Class Tag
 
@@ -37,16 +39,19 @@ UserPrefs .up.|> ReadOnlyUserPrefs
 
 StudentDirectory *--> "1" UniqueStudentList
 UniqueStudentList --> "~* all" Student
-Student *--> Name
-Student *--> Phone
-Student *--> Email
-Student *--> Address
+Student *--> "1" Name
+Student *--> "1" MatricNumber
+Student *--> "1" TutorialGroup
+Student *--> "0..1" Phone
+Student *--> "0..1" Email
+Student *--> "0..1" Address
 Student *--> "*" Tag
 
 Student -[hidden]up--> I
 UniqueStudentList -[hidden]right-> I
 
 Name -[hidden]right-> Phone
+MatricNumber -[hidden]right-> TutorialGroup
 Phone -[hidden]right-> Address
 Address -[hidden]right-> Email
 
