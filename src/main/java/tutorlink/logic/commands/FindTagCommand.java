@@ -2,9 +2,14 @@ package tutorlink.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
+import java.util.logging.Logger;
+
+import tutorlink.commons.core.LogsCenter;
 import tutorlink.commons.util.ToStringBuilder;
 import tutorlink.logic.Messages;
 import tutorlink.model.Model;
+import tutorlink.model.student.Student;
 import tutorlink.model.student.TagMatchesPredicate;
 
 /**
@@ -18,6 +23,8 @@ public class FindTagCommand extends Command {
             + "Parameters: TAG (one alphanumeric tag, without the t/ prefix)\n"
             + "Example: " + COMMAND_WORD + " needsHelp";
 
+    private static final Logger logger = LogsCenter.getLogger(FindTagCommand.class);
+
     private final TagMatchesPredicate predicate;
 
     public FindTagCommand(TagMatchesPredicate predicate) {
@@ -28,8 +35,12 @@ public class FindTagCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredStudentList(predicate);
+        List<Student> matchingStudents = model.getFilteredStudentList();
+        assert matchingStudents.stream().allMatch(predicate) : "Tag search results must match the requested tag";
+        int matchCount = matchingStudents.size();
+        logger.fine(() -> "Tag search completed with " + matchCount + " matching student(s)");
         return new CommandResult(
-                String.format(Messages.MESSAGE_STUDENTS_LISTED_OVERVIEW, model.getFilteredStudentList().size()));
+                String.format(Messages.MESSAGE_STUDENTS_LISTED_OVERVIEW, matchCount));
     }
 
     @Override
