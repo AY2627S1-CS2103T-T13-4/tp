@@ -1,0 +1,55 @@
+@startuml
+!include style.puml
+hide footbox
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant "command:FollowUpCommand" as Command LOGIC_COLOR
+end box
+box Model MODEL_COLOR_T1
+participant "model:ModelManager" as Model MODEL_COLOR
+participant "student:Student" as Student MODEL_COLOR
+participant "updated:Student" as Updated MODEL_COLOR
+end box
+box Storage STORAGE_COLOR_T1
+participant ":StorageManager" as Storage STORAGE_COLOR
+end box
+
+[-> Logic : execute("followup 1 done")
+activate Logic
+ref over Logic, Command
+  TutorLinkParser and FollowUpCommandParser validate
+  INDEX and on/done, then create the command.
+end ref
+Logic -> Command : execute(model)
+activate Command
+Command -> Model : getFilteredStudentList()
+Model --> Command : displayed students
+note right of Command
+  Check the displayed index before updating.
+  A repeated action leaves status unchanged.
+end note
+Command -> Student : withFollowUp(false)
+activate Student
+create Updated
+Student -> Updated : new Student(..., remark, false)
+Student --> Command : updated
+deactivate Student
+Command -> Model : setStudent(student, updated)
+activate Model
+note right of Model
+  The active filter re-evaluates updated.
+  If followups is active, the completed
+  student disappears and indices update.
+end note
+Model --> Command
+deactivate Model
+Command --> Logic : CommandResult
+deactivate Command
+Logic -> Model : getStudentDirectory()
+Model --> Logic : complete roster
+Logic -> Storage : saveStudentDirectory(complete roster)
+Storage --> Logic
+[<-- Logic : CommandResult
+deactivate Logic
+@enduml

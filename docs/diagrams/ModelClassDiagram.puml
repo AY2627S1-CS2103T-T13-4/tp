@@ -14,7 +14,12 @@ Class ModelManager
 Class UserPrefs
 
 Class UniqueStudentList
-Class Student
+Class Student {
+  -requiresFollowUp : boolean
+  +requiresFollowUp() : boolean
+  +withFollowUp(boolean) : Student
+  +withRemark(String) : Student
+}
 Class Address
 Class Email
 Class Name
