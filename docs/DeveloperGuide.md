@@ -159,6 +159,33 @@ Classes used by multiple components are in the `tutorlink.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Tag search
+
+The `findtag TAG` command searches the full roster for students with an exact, case-insensitive tag match.
+It accepts one tag using the existing `Tag` validation rules, so add, edit, and search accept the same tag format.
+Stored tag spelling and `Tag` equality are unchanged; only the search comparison ignores case.
+
+<puml src="diagrams/FindTagSequenceDiagram.puml" alt="Parsing and executing a tag search over the full roster" />
+
+`TutorLinkParser` delegates to `FindTagCommandParser`, which rejects missing arguments with a usage error and
+validates the tag through `ParserUtil#parseTag(String)`. It creates a `TagMatchesPredicate` and a `FindTagCommand`.
+The predicate tests whether any of a student's tags equals the requested tag ignoring case. It does not inspect
+names or other fields, and a student with multiple matching tags still appears only once.
+
+`FindTagCommand` replaces the predicate on the model's `FilteredList<Student>` using
+`Model#updateFilteredStudentList(Predicate)` and reports the result count. Because that list is backed by the full
+`StudentDirectory`, the command also finds students outside the previous search or tutorial-group results.
+No matches produces an empty view. A parse failure leaves the current predicate and stored data unchanged.
+
+Edits and deletions continue to use the current displayed indices. Replacing a student's tags with `edit`, including
+clearing them with `t/`, causes the filtered view to re-evaluate the updated student. A student who no longer
+matches disappears, and the remaining indices change accordingly. The filter remains active after edits and
+deletions. Storage saves the complete roster, including students hidden by the search.
+
+`FindTagCommandIntegrationTest` covers adding two tagged students, clearing one student's tags, searching again,
+and reloading the saved roster, as well as filter replacement, invalid input, tag changes, and displayed-index
+editing and deletion.
+
 ### Tutorial group filtering
 
 Tutorial group filtering is implemented as an optional mode of the `list` command. The supported forms are `list`,

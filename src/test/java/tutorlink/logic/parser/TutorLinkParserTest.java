@@ -19,12 +19,15 @@ import tutorlink.logic.commands.EditCommand;
 import tutorlink.logic.commands.EditCommand.EditStudentDescriptor;
 import tutorlink.logic.commands.ExitCommand;
 import tutorlink.logic.commands.FindCommand;
+import tutorlink.logic.commands.FindTagCommand;
 import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.student.Student;
 import tutorlink.model.student.StudentContainsKeywordsPredicate;
+import tutorlink.model.student.TagMatchesPredicate;
 import tutorlink.model.student.TutorialGroup;
+import tutorlink.model.tag.Tag;
 import tutorlink.testutil.EditStudentDescriptorBuilder;
 import tutorlink.testutil.StudentBuilder;
 import tutorlink.testutil.StudentUtil;
@@ -81,6 +84,20 @@ public class TutorLinkParserTest {
         FindCommand command = (FindCommand) parser.parseCommand(
                 FindCommand.COMMAND_WORD + " " + keywords.stream().collect(Collectors.joining(" ")));
         assertEquals(new FindCommand(new StudentContainsKeywordsPredicate(keywords)), command);
+    }
+
+    @Test
+    public void parseCommand_findTag() throws Exception {
+        assertEquals(new FindTagCommand(new TagMatchesPredicate(new Tag("NeedsHelp"))),
+                parser.parseCommand("findtag \tNeedsHelp  "));
+    }
+
+    @Test
+    public void parseCommand_findTagWithInvalidArguments_throwsParseException() {
+        assertThrows(ParseException.class,
+                String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindTagCommand.MESSAGE_USAGE), () ->
+                parser.parseCommand("findtag"));
+        assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> parser.parseCommand("findtag t/friends"));
     }
 
     @Test

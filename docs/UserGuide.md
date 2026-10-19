@@ -44,6 +44,8 @@ TutorLink is a **desktop application for managing student records, optimized for
 
    * `find John` : Finds students whose names contain the whole word `John`.
 
+   * `findtag needsHelp` : Finds students with the tag `needsHelp`, ignoring case.
+
    * `delete 3` : Previews the 3rd student; use `delete 3 confirm` to delete them.
 
    * `clear` : Deletes all student records.
@@ -56,11 +58,11 @@ TutorLink is a **desktop application for managing student records, optimized for
 
 ## Features
 
-### v1.3 MVP scope
+### Student roster scope
 
 This release focuses on managing a student roster. Tutorial groups are stored as part of each student's record and can be used to filter the roster with `list g/TUTORIAL_GROUP`. Standalone tutorial-group creation, editing, and deletion are not available in this release.
 
-Attendance tracking, participation records, and student remarks are future enhancements and are not available in v1.3.
+Attendance tracking, participation records, and student remarks are future enhancements and are not available in this version.
 
 <box type="info" seamless>
 
@@ -111,6 +113,8 @@ in uppercase, while leading zeros are kept, so `l03` is stored as `L03`.
 <box type="tip" seamless>
 
 **Tip:** A student can have any number of tags, including zero.
+Tags contain only letters `A`–`Z`, `a`–`z`, and digits `0`–`9`, with no spaces or punctuation.
+Use `findtag TAG` to find students with a particular tag.
 </box>
 
 Examples:
@@ -186,6 +190,37 @@ Examples:
 
 Searching with `find a1234567b` also finds a student whose optional contact details were not supplied:<br>
 ![Matriculation-number search with optional details omitted](images/findMatricNumberResult.png)
+
+### Finding students by tag: `findtag`
+
+Finds students with a particular tag added using `add` or `edit`.
+
+Format: `findtag TAG`
+
+* Supply exactly one tag without the `t/` prefix, for example `findtag needsHelp`.
+* Matching is **case-insensitive and exact**: `needsHelp`, `NEEDSHELP`, and `needshelp` match the same tag.
+  `help` and `needsHelpSoon` do not match `needsHelp`. Only tags are searched.
+* Tags follow the same rules as `add` and `edit`: one or more letters `A`–`Z`, `a`–`z`, or digits `0`–`9`.
+  Spaces, punctuation, quotes, and multiple tags are not accepted. Leading and trailing whitespace is ignored.
+* Each search covers the **full roster** and replaces the previous search or tutorial-group filter.
+  Each matching student appears once, in roster order, even if they have multiple tags differing only in case.
+* No matches shows an empty list and `0 student(s) listed!`. Missing or invalid tags show an error and leave the
+  current results unchanged. Searching does not modify student records or the spelling of stored tags.
+* `edit` and `delete` use the indices in the displayed results. Editing or clearing a matching tag immediately
+  removes that student from the results if they no longer match. The remaining students are renumbered;
+  check the displayed index before the next edit or confirmed deletion.
+* `edit INDEX t/` clears all tags. To remove only one tag, supply all the tags you want to keep, for example
+  `edit 1 t/paid` replaces that student's tags with just `paid`.
+* Use `list` to show all students again. Adding a student also restores the full roster, as with other searches.
+
+Example workflow (using unused matriculation numbers and a tag not yet in your roster):
+
+1. `add n/Dana Tan m/A7777777Z g/T01 t/needsHelp`
+2. `add n/Evan Lim m/A8888888Z g/T02 t/NEEDSHELP`
+3. `findtag needshelp` shows Dana and Evan, numbered 1 and 2.
+4. `edit 1 t/` clears Dana's tags. Evan remains in the results and is now numbered 1.
+5. `findtag needsHelp` finds only Evan.
+6. `list` shows the full roster, including Dana without the tag.
 
 ### Deleting a student with confirmation: `delete`
 
@@ -263,6 +298,7 @@ Action     | Format, Examples
 **Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g., `edit 2 m/A1234567Z g/T02`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
+**Find by tag** | `findtag TAG`<br> e.g., `findtag needsHelp`
 **List**   | `list [g/TUTORIAL_GROUP]`<br> e.g., `list g/T01`
 **Help**   | `help`
 **Exit**   | `exit`

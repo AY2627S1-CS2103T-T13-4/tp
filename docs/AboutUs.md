@@ -43,6 +43,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/pinxinfang.png" width="200px">
 
 [[github](https://github.com/pinxinfang)]
+[[portfolio](team/pinxinfang.md)]
 
 * Role: Developer
 * Responsibilities: Development, testing, and documentation

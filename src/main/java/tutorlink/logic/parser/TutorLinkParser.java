@@ -15,6 +15,7 @@ import tutorlink.logic.commands.DeleteCommand;
 import tutorlink.logic.commands.EditCommand;
 import tutorlink.logic.commands.ExitCommand;
 import tutorlink.logic.commands.FindCommand;
+import tutorlink.logic.commands.FindTagCommand;
 import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
@@ -57,6 +58,7 @@ public class TutorLinkParser {
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
+            case FindTagCommand.COMMAND_WORD -> new FindTagCommandParser().parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();

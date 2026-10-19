@@ -60,6 +60,22 @@ public class PackagedSmoke {
                         check(scene.getRoot().lookupAll(".label").stream().anyMatch(node -> node instanceof Label
                                 && ((Label) node).getText().contains("Not provided")), "optional details display");
                         command("add n/Bob Lee m/A7654321C g/T02 e/bob@example.com", 2, false);
+                        command("edit 1 t/FollowUp", 2, false);
+                        command("edit 2 t/followup", 2, false);
+                        command("findtag FOLLOWUP", 2, false);
+                        snapshot(scene, "findTagTwoStudents.png");
+                        command("edit 1 t/", 1, false);
+                        check(items().get(0).toString().contains("Bob Lee"), "cleared tag removes Alice from results");
+                        snapshot(scene, "findTagAfterClearing.png");
+                        command("findtag followup", 1, false);
+                        snapshot(scene, "findTagSearchAgain.png");
+                        command("findtag follow", 0, false);
+                        command("findtag FOLLOWUP", 1, false);
+                        String tagSearchData = data();
+                        command("findtag follow-up", 1, true);
+                        check(data().equals(tagSearchData), "invalid tag search preserves saved data");
+                        command("edit 1 e/updatedbob@example.com", 1, false);
+                        check(items().get(0).toString().contains("Bob Lee"), "tag result edit uses displayed index");
                         command("list g/t01", 1, false);
                         String before = data();
                         command("add n/Duplicate m/a1234567b g/T02", 1, true);
@@ -78,7 +94,8 @@ public class PackagedSmoke {
                         check(((TextArea) scene.lookup("#resultDisplay")).getText()
                                 .contains("delete 1 confirm"), "deletion preview");
                         command("list", 2, false);
-                        command("find Bob", 1, false);
+                        command("findtag followup", 1, false);
+                        command("delete 1", 1, false);
                         command("delete 1 confirm", 0, false);
                         command("list", 1, false);
                     } else {
@@ -87,6 +104,7 @@ public class PackagedSmoke {
                         command("find a1234567z", 1, false);
                         check(items().get(0).toString().contains("L03"), "edited group reloaded");
                         command("find Bob", 0, false);
+                        command("findtag followup", 0, false);
                         command("list", 1, false);
                     }
                     Files.writeString(Path.of("smoke-passed.txt"), phase);
