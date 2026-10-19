@@ -130,6 +130,33 @@ public class FindTagCommandIntegrationTest {
     }
 
     @Test
+    public void execute_moveAndRetagSearchResultThenClearTags_preservesRemarkAfterReload() throws Exception {
+        Student remarkedBenson = new StudentBuilder(BENSON).withRemark("Review recursion before Friday.").build();
+        model.setStudent(BENSON, remarkedBenson);
+        assertSearch("findtag owesMoney", List.of(remarkedBenson));
+
+        logic.execute("edit 1 g/T09 t/needsHelp t/paid");
+        Student movedBenson = new StudentBuilder(remarkedBenson).withTutorialGroup("T09")
+                .withTags("needsHelp", "paid").build();
+        assertEquals(List.of(), model.getFilteredStudentList());
+        assertSearch("findtag NEEDSHELP", List.of(movedBenson));
+        List<Student> expectedStudents = getTypicalStudents();
+        int bensonRosterIndex = expectedStudents.indexOf(BENSON);
+        expectedStudents.set(bensonRosterIndex, movedBenson);
+        assertStoredStudents(expectedStudents);
+
+        model = new ModelManager(studentDirectoryStorage.readStudentDirectory().orElseThrow(), new UserPrefs());
+        logic = createLogic();
+        assertSearch("findtag needsHelp", List.of(movedBenson));
+        logic.execute("edit 1 t/");
+        Student bensonWithoutTags = new StudentBuilder(movedBenson).withTags().build();
+        expectedStudents.set(bensonRosterIndex, bensonWithoutTags);
+        assertEquals(List.of(), model.getFilteredStudentList());
+        assertSearch("findtag paid", List.of());
+        assertStoredStudents(expectedStudents);
+    }
+
+    @Test
     public void execute_removeOneTag_preservesOtherTagsAndRenumbersDeleteResults() throws Exception {
         assertSearch("findtag friends", List.of(ALICE, BENSON, DANIEL));
         logic.execute("edit 2 t/owesMoney");
