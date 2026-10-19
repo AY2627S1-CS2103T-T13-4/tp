@@ -34,6 +34,7 @@ class JsonAdaptedStudent {
     private final String email;
     private final String address;
     private final String remark;
+    private final boolean requiresFollowUp;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
     /**
@@ -45,7 +46,8 @@ class JsonAdaptedStudent {
             @JsonProperty("phone") String phone, @JsonProperty("email") String email,
             @JsonProperty("address") String address,
             @JsonProperty("remark") String remark,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("tags") List<JsonAdaptedTag> tags,
+            @JsonProperty("requiresFollowUp") Boolean requiresFollowUp) {
         this.name = name;
         this.matricNumber = matricNumber;
         this.tutorialGroup = tutorialGroup;
@@ -53,9 +55,18 @@ class JsonAdaptedStudent {
         this.email = email;
         this.address = address;
         this.remark = remark;
+        this.requiresFollowUp = Boolean.TRUE.equals(requiresFollowUp);
         if (tags != null) {
             this.tags.addAll(tags);
         }
+    }
+
+    /**
+     * Creates a student with no follow-up required, for callers using the older data contract.
+     */
+    public JsonAdaptedStudent(String name, String matricNumber, String tutorialGroup,
+            String phone, String email, String address, String remark, List<JsonAdaptedTag> tags) {
+        this(name, matricNumber, tutorialGroup, phone, email, address, remark, tags, false);
     }
 
     /**
@@ -77,6 +88,7 @@ class JsonAdaptedStudent {
         email = source.getEmail() == null ? null : source.getEmail().value;
         address = source.getAddress() == null ? null : source.getAddress().value;
         remark = source.getRemark();
+        requiresFollowUp = source.requiresFollowUp();
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
@@ -139,7 +151,7 @@ class JsonAdaptedStudent {
 
         final Set<Tag> modelTags = new HashSet<>(studentTags);
         return new Student(modelName, modelMatricNumber, modelTutorialGroup,
-                modelPhone, modelEmail, modelAddress, modelTags, remark);
+                modelPhone, modelEmail, modelAddress, modelTags, remark, requiresFollowUp);
     }
 
 }
