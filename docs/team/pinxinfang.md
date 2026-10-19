@@ -24,7 +24,7 @@ GitHub: [@pinxinfang](https://github.com/pinxinfang)
   Macs, added packaged-application checks to CI, and handled JSON-null input through the protective startup path.
   [PR #68](https://github.com/AY2627S1-CS2103T-T13-4/tp/pull/68).
 
-### v1.4 work submitted for review
+### v1.4 contributions
 
 * **Tag search:** added `findtag TAG` with exact, case-insensitive matching, full-roster searches, and validation
   consistent with add/edit. Added 28 tests covering parser and search behaviour, clearing/replacing tags,
@@ -32,12 +32,18 @@ GitHub: [@pinxinfang](https://github.com/pinxinfang)
   scenario; the Developer Guide includes the search sequence and updated student model UML.
   [Issue #74](https://github.com/AY2627S1-CS2103T-T13-4/tp/issues/74),
   [PR #75](https://github.com/AY2627S1-CS2103T-T13-4/tp/pull/75).
-* **Assertions configuration:** explicitly enabled assertions for Gradle application runs and tests on a separate
+* **Assertions configuration (merged):** explicitly enabled assertions for Gradle application runs and tests on a separate
   branch, allowing this change to be reviewed independently of tag search.
   [PR #76](https://github.com/AY2627S1-CS2103T-T13-4/tp/pull/76).
 
-The PR pages show the current review, CI, and merge status. Submitted work is distinguished here from changes
-already included in a released version.
+The PR pages show the current review, CI, and merge status. These contributions are scheduled for the v1.4 release.
+
+## Peer review
+
+* Reproduced a null student record that bypasses the friendly storage-error path and gave an inline follow-up
+  review of a peer's storage code. The comment identifies the failing input, exception path, proposed validation,
+  and a regression test that also checks the original data file is preserved.
+  [Inline review on PR #64](https://github.com/AY2627S1-CS2103T-T13-4/tp/pull/64#discussion_r4310919921).
 
 ## Documentation
 
