@@ -51,6 +51,7 @@
         "storage-component": "Storage component",
         "common-classes": "Common classes",
         "implementation": "Implementation",
+        "tag-search": "Tag search",
         "tutorial-group-filtering": "Tutorial group filtering",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "proposed-data-archiving": "[Proposed] Data archiving",
@@ -114,12 +115,13 @@
         "tutorlink-user-guide": "TutorLink User Guide",
         "quick-start": "Quick start",
         "features": "Features",
-        "v1-3-mvp-scope": "v1.3 MVP scope",
+        "student-roster-scope": "Student roster scope",
         "viewing-help-help": "Viewing help: help",
         "adding-a-student-add": "Adding a student: add",
         "listing-students-list": "Listing students: list",
         "editing-a-student-edit": "Editing a student: edit",
         "finding-students-by-name-or-matriculation-number-find": "Finding students by name or matriculation number: find",
+        "finding-students-by-tag-findtag": "Finding students by tag: findtag",
         "deleting-a-student-with-confirmation-delete": "Deleting a student with confirmation: delete",
         "clearing-all-students-clear": "Clearing all students: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
@@ -145,6 +147,21 @@
       "title": "John Doe's Project Portfolio Page",
       "headings": {
         "project-addressbook-level-3": "Project: AddressBook Level 3"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "team/pinxinfang.md",
+      "title": "Fang Pin Xin's Project Portfolio Page",
+      "headings": {
+        "fang-pin-xin-project-portfolio": "Fang Pin Xin — Project Portfolio",
+        "project-tutorlink": "Project: TutorLink",
+        "code-and-testing": "Code and testing",
+        "v1-4-contributions": "v1.4 contributions",
+        "peer-review": "Peer review",
+        "documentation": "Documentation",
+        "project-management-and-release-checks": "Project management and release checks",
+        "contribution-records": "Contribution records"
       },
       "headingKeywords": {}
     },
