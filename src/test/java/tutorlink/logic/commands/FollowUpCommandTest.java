@@ -100,4 +100,13 @@ public class FollowUpCommandTest {
         assertFalse(command.equals(null));
         assertFalse(command.equals(1));
     }
+
+    @Test
+    public void toString_includesDisplayedIndexAndRequestedStatus() {
+        String prefix = FollowUpCommand.class.getCanonicalName() + "{index=" + INDEX_FIRST_STUDENT;
+        assertEquals(prefix + ", requiresFollowUp=true}",
+                new FollowUpCommand(INDEX_FIRST_STUDENT, true).toString());
+        assertEquals(prefix + ", requiresFollowUp=false}",
+                new FollowUpCommand(INDEX_FIRST_STUDENT, false).toString());
+    }
 }

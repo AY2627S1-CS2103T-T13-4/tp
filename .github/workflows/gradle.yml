@@ -32,7 +32,12 @@ jobs:
           java-package: jdk+fx
 
       - name: Build and check with Gradle
+        if: runner.os != 'Linux'
         run: ./gradlew check coverage shadowJar
+
+      - name: Build and check with virtual display on Linux
+        if: runner.os == 'Linux'
+        run: xvfb-run -a ./gradlew check coverage shadowJar
 
       - name: Build Apple Silicon package
         if: runner.os == 'macOS'

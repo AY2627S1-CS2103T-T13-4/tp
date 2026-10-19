@@ -1,6 +1,8 @@
 package tutorlink.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tutorlink.testutil.Assert.assertThrows;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 import static tutorlink.testutil.TypicalStudents.BENSON;
@@ -62,5 +64,16 @@ public class FollowUpsCommandTest {
     @Test
     public void execute_nullModel_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new FollowUpsCommand().execute(null));
+    }
+
+    @Test
+    public void equalsAndHashCode_statelessCommandsAreInterchangeable() {
+        FollowUpsCommand command = new FollowUpsCommand();
+        FollowUpsCommand other = new FollowUpsCommand();
+        assertTrue(command.equals(command));
+        assertTrue(command.equals(other));
+        assertEquals(command.hashCode(), other.hashCode());
+        assertFalse(command.equals(null));
+        assertFalse(command.equals(new ListCommand()));
     }
 }
