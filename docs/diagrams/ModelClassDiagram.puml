@@ -20,6 +20,7 @@ Class Student {
   +withFollowUp(boolean) : Student
   +withRemark(String) : Student
 }
+show Student members
 Class Address
 Class Email
 Class Name
