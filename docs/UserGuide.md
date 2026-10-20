@@ -40,6 +40,8 @@ TutorLink is a **desktop application for managing student records, optimized for
 
    * `list g/T01` : Lists only students in tutorial group `T01`.
 
+   * `groups` : Lists every tutorial group and its student count.
+
    * `add n/John Doe m/A0123456X g/T01 e/johnd@example.com` : Adds a student named `John Doe` to TutorLink.
 
    * `find John` : Finds students whose names contain the whole word `John`.
@@ -141,6 +143,29 @@ Examples:
 * `list` shows all students.
 * `list g/T01` shows only students in tutorial group `T01`.
 * `list g/l03` shows only students in tutorial group `L03`.
+
+### Viewing tutorial-group counts: `groups`
+
+Shows every tutorial group represented in the complete student roster and the number of students in each group.
+
+Format: `groups`
+
+* `groups` accepts no arguments. Extra arguments result in a usage error.
+* Counts are calculated from the complete roster, so they are unaffected by an active `find`, `findtag`, or
+  `list g/TUTORIAL_GROUP` filter.
+* Groups are displayed in ascending alphabetical and numerical order.
+* Adding, deleting, or moving a student with `edit INDEX g/GROUP` is reflected the next time `groups` is executed.
+* The command does not change the currently displayed student list or any student record.
+* If the roster is empty, TutorLink displays `No tutorial groups found.`.
+
+Example:
+
+```text
+groups
+L01: 1 student
+T01: 2 students
+T02: 1 student
+```
 
 ### Editing a student: `edit`
 
@@ -349,5 +374,6 @@ Action     | Format, Examples
 **Follow-up status** | `followup INDEX on` or `followup INDEX done`<br> e.g., `followup 1 on`
 **List follow-ups** | `followups`
 **List**   | `list [g/TUTORIAL_GROUP]`<br> e.g., `list g/T01`
+**List tutorial-group counts** | `groups`
 **Help**   | `help`
 **Exit**   | `exit`

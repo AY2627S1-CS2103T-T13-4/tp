@@ -126,6 +126,8 @@ The `Model` component,
 
 * stores the student directory data i.e., all `Student` objects (which are contained in a `UniqueStudentList` object).
 * stores the `Student` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Student>` that the UI can observe and bind to, so the UI updates when the list changes.
+* exposes the complete `StudentDirectory` separately from the filtered list, allowing commands such as `groups` to
+  aggregate data without being affected by the current display filter.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -244,6 +246,23 @@ The original `UniqueStudentList` is not modified or copied during filtering. It 
 records, while `FilteredList<Student>` provides the current view. Consequently, filtering does not change stored data.
 Commands that operate on the displayed list use its current one-based indexes. Editing or deleting a displayed
 student retains the active filter, while running `list` without `g/` restores the complete list.
+
+### Tutorial-group overview
+
+The `groups` command reports the number of students in every tutorial group represented in the complete roster. It
+accepts no arguments; `GroupsCommandParser` rejects non-empty arguments before creating a `GroupsCommand`.
+
+`GroupsCommand` reads `Model#getStudentDirectory().getStudentList()` rather than
+`Model#getFilteredStudentList()`. It groups students by their normalized `TutorialGroup` value and stores the counts in
+a sorted map, producing deterministic output. Since the counts are derived at execution time, additions, deletions,
+and tutorial-group changes made through `edit INDEX g/GROUP` are reflected without a separate cache or update hook.
+
+The command only creates a result message. It does not update the model's active predicate, so the currently displayed
+student list and its displayed-index contract remain unchanged. An empty directory produces the explicit message
+`No tutorial groups found.`.
+
+`GroupsCommandTest` covers complete-roster counting while a group filter is active, empty rosters, stable ordering,
+and changes caused by adding, deleting, and moving students. `GroupsCommandParserTest` covers argument validation.
 
 ### \[Proposed\] Undo/redo feature
 
