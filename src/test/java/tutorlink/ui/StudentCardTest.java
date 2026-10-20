@@ -31,6 +31,14 @@ public class StudentCardTest {
         assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Needs help with recursion"));
     }
 
+    @Test
+    public void constructor_withoutRemark_displaysNotProvided() {
+        Student student = new StudentBuilder().build();
+        StudentCard studentCard = new StudentCard(student, 1);
+
+        assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Not provided"));
+    }
+
     private boolean containsLabelWithText(Node node, String expectedText) {
         if (node instanceof Label label && expectedText.equals(label.getText())) {
             return true;
