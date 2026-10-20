@@ -8,6 +8,7 @@ import static tutorlink.testutil.Assert.assertThrows;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -134,6 +135,11 @@ public class AddCommandTest {
 
         @Override
         public ObservableList<Student> getFilteredStudentList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void sortStudents(Comparator<Student> comparator) {
             throw new AssertionError("This method should not be called.");
         }
 

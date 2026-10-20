@@ -1,5 +1,6 @@
 package tutorlink.model;
 
+import java.util.Comparator;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
@@ -61,11 +62,18 @@ public interface Model {
      */
     void setStudent(Student target, Student editedStudent);
 
-    /** Returns an unmodifiable view of the filtered student list */
+    /** Returns an unmodifiable view of the filtered student list in displayed order. */
     ObservableList<Student> getFilteredStudentList();
 
     /**
-     * Updates the filter of the filtered student list to filter by the given {@code predicate}.
+     * Sorts the currently filtered students using {@code comparator}, without changing the filter or directory order.
+     * The ordering remains active as students are edited or deleted.
+     * @throws NullPointerException if {@code comparator} is null.
+     */
+    void sortStudents(Comparator<Student> comparator);
+
+    /**
+     * Updates the filter using {@code predicate} and restores the original directory order.
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredStudentList(Predicate<Student> predicate);
