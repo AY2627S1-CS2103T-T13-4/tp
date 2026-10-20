@@ -186,6 +186,43 @@ deletions. Storage saves the complete roster, including students hidden by the s
 and reloading the saved roster, as well as filter replacement, invalid input, tag changes, and displayed-index
 editing and deletion.
 
+### Current follow-up status
+
+`followup INDEX on` and `followup INDEX done` set the immutable `Student.requiresFollowUp` boolean.
+`FollowUpCommandParser` validates the two positional arguments and uses `ParserUtil.parseIndex`.
+`FollowUpCommand` resolves the index from `Model#getFilteredStudentList()`, rejects an index outside that displayed
+list, and replaces just that student through `Model#setStudent`. It uses `Student#withFollowUp(boolean)` to retain
+all unrelated fields, including the existing remark. Repeating either action leaves the status unchanged.
+
+<puml src="diagrams/FollowUpSequenceDiagram.puml" alt="Completing a follow-up using the current displayed index" />
+
+`followups` accepts no arguments. `FollowUpsCommand` replaces the active predicate using
+`Model#updateFilteredStudentList(Student::requiresFollowUp)`. The filtered list is backed by the entire roster,
+so results are independent of the previous name search, tag search, or group filter. The command neither copies nor
+mutates the source roster. Results follow roster order and an empty result has an explicit message.
+After `setStudent`, JavaFX re-evaluates the active predicate; completing a follow-up therefore immediately removes
+the student from that view and renumbers the remaining results. The filter stays active after edits and updates.
+`list`, `find`, and `findtag` replace it, and adding a student restores the full roster.
+
+`JsonAdaptedStudent` saves `requiresFollowUp` and restores it through the full `Student` constructor.
+Missing or null fields default to false for compatibility with older records. `LogicManager` saves the complete
+roster after successful commands, including hidden students. No history or completion timestamps are stored.
+
+Integration contract for remarks (#78), sorting (#80), and release coordination (#77):
+* `Student` equality, hashing, and string output include current status; identity still uses only matriculation number.
+* `StudentBuilder(Student)` and `withFollowUp(boolean)` retain status in expected test records.
+* `EditCommand` passes the original status and remark when replacing details, groups, or tags.
+* Remark commands should call `Student#withRemark(String)` to retain status when setting, replacing, or clearing a
+  remark. Older constructor overloads describe **new** records with no follow-up; they must not be used to copy an
+  existing student during updates.
+* Sorting should order the same list exposed by `getFilteredStudentList()`, because follow-up updates use that
+  displayed order. It must retain whole `Student` objects and status. The sorting owner must define how a new
+  `followups` query resets or retains sorting when that feature is integrated.
+
+`FollowUpCommandIntegrationTest` covers mark → list → reload → complete → reload through parsing and JSON storage,
+and loads a genuine older record without the field. Command tests cover unrelated-field preservation and
+full-roster filtering. Further regressions exercise combined edits and error cases.
+
 ### Tutorial group filtering
 
 Tutorial group filtering is implemented as an optional mode of the `list` command. The supported forms are `list`,
@@ -339,6 +376,7 @@ The following decisions define the MVP behaviour for the model, commands, storag
 | Tutorial group | Required | Reject the record or command |
 | Phone, email, address | Retain the existing fields, but make each optional | Represent an absent value as `null` in the model and JSON; display `Not provided` in the UI |
 | Tags | Retain the existing field | Use an empty set in the model and an empty array in JSON, rather than `null` |
+| Follow-up | Track one current `requiresFollowUp` boolean | Default to false for new students and older JSON without the field; retain through replacements |
 | Remark | Preserve any existing remark when loading, editing, or saving a student | Use `null` when absent; adding or changing remarks is outside the profile data contract |
 
 An `add` command must accept a name, matriculation number, and tutorial group without requiring phone, email, or address. Existing `p/`, `e/`, `a/`, and `t/` inputs remain supported as optional details. Commands and UI components must handle absent optional values without dereferencing `null`. An `edit` command leaves omitted fields unchanged; it must not interpret omission as a request to clear a field.
