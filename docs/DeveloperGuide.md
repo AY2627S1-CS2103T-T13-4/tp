@@ -263,6 +263,7 @@ student list and its displayed-index contract remain unchanged. An empty directo
 
 `GroupsCommandTest` covers complete-roster counting while a group filter is active, empty rosters, stable ordering,
 and changes caused by adding, deleting, and moving students. `GroupsCommandParserTest` covers argument validation.
+`GroupsCommandIntegrationTest` covers the complete parsing, filtering, command, and storage path.
 
 ### \[Proposed\] Undo/redo feature
 
