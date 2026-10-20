@@ -8,7 +8,6 @@ import static tutorlink.testutil.Assert.assertThrows;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -22,6 +21,7 @@ import tutorlink.model.Model;
 import tutorlink.model.ReadOnlyStudentDirectory;
 import tutorlink.model.ReadOnlyUserPrefs;
 import tutorlink.model.StudentDirectory;
+import tutorlink.model.StudentSortOrder;
 import tutorlink.model.student.Student;
 import tutorlink.testutil.StudentBuilder;
 
@@ -139,7 +139,7 @@ public class AddCommandTest {
         }
 
         @Override
-        public void sortStudents(Comparator<Student> comparator) {
+        public void sortStudents(StudentSortOrder sortOrder) {
             throw new AssertionError("This method should not be called.");
         }
 

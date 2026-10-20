@@ -2,13 +2,12 @@ package tutorlink.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Comparator;
 import java.util.logging.Logger;
 
 import tutorlink.commons.core.LogsCenter;
 import tutorlink.commons.util.ToStringBuilder;
 import tutorlink.model.Model;
-import tutorlink.model.student.Student;
+import tutorlink.model.StudentSortOrder;
 
 /**
  * Sorts the currently displayed students by name without changing the active filter.
@@ -24,13 +23,6 @@ public class SortCommand extends Command {
 
     private static final Logger logger = LogsCenter.getLogger(SortCommand.class);
 
-    private static final Comparator<Student> NAME_COMPARATOR = Comparator.comparing(
-            student -> student.getName().fullName, String.CASE_INSENSITIVE_ORDER);
-    private static final Comparator<Student> ASCENDING_COMPARATOR = NAME_COMPARATOR
-            .thenComparing(student -> student.getMatricNumber().value);
-    private static final Comparator<Student> DESCENDING_COMPARATOR = NAME_COMPARATOR.reversed()
-            .thenComparing(student -> student.getMatricNumber().value);
-
     private final boolean isDescending;
 
     /**
@@ -44,7 +36,7 @@ public class SortCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.sortStudents(isDescending ? DESCENDING_COMPARATOR : ASCENDING_COMPARATOR);
+        model.sortStudents(isDescending ? StudentSortOrder.NAME_DESC : StudentSortOrder.NAME_ASC);
         logger.fine(() -> "Sorted " + model.getFilteredStudentList().size() + " displayed students by name in "
                 + (isDescending ? "descending" : "ascending") + " order.");
         return new CommandResult(isDescending ? MESSAGE_SUCCESS_DESCENDING : MESSAGE_SUCCESS_ASCENDING);

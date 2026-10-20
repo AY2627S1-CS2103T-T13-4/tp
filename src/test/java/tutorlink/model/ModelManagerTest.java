@@ -9,7 +9,6 @@ import static tutorlink.testutil.TypicalStudents.ALICE;
 import static tutorlink.testutil.TypicalStudents.BENSON;
 import static tutorlink.testutil.TypicalStudents.CARL;
 
-import java.util.Comparator;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -79,18 +78,18 @@ public class ModelManagerTest {
     }
 
     @Test
-    public void sortStudents_nullComparator_throwsNullPointerException() {
+    public void sortStudents_nullSortOrder_throwsNullPointerException() {
         assertThrows(NullPointerException.class,
-                "Student sort comparator must not be null.", () -> modelManager.sortStudents(null));
+                "Student sort order must not be null.", () -> modelManager.sortStudents(null));
     }
 
     @Test
-    public void sortStudents_nullComparator_preservesActiveFilterAndSorting() {
+    public void sortStudents_nullSortOrder_preservesActiveFilterAndSorting() {
         StudentDirectory directory = new StudentDirectoryBuilder()
                 .withStudent(BENSON).withStudent(CARL).withStudent(ALICE).build();
         modelManager = new ModelManager(directory, new UserPrefs());
         modelManager.updateFilteredStudentList(new TutorialGroupMatchesPredicate(ALICE.getTutorialGroup()));
-        modelManager.sortStudents(Comparator.comparing(student -> student.getName().fullName));
+        modelManager.sortStudents(StudentSortOrder.NAME_ASC);
 
         assertThrows(NullPointerException.class, () -> modelManager.sortStudents(null));
         assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredStudentList());
@@ -104,22 +103,97 @@ public class ModelManagerTest {
     @Test
     public void getFilteredStudentList_sortedList_cannotModify() {
         modelManager.addStudent(ALICE);
-        modelManager.sortStudents(Comparator.comparing(student -> student.getName().fullName));
+        modelManager.sortStudents(StudentSortOrder.NAME_ASC);
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredStudentList().remove(0));
     }
 
     @Test
-    public void equals_differentSortingWithSameDisplayedStudents_returnsFalse() {
-        ModelManager otherModel = new ModelManager();
-        Comparator<Student> comparator = Comparator.comparing(student -> student.getName().fullName);
-        modelManager.sortStudents(comparator);
-        assertFalse(modelManager.equals(otherModel));
-        otherModel.sortStudents(comparator);
-        assertTrue(modelManager.equals(otherModel));
-        modelManager.updateFilteredStudentList(PREDICATE_SHOW_ALL_STUDENTS);
-        assertFalse(modelManager.equals(otherModel));
-        otherModel.updateFilteredStudentList(PREDICATE_SHOW_ALL_STUDENTS);
-        assertTrue(modelManager.equals(otherModel));
+    public void equals_emptyModels_comparesSortOrderValues() {
+        for (StudentSortOrder firstOrder : StudentSortOrder.values()) {
+            for (StudentSortOrder secondOrder : StudentSortOrder.values()) {
+                ModelManager firstModel = new ModelManager();
+                ModelManager secondModel = new ModelManager();
+                firstModel.sortStudents(firstOrder);
+                secondModel.sortStudents(secondOrder);
+                assertEquals(firstOrder == secondOrder, firstModel.equals(secondModel));
+            }
+        }
+    }
+
+    @Test
+    public void equals_independentlySortedModelsWithStudents_returnsTrue() {
+        StudentDirectory directory = new StudentDirectoryBuilder()
+                .withStudent(BENSON).withStudent(ALICE).build();
+        for (StudentSortOrder sortOrder : StudentSortOrder.values()) {
+            ModelManager firstModel = new ModelManager(directory, new UserPrefs());
+            ModelManager secondModel = new ModelManager(directory, new UserPrefs());
+            firstModel.sortStudents(sortOrder);
+            secondModel.sortStudents(sortOrder);
+            assertEquals(firstModel, secondModel);
+        }
+    }
+
+    @Test
+    public void sortStudents_directoryOrder_restoresOrderAndStateWithoutChangingFilter() {
+        StudentDirectory directory = new StudentDirectoryBuilder()
+                .withStudent(BENSON).withStudent(CARL).withStudent(ALICE).build();
+        TutorialGroupMatchesPredicate predicate = new TutorialGroupMatchesPredicate(ALICE.getTutorialGroup());
+        ModelManager expectedModel = new ModelManager(directory, new UserPrefs());
+        expectedModel.updateFilteredStudentList(predicate);
+        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC)) {
+            modelManager = new ModelManager(directory, new UserPrefs());
+            modelManager.updateFilteredStudentList(predicate);
+            modelManager.sortStudents(sortOrder);
+            modelManager.sortStudents(StudentSortOrder.DIRECTORY);
+            assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredStudentList());
+            assertEquals(expectedModel, modelManager);
+            assertEquals(directory, modelManager.getStudentDirectory());
+        }
+    }
+
+    @Test
+    public void updateFilteredStudentList_afterSorting_restoresOrderAndState() {
+        StudentDirectory directory = new StudentDirectoryBuilder()
+                .withStudent(BENSON).withStudent(CARL).withStudent(ALICE).build();
+        TutorialGroupMatchesPredicate predicate = new TutorialGroupMatchesPredicate(ALICE.getTutorialGroup());
+        ModelManager expectedModel = new ModelManager(directory, new UserPrefs());
+        expectedModel.updateFilteredStudentList(predicate);
+        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC)) {
+            modelManager = new ModelManager(directory, new UserPrefs());
+            modelManager.sortStudents(sortOrder);
+            modelManager.updateFilteredStudentList(predicate);
+            assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredStudentList());
+            assertEquals(expectedModel, modelManager);
+        }
+    }
+
+    @Test
+    public void setStudentDirectory_afterSorting_restoresOrderAndState() {
+        StudentDirectory replacement = new StudentDirectoryBuilder()
+                .withStudent(BENSON).withStudent(ALICE).build();
+        ModelManager expectedModel = new ModelManager(replacement, new UserPrefs());
+        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC)) {
+            modelManager.sortStudents(sortOrder);
+            modelManager.setStudentDirectory(replacement);
+            assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredStudentList());
+            assertEquals(expectedModel, modelManager);
+        }
+    }
+
+    @Test
+    public void addStudent_afterFilteredSort_restoresFullRosterOrderAndState() {
+        StudentDirectory directory = new StudentDirectoryBuilder()
+                .withStudent(BENSON).withStudent(ALICE).build();
+        ModelManager expectedModel = new ModelManager(directory, new UserPrefs());
+        expectedModel.addStudent(CARL);
+        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC)) {
+            modelManager = new ModelManager(directory, new UserPrefs());
+            modelManager.updateFilteredStudentList(new NameContainsKeywordsPredicate(List.of("Alice")));
+            modelManager.sortStudents(sortOrder);
+            modelManager.addStudent(CARL);
+            assertEquals(List.of(BENSON, ALICE, CARL), modelManager.getFilteredStudentList());
+            assertEquals(expectedModel, modelManager);
+        }
     }
 
     @Test
