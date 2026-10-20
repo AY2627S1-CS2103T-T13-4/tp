@@ -4,7 +4,9 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 
+import tutorlink.commons.core.LogsCenter;
 import tutorlink.commons.core.index.Index;
 import tutorlink.commons.util.ToStringBuilder;
 import tutorlink.logic.Messages;
@@ -24,6 +26,8 @@ public class RemarkCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 r/Needs help with recursion";
     public static final String MESSAGE_SET_REMARK_SUCCESS = "Updated remark for student: %1$s";
     public static final String MESSAGE_CLEAR_REMARK_SUCCESS = "Cleared remark for student: %1$s";
+
+    private static final Logger logger = LogsCenter.getLogger(RemarkCommand.class);
 
     private final Index index;
     private final String remark;
@@ -47,7 +51,9 @@ public class RemarkCommand extends Command {
 
         Student studentToEdit = displayedStudents.get(index.getZeroBased());
         Student editedStudent = studentToEdit.withRemark(remark);
+        assert studentToEdit.isSameStudent(editedStudent) : "Remark updates must preserve student identity";
         model.setStudent(studentToEdit, editedStudent);
+        logger.fine(() -> "Remark update completed for displayed index " + index.getOneBased());
 
         String message = remark == null ? MESSAGE_CLEAR_REMARK_SUCCESS : MESSAGE_SET_REMARK_SUCCESS;
         return new CommandResult(String.format(message, Messages.format(editedStudent)));
