@@ -52,6 +52,7 @@
         "common-classes": "Common classes",
         "implementation": "Implementation",
         "tag-search": "Tag search",
+        "current-follow-up-status": "Current follow-up status",
         "tutorial-group-filtering": "Tutorial group filtering",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "proposed-data-archiving": "[Proposed] Data archiving",
@@ -122,6 +123,7 @@
         "editing-a-student-edit": "Editing a student: edit",
         "finding-students-by-name-or-matriculation-number-find": "Finding students by name or matriculation number: find",
         "finding-students-by-tag-findtag": "Finding students by tag: findtag",
+        "tracking-student-follow-ups-followup-and-followups": "Tracking student follow-ups: followup and followups",
         "deleting-a-student-with-confirmation-delete": "Deleting a student with confirmation: delete",
         "clearing-all-students-clear": "Clearing all students: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
@@ -162,6 +164,18 @@
         "documentation": "Documentation",
         "project-management-and-release-checks": "Project management and release checks",
         "contribution-records": "Contribution records"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "testing/followup-v1.4.md",
+      "title": "v1.4 Follow-up Verification",
+      "headings": {
+        "follow-up-verification-19-october-2026": "Follow-up verification — 19 October 2026",
+        "delivery-and-review-status": "Delivery and review status",
+        "automated-checks": "Automated checks",
+        "packaged-acceptance-result": "Packaged acceptance result",
+        "remaining-team-integration-and-release-gates": "Remaining team integration and release gates"
       },
       "headingKeywords": {}
     },
