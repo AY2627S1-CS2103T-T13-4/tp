@@ -40,6 +40,8 @@ public class StudentCard extends UiPart<Region> {
     @FXML
     private Label followUp;
     @FXML
+    private Label remark;
+    @FXML
     private Label phone;
     @FXML
     private Label address;
@@ -59,6 +61,7 @@ public class StudentCard extends UiPart<Region> {
         matricNumber.setText("Matric: " + student.getMatricNumber().value);
         tutorialGroup.setText("Group: " + student.getTutorialGroup().value);
         followUp.setText("Follow-up: " + (student.requiresFollowUp() ? "Required" : "Not required"));
+        remark.setText("Remark: " + (student.getRemark() == null ? NOT_PROVIDED : student.getRemark()));
         phone.setText("Phone: " + (student.getPhone() == null ? NOT_PROVIDED : student.getPhone().value));
         address.setText("Address: " + (student.getAddress() == null ? NOT_PROVIDED : student.getAddress().value));
         email.setText("Email: " + (student.getEmail() == null ? NOT_PROVIDED : student.getEmail().value));

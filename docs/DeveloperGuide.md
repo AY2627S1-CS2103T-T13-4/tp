@@ -186,6 +186,23 @@ deletions. Storage saves the complete roster, including students hidden by the s
 and reloading the saved roster, as well as filter replacement, invalid input, tag changes, and displayed-index
 editing and deletion.
 
+### Student remarks
+
+The `remark INDEX r/TEXT` command updates the current remark of the student at `INDEX` in the displayed list.
+The command accepts free text after the `r/` prefix; `r/` with no text clears the remark. It uses the same
+`Model#getFilteredStudentList()` index source as `edit`, `delete`, and follow-up commands, so searching or filtering
+does not change which displayed student an index refers to.
+
+`RemarkCommand` creates a copy using `Student#withRemark(String)`, which retains the student's name, matriculation
+number, tutorial group, contact details, tags, and follow-up status. The existing `JsonAdaptedStudent` mapping stores
+the remark in JSON, so it survives application restarts. Only one editable current remark is stored; remark history
+is outside the feature scope.
+
+The command flow is represented in the following diagrams:
+
+<puml src="diagrams/add-remark/RemarkClass.puml" alt="Remark command class diagram" />
+<puml src="diagrams/add-remark/ParserClass.puml" alt="Remark command parser class diagram" />
+
 ### Tutorial group filtering
 
 Tutorial group filtering is implemented as an optional mode of the `list` command. The supported forms are `list`,

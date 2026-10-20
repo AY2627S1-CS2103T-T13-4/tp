@@ -8,12 +8,20 @@ Class "{abstract}\nCommand" as Command {
 Class RemarkCommand {
   +COMMAND_WORD: String
   +MESSAGE_USAGE: String
-  +MESSAGE_NOT_IMPLEMENTED_YET: String
+  +MESSAGE_SET_REMARK_SUCCESS: String
+  +MESSAGE_CLEAR_REMARK_SUCCESS: String
+  -index: Index
+  -remark: String
   +execute(Model): CommandResult
 }
+Class Model
+Class Student
+Class Index
 Class CommandException
 
 RemarkCommand -up-|> Command
-Command ..> CommandException: throws >
+RemarkCommand ..> Model
+RemarkCommand ..> Student
+RemarkCommand ..> Index
 RemarkCommand .right.> CommandException: throws >
 @enduml

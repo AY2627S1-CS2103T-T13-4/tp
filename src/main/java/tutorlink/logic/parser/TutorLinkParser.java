@@ -20,6 +20,7 @@ import tutorlink.logic.commands.FollowUpCommand;
 import tutorlink.logic.commands.FollowUpsCommand;
 import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
+import tutorlink.logic.commands.RemarkCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
 
 /**
@@ -64,6 +65,7 @@ public class TutorLinkParser {
             case FollowUpCommand.COMMAND_WORD -> new FollowUpCommandParser().parse(arguments);
             case FollowUpsCommand.COMMAND_WORD -> new FollowUpsCommandParser().parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommandParser().parse(arguments);
+            case RemarkCommand.COMMAND_WORD -> new RemarkCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
             case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {
