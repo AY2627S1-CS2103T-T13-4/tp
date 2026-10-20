@@ -8,12 +8,14 @@ import static tutorlink.testutil.Assert.assertThrows;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 import static tutorlink.testutil.TypicalStudents.BENSON;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import tutorlink.commons.core.GuiSettings;
 import tutorlink.model.student.NameContainsKeywordsPredicate;
+import tutorlink.model.student.Student;
 import tutorlink.testutil.StudentDirectoryBuilder;
 
 public class ModelManagerTest {
@@ -71,6 +73,32 @@ public class ModelManagerTest {
     @Test
     public void getFilteredStudentList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredStudentList().remove(0));
+    }
+
+    @Test
+    public void sortStudents_nullComparator_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.sortStudents(null));
+    }
+
+    @Test
+    public void getFilteredStudentList_sortedList_cannotModify() {
+        modelManager.addStudent(ALICE);
+        modelManager.sortStudents(Comparator.comparing(student -> student.getName().fullName));
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredStudentList().remove(0));
+    }
+
+    @Test
+    public void equals_differentSortingWithSameDisplayedStudents_returnsFalse() {
+        ModelManager otherModel = new ModelManager();
+        Comparator<Student> comparator = Comparator.comparing(student -> student.getName().fullName);
+        modelManager.sortStudents(comparator);
+        assertFalse(modelManager.equals(otherModel));
+        otherModel.sortStudents(comparator);
+        assertTrue(modelManager.equals(otherModel));
+        modelManager.updateFilteredStudentList(PREDICATE_SHOW_ALL_STUDENTS);
+        assertFalse(modelManager.equals(otherModel));
+        otherModel.updateFilteredStudentList(PREDICATE_SHOW_ALL_STUDENTS);
+        assertTrue(modelManager.equals(otherModel));
     }
 
     @Test

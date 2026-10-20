@@ -3,11 +3,14 @@ package tutorlink.model;
 import static java.util.Objects.requireNonNull;
 import static tutorlink.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Comparator;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import tutorlink.commons.core.GuiSettings;
 import tutorlink.commons.core.LogsCenter;
 import tutorlink.model.student.Student;
@@ -21,6 +24,7 @@ public class ModelManager implements Model {
     private final StudentDirectory studentDirectory;
     private final UserPrefs userPrefs;
     private final FilteredList<Student> filteredStudents;
+    private final SortedList<Student> sortedStudents;
 
     /**
      * Initializes a ModelManager with the given studentDirectory and userPrefs.
@@ -33,6 +37,7 @@ public class ModelManager implements Model {
         this.studentDirectory = new StudentDirectory(studentDirectory);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredStudents = new FilteredList<>(this.studentDirectory.getStudentList());
+        sortedStudents = new SortedList<>(filteredStudents);
     }
 
     public ModelManager() {
@@ -62,6 +67,7 @@ public class ModelManager implements Model {
     @Override
     public void setStudentDirectory(ReadOnlyStudentDirectory studentDirectory) {
         this.studentDirectory.resetData(studentDirectory);
+        sortedStudents.setComparator(null);
     }
 
     @Override
@@ -96,17 +102,22 @@ public class ModelManager implements Model {
     //=========== Filtered Student List Accessors =============================================================
 
     /**
-     * Returns an unmodifiable view of the list of {@code Student} backed by the internal list of
-     * {@code studentDirectory}
+     * Returns an unmodifiable view of the filtered students in their displayed order.
      */
     @Override
     public ObservableList<Student> getFilteredStudentList() {
-        return filteredStudents;
+        return sortedStudents;
+    }
+
+    @Override
+    public void sortStudents(Comparator<Student> comparator) {
+        sortedStudents.setComparator(requireNonNull(comparator));
     }
 
     @Override
     public void updateFilteredStudentList(Predicate<Student> predicate) {
         requireNonNull(predicate);
+        sortedStudents.setComparator(null);
         filteredStudents.setPredicate(predicate);
     }
 
@@ -123,7 +134,8 @@ public class ModelManager implements Model {
 
         return studentDirectory.equals(otherModelManager.studentDirectory)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredStudents.equals(otherModelManager.filteredStudents);
+                && filteredStudents.equals(otherModelManager.filteredStudents)
+                && Objects.equals(sortedStudents.getComparator(), otherModelManager.sortedStudents.getComparator());
     }
 
 }
