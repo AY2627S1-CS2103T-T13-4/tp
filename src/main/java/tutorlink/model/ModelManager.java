@@ -111,12 +111,19 @@ public class ModelManager implements Model {
 
     @Override
     public void sortStudents(Comparator<Student> comparator) {
-        sortedStudents.setComparator(requireNonNull(comparator));
+        requireNonNull(comparator, "Student sort comparator must not be null.");
+        int displayedStudentCount = sortedStudents.size();
+        sortedStudents.setComparator(comparator);
+        assert sortedStudents.size() == displayedStudentCount
+                : "Sorting must not change the number of displayed students.";
     }
 
     @Override
     public void updateFilteredStudentList(Predicate<Student> predicate) {
         requireNonNull(predicate);
+        if (sortedStudents.getComparator() != null) {
+            logger.fine("Resetting student sorting to directory order for a new filter.");
+        }
         sortedStudents.setComparator(null);
         filteredStudents.setPredicate(predicate);
     }

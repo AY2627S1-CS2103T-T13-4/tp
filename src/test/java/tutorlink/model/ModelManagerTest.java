@@ -7,6 +7,7 @@ import static tutorlink.model.Model.PREDICATE_SHOW_ALL_STUDENTS;
 import static tutorlink.testutil.Assert.assertThrows;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 import static tutorlink.testutil.TypicalStudents.BENSON;
+import static tutorlink.testutil.TypicalStudents.CARL;
 
 import java.util.Comparator;
 import java.util.List;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import tutorlink.commons.core.GuiSettings;
 import tutorlink.model.student.NameContainsKeywordsPredicate;
 import tutorlink.model.student.Student;
+import tutorlink.model.student.TutorialGroupMatchesPredicate;
+import tutorlink.testutil.StudentBuilder;
 import tutorlink.testutil.StudentDirectoryBuilder;
 
 public class ModelManagerTest {
@@ -77,7 +80,25 @@ public class ModelManagerTest {
 
     @Test
     public void sortStudents_nullComparator_throwsNullPointerException() {
+        assertThrows(NullPointerException.class,
+                "Student sort comparator must not be null.", () -> modelManager.sortStudents(null));
+    }
+
+    @Test
+    public void sortStudents_nullComparator_preservesActiveFilterAndSorting() {
+        StudentDirectory directory = new StudentDirectoryBuilder()
+                .withStudent(BENSON).withStudent(CARL).withStudent(ALICE).build();
+        modelManager = new ModelManager(directory, new UserPrefs());
+        modelManager.updateFilteredStudentList(new TutorialGroupMatchesPredicate(ALICE.getTutorialGroup()));
+        modelManager.sortStudents(Comparator.comparing(student -> student.getName().fullName));
+
         assertThrows(NullPointerException.class, () -> modelManager.sortStudents(null));
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredStudentList());
+        assertEquals(directory, modelManager.getStudentDirectory());
+
+        Student editedAlice = new StudentBuilder(ALICE).withName("Zoe").build();
+        modelManager.setStudent(ALICE, editedAlice);
+        assertEquals(List.of(BENSON, editedAlice), modelManager.getFilteredStudentList());
     }
 
     @Test

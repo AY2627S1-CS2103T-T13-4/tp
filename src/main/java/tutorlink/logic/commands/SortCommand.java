@@ -3,7 +3,9 @@ package tutorlink.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Comparator;
+import java.util.logging.Logger;
 
+import tutorlink.commons.core.LogsCenter;
 import tutorlink.commons.util.ToStringBuilder;
 import tutorlink.model.Model;
 import tutorlink.model.student.Student;
@@ -19,6 +21,8 @@ public class SortCommand extends Command {
             + "Example: " + COMMAND_WORD + " name desc";
     public static final String MESSAGE_SUCCESS_ASCENDING = "Sorted displayed students by name (A-Z).";
     public static final String MESSAGE_SUCCESS_DESCENDING = "Sorted displayed students by name (Z-A).";
+
+    private static final Logger logger = LogsCenter.getLogger(SortCommand.class);
 
     private static final Comparator<Student> NAME_COMPARATOR = Comparator.comparing(
             student -> student.getName().fullName, String.CASE_INSENSITIVE_ORDER);
@@ -41,6 +45,8 @@ public class SortCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.sortStudents(isDescending ? DESCENDING_COMPARATOR : ASCENDING_COMPARATOR);
+        logger.fine(() -> "Sorted " + model.getFilteredStudentList().size() + " displayed students by name in "
+                + (isDescending ? "descending" : "ascending") + " order.");
         return new CommandResult(isDescending ? MESSAGE_SUCCESS_DESCENDING : MESSAGE_SUCCESS_ASCENDING);
     }
 
