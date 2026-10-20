@@ -3,6 +3,7 @@ package tutorlink.logic.parser;
 import static tutorlink.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static tutorlink.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static tutorlink.logic.parser.CommandParserTestUtil.assertParseSuccess;
+import static tutorlink.testutil.Assert.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -10,6 +11,11 @@ import tutorlink.logic.commands.SortGroupCommand;
 
 public class SortGroupCommandParserTest {
     private final SortGroupCommandParser parser = new SortGroupCommandParser();
+
+    @Test
+    public void parse_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, "Sort group arguments must not be null.", () -> parser.parse(null));
+    }
 
     @Test
     public void parse_validArguments_success() {
