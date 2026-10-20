@@ -64,12 +64,23 @@ public class RemarkCommandTest {
     @Test
     public void equals() {
         RemarkCommand command = new RemarkCommand(INDEX_FIRST_STUDENT, "remark");
+        RemarkCommand equivalentCommand = new RemarkCommand(INDEX_FIRST_STUDENT, "remark");
 
         assertTrue(command.equals(command));
-        assertTrue(command.equals(new RemarkCommand(INDEX_FIRST_STUDENT, "remark")));
+        assertTrue(command.equals(equivalentCommand));
+        assertEquals(command.hashCode(), equivalentCommand.hashCode());
         assertFalse(command.equals(null));
         assertFalse(command.equals(new ClearCommand()));
         assertFalse(command.equals(new RemarkCommand(INDEX_SECOND_STUDENT, "remark")));
         assertFalse(command.equals(new RemarkCommand(INDEX_FIRST_STUDENT, "different")));
+    }
+
+    @Test
+    public void toStringMethod() {
+        RemarkCommand command = new RemarkCommand(INDEX_FIRST_STUDENT, "remark");
+        String expected = RemarkCommand.class.getCanonicalName()
+                + "{index=" + INDEX_FIRST_STUDENT + ", remark=remark}";
+
+        assertEquals(expected, command.toString());
     }
 }
