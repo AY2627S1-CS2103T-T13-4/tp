@@ -29,10 +29,15 @@ public class RemarkCommandParserTest {
     }
 
     @Test
+    public void parse_remarkContainingPrefix_success() {
+        assertParseSuccess(parser, "1 r/Discuss r/w file access modes",
+                new RemarkCommand(INDEX_FIRST_STUDENT, "Discuss r/w file access modes"));
+    }
+
+    @Test
     public void parse_invalidArguments_failure() {
         assertParseFailure(parser, "", MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, "0 r/remark", MESSAGE_INVALID_FORMAT);
         assertParseFailure(parser, "1", MESSAGE_INVALID_FORMAT);
-        assertParseFailure(parser, "1 r/one r/two", MESSAGE_INVALID_FORMAT);
     }
 }

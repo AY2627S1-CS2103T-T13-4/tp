@@ -4,6 +4,7 @@ import java.util.Comparator;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -61,7 +62,13 @@ public class StudentCard extends UiPart<Region> {
         matricNumber.setText("Matric: " + student.getMatricNumber().value);
         tutorialGroup.setText("Group: " + student.getTutorialGroup().value);
         followUp.setText("Follow-up: " + (student.requiresFollowUp() ? "Required" : "Not required"));
-        remark.setText("Remark: " + (student.getRemark() == null ? NOT_PROVIDED : student.getRemark()));
+        String remarkText = student.getRemark() == null ? NOT_PROVIDED : student.getRemark();
+        remark.setText("Remark: " + remarkText);
+        remark.setWrapText(true);
+        remark.setMaxWidth(Double.MAX_VALUE);
+        if (student.getRemark() != null) {
+            remark.setTooltip(new Tooltip(student.getRemark()));
+        }
         phone.setText("Phone: " + (student.getPhone() == null ? NOT_PROVIDED : student.getPhone().value));
         address.setText("Address: " + (student.getAddress() == null ? NOT_PROVIDED : student.getAddress().value));
         email.setText("Email: " + (student.getEmail() == null ? NOT_PROVIDED : student.getEmail().value));

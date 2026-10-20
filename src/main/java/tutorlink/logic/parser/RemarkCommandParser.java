@@ -16,16 +16,16 @@ public class RemarkCommandParser implements Parser<RemarkCommand> {
     @Override
     public RemarkCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_REMARK);
 
         try {
-            Index index = ParserUtil.parseIndex(argMultimap.getPreamble());
-            argMultimap.verifyNoDuplicatePrefixesFor(PREFIX_REMARK);
-            if (argMultimap.getValue(PREFIX_REMARK).isEmpty()) {
+            String prefix = PREFIX_REMARK.getPrefix();
+            int prefixPosition = args.indexOf(" " + prefix);
+            if (prefixPosition < 0) {
                 throw new ParseException("A remark must be provided with r/TEXT; use r/ to clear it.");
             }
 
-            String remark = argMultimap.getValue(PREFIX_REMARK).get();
+            Index index = ParserUtil.parseIndex(args.substring(0, prefixPosition).trim());
+            String remark = args.substring(prefixPosition + 1 + prefix.length()).trim();
             return new RemarkCommand(index, remark.isBlank() ? null : remark);
         } catch (ParseException pe) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RemarkCommand.MESSAGE_USAGE), pe);

@@ -1,5 +1,6 @@
 package tutorlink.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -37,6 +38,17 @@ public class StudentCardTest {
         StudentCard studentCard = new StudentCard(student, 1);
 
         assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Not provided"));
+    }
+
+    @Test
+    public void constructor_withLongRemark_wrapsAndProvidesTooltip() {
+        String longRemark = "Discuss recursion and file access modes with the student";
+        Student student = new StudentBuilder().withRemark(longRemark).build();
+        StudentCard studentCard = new StudentCard(student, 1);
+
+        Label remark = (Label) studentCard.getRoot().lookup("#remark");
+        assertTrue(remark.isWrapText());
+        assertEquals(longRemark, remark.getTooltip().getText());
     }
 
     private boolean containsLabelWithText(Node node, String expectedText) {

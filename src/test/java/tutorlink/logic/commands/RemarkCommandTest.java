@@ -69,6 +69,7 @@ public class RemarkCommandTest {
         assertTrue(command.equals(command));
         assertTrue(command.equals(equivalentCommand));
         assertEquals(command.hashCode(), equivalentCommand.hashCode());
+        assertEquals(command.hashCode(), new RemarkCommand(Index.fromOneBased(1), "remark").hashCode());
         assertFalse(command.equals(null));
         assertFalse(command.equals(new ClearCommand()));
         assertFalse(command.equals(new RemarkCommand(INDEX_SECOND_STUDENT, "remark")));
