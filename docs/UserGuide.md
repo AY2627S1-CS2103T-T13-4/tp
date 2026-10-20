@@ -46,6 +46,8 @@ TutorLink is a **desktop application for managing student records, optimized for
 
    * `findtag needsHelp` : Finds students with the tag `needsHelp`, ignoring case.
 
+   * `followup 1 on`, then `followups` : Marks the 1st displayed student and lists outstanding follow-ups.
+
    * `delete 3` : Previews the 3rd student; use `delete 3 confirm` to delete them.
 
    * `clear` : Deletes all student records.
@@ -239,6 +241,51 @@ Example workflow (using unused matriculation numbers and a tag not yet in your r
 5. `findtag needsHelp` finds only Evan.
 6. `list` shows the full roster, including Dana without the tag.
 
+### Tracking student follow-ups: `followup` and `followups`
+
+Tracks whether a student currently requires follow-up. Newly added students start with no follow-up required.
+The student card shows `Follow-up: Required` or `Follow-up: Not required`.
+
+Formats:
+* `followup INDEX on` marks a student as requiring follow-up.
+* `followup INDEX done` completes their follow-up.
+* `followups` lists all students currently requiring follow-up. It accepts no arguments.
+
+`INDEX` is the positive integer shown beside the student in the **currently displayed list**, including name,
+matriculation-number, tag-search, and group-filtered results. The actions `on` and `done` must be lowercase.
+A missing action, an unknown action, extra arguments, or an invalid index shows an error and leaves records and the
+current view unchanged.
+
+* `followups` searches the **full roster**, replacing the previous search or group filter. Results appear once each,
+  in roster order. No matches shows an empty list and `No students require follow-up.`
+* Marking or completing retains the current filter. Completing a student in the follow-up view removes them
+  immediately; the remaining students are renumbered. Check the displayed index before the next update.
+* Repeating `on` for an already marked student or `done` for a student with no outstanding follow-up leaves
+  the status unchanged. The feedback says `Already requires follow-up: ...` or `No outstanding follow-up: ...`.
+  Follow-up history is not recorded.
+* Follow-up changes retain the student's identity, contact details, tutorial group, tags, and existing remark.
+  Ordinary edits, group moves using `edit INDEX g/GROUP`, and tag replacement or clearing retain follow-up status.
+* Use `list` to restore the full roster. `find`, `findtag`, and `list g/GROUP` replace the follow-up filter.
+  Adding a student also restores the full roster.
+* Status is saved automatically in `data/tutorlink.json` and survives restarting from the same home folder.
+  Older student records without `requiresFollowUp` load with no follow-up required. Only current status is tracked.
+
+Example acceptance workflow (use an unused matriculation number):
+
+1. `add n/Casey Tan m/A6666666Z g/T01 t/needsHelp`
+2. `find A6666666Z` shows Casey at index 1.
+3. `followup 1 on` marks Casey.
+4. `list g/T99`, then `followups` still finds Casey, even though Casey is outside group `T99`.
+   Other outstanding students may also appear; check Casey's displayed index.
+5. `exit`, then relaunch the same JAR from the same folder and enter `followups`. Casey is still listed.
+6. Enter `followup INDEX done` using Casey's current displayed index. Casey immediately leaves the follow-up list.
+7. Enter `followups` again to confirm Casey is absent. `find A6666666Z` still finds Casey's student record.
+
+The packaged app retains Casey after restarting, then shows an empty follow-up list after completion:
+
+![Casey requiring follow-up after restarting](images/followUpAfterRestart.png)
+![No outstanding follow-ups after completing Casey](images/followUpCompleted.png)
+
 ### Deleting a student with confirmation: `delete`
 
 Shows the selected student before deletion. Add `confirm` to explicitly authorise removal.
@@ -317,6 +364,8 @@ Action     | Format, Examples
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Needs help with recursion`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **Find by tag** | `findtag TAG`<br> e.g., `findtag needsHelp`
+**Follow-up status** | `followup INDEX on` or `followup INDEX done`<br> e.g., `followup 1 on`
+**List follow-ups** | `followups`
 **List**   | `list [g/TUTORIAL_GROUP]`<br> e.g., `list g/T01`
 **Help**   | `help`
 **Exit**   | `exit`
