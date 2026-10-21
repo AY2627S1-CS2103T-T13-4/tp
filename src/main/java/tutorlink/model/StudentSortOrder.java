@@ -10,7 +10,9 @@ import tutorlink.model.student.Student;
 public enum StudentSortOrder {
     DIRECTORY(null),
     NAME_ASC(createNameComparator(false)),
-    NAME_DESC(createNameComparator(true));
+    NAME_DESC(createNameComparator(true)),
+    GROUP_ASC(createGroupComparator(false)),
+    GROUP_DESC(createGroupComparator(true));
 
     private final Comparator<Student> comparator;
 
@@ -32,5 +34,13 @@ public enum StudentSortOrder {
             nameComparator = nameComparator.reversed();
         }
         return nameComparator.thenComparing(student -> student.getMatricNumber().value);
+    }
+
+    private static Comparator<Student> createGroupComparator(boolean isDescending) {
+        Comparator<Student> groupComparator = Comparator.comparing(student -> student.getTutorialGroup().value);
+        if (isDescending) {
+            groupComparator = groupComparator.reversed();
+        }
+        return groupComparator.thenComparing(student -> student.getMatricNumber().value);
     }
 }

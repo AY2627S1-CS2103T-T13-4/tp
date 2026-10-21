@@ -23,6 +23,7 @@ import tutorlink.logic.commands.FindTagCommand;
 import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.commands.SortCommand;
+import tutorlink.logic.commands.SortGroupCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.student.Student;
 import tutorlink.model.student.StudentContainsKeywordsPredicate;
@@ -119,6 +120,9 @@ public class TutorLinkParserTest {
         assertEquals(new SortCommand(false), parser.parseCommand("sort name"));
         assertEquals(new SortCommand(false), parser.parseCommand("sort name asc"));
         assertEquals(new SortCommand(true), parser.parseCommand("sort name desc"));
+        assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group"));
+        assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group asc"));
+        assertEquals(new SortGroupCommand(true), parser.parseCommand("sort group desc"));
     }
 
     @Test

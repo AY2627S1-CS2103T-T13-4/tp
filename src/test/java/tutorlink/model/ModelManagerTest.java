@@ -134,13 +134,31 @@ public class ModelManagerTest {
     }
 
     @Test
+    public void sortStudents_switchingRules_usesLastRuleForOrderAndState() {
+        StudentDirectory directory = new StudentDirectoryBuilder()
+                .withStudent(BENSON).withStudent(CARL).withStudent(ALICE).build();
+        for (StudentSortOrder firstOrder : StudentSortOrder.values()) {
+            for (StudentSortOrder secondOrder : StudentSortOrder.values()) {
+                modelManager = new ModelManager(directory, new UserPrefs());
+                ModelManager expectedModel = new ModelManager(directory, new UserPrefs());
+                modelManager.sortStudents(firstOrder);
+                modelManager.sortStudents(secondOrder);
+                expectedModel.sortStudents(secondOrder);
+                assertEquals(expectedModel.getFilteredStudentList(), modelManager.getFilteredStudentList());
+                assertEquals(expectedModel, modelManager);
+            }
+        }
+    }
+
+    @Test
     public void sortStudents_directoryOrder_restoresOrderAndStateWithoutChangingFilter() {
         StudentDirectory directory = new StudentDirectoryBuilder()
                 .withStudent(BENSON).withStudent(CARL).withStudent(ALICE).build();
         TutorialGroupMatchesPredicate predicate = new TutorialGroupMatchesPredicate(ALICE.getTutorialGroup());
         ModelManager expectedModel = new ModelManager(directory, new UserPrefs());
         expectedModel.updateFilteredStudentList(predicate);
-        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC)) {
+        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC,
+                StudentSortOrder.GROUP_ASC, StudentSortOrder.GROUP_DESC)) {
             modelManager = new ModelManager(directory, new UserPrefs());
             modelManager.updateFilteredStudentList(predicate);
             modelManager.sortStudents(sortOrder);
@@ -158,7 +176,8 @@ public class ModelManagerTest {
         TutorialGroupMatchesPredicate predicate = new TutorialGroupMatchesPredicate(ALICE.getTutorialGroup());
         ModelManager expectedModel = new ModelManager(directory, new UserPrefs());
         expectedModel.updateFilteredStudentList(predicate);
-        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC)) {
+        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC,
+                StudentSortOrder.GROUP_ASC, StudentSortOrder.GROUP_DESC)) {
             modelManager = new ModelManager(directory, new UserPrefs());
             modelManager.sortStudents(sortOrder);
             modelManager.updateFilteredStudentList(predicate);
@@ -172,7 +191,8 @@ public class ModelManagerTest {
         StudentDirectory replacement = new StudentDirectoryBuilder()
                 .withStudent(BENSON).withStudent(ALICE).build();
         ModelManager expectedModel = new ModelManager(replacement, new UserPrefs());
-        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC)) {
+        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC,
+                StudentSortOrder.GROUP_ASC, StudentSortOrder.GROUP_DESC)) {
             modelManager.sortStudents(sortOrder);
             modelManager.setStudentDirectory(replacement);
             assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredStudentList());
@@ -186,7 +206,8 @@ public class ModelManagerTest {
                 .withStudent(BENSON).withStudent(ALICE).build();
         ModelManager expectedModel = new ModelManager(directory, new UserPrefs());
         expectedModel.addStudent(CARL);
-        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC)) {
+        for (StudentSortOrder sortOrder : List.of(StudentSortOrder.NAME_ASC, StudentSortOrder.NAME_DESC,
+                StudentSortOrder.GROUP_ASC, StudentSortOrder.GROUP_DESC)) {
             modelManager = new ModelManager(directory, new UserPrefs());
             modelManager.updateFilteredStudentList(new NameContainsKeywordsPredicate(List.of("Alice")));
             modelManager.sortStudents(sortOrder);
