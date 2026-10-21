@@ -6,12 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tutorlink.testutil.Assert.assertThrows;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 
-import java.util.Comparator;
-
 import org.junit.jupiter.api.Test;
 
 import tutorlink.model.ModelManager;
-import tutorlink.model.student.Student;
+import tutorlink.model.StudentSortOrder;
 
 public class SortGroupCommandTest {
 
@@ -24,9 +22,11 @@ public class SortGroupCommandTest {
     public void execute_modelChangesDisplayedCount_throwsAssertionError() {
         ModelManager model = new ModelManager() {
             @Override
-            public void sortStudents(Comparator<Student> comparator) {
-                super.sortStudents(comparator);
-                updateFilteredStudentList(student -> false);
+            public void sortStudents(StudentSortOrder sortOrder) {
+                super.sortStudents(sortOrder);
+                if (sortOrder != StudentSortOrder.DIRECTORY) {
+                    updateFilteredStudentList(student -> false);
+                }
             }
         };
         model.addStudent(ALICE);

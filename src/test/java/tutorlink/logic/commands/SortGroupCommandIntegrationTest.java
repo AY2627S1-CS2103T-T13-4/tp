@@ -330,6 +330,79 @@ public class SortGroupCommandIntegrationTest {
                 new StudentBuilder(ALICE_LOWER_MATRIC).withMatricNumber("A9999999Z").build());
     }
 
+    @Test
+    public void execute_switchSortFieldsInBothDirections_replacesPreviousRule() throws Exception {
+        logic.execute("sort name desc");
+        assertDisplayed(ZOE, BOB, ALICE_LOWER_MATRIC, ALICE_HIGHER_MATRIC);
+        logic.execute("sort group asc");
+        assertDisplayed(ALICE_LOWER_MATRIC, ALICE_HIGHER_MATRIC, ZOE, BOB);
+        logic.execute("sort name asc");
+        assertDisplayed(ALICE_LOWER_MATRIC, ALICE_HIGHER_MATRIC, BOB, ZOE);
+        logic.execute("sort group desc");
+        assertDisplayed(BOB, ALICE_LOWER_MATRIC, ALICE_HIGHER_MATRIC, ZOE);
+        logic.execute("sort name desc");
+        assertDisplayed(ZOE, BOB, ALICE_LOWER_MATRIC, ALICE_HIGHER_MATRIC);
+        assertOriginalDirectoryAndStorage();
+    }
+
+    @Test
+    public void execute_editAfterSwitchingSortFields_preservesSearchAndUpdatesDisplayedStudent() throws Exception {
+        logic.execute("find alice bob");
+        logic.execute("sort name desc");
+        logic.execute("sort group");
+        logic.execute("edit 1 g/T03");
+        Student editedAlice = new StudentBuilder(ALICE_LOWER_MATRIC).withTutorialGroup("T03").build();
+        assertDisplayed(ALICE_HIGHER_MATRIC, BOB, editedAlice);
+
+        logic.execute("sort name desc");
+        assertDisplayed(BOB, editedAlice, ALICE_HIGHER_MATRIC);
+        logic.execute("edit 1 n/Wendy");
+        Student editedBob = new StudentBuilder(BOB).withName("Wendy").build();
+        assertDisplayed(editedAlice, ALICE_HIGHER_MATRIC);
+        assertEquals(List.of(ZOE, editedBob, ALICE_HIGHER_MATRIC, editedAlice),
+                studentDirectoryStorage.readStudentDirectory().orElseThrow().getStudentList());
+    }
+
+    @Test
+    public void execute_deleteAfterSwitchingSortFields_usesUpdatedIndicesAndKeepsSearch() throws Exception {
+        logic.execute("find alice bob");
+        logic.execute("sort name desc");
+        logic.execute("sort group");
+        assertEquals(String.format(DeleteCommand.MESSAGE_CONFIRM_DELETE, Messages.format(ALICE_LOWER_MATRIC), 1),
+                logic.execute("delete 1").getFeedbackToUser());
+        logic.execute("delete 1 confirm");
+        assertDisplayed(ALICE_HIGHER_MATRIC, BOB);
+
+        logic.execute("sort name desc");
+        assertDisplayed(BOB, ALICE_HIGHER_MATRIC);
+        logic.execute("delete 1 confirm");
+        assertDisplayed(ALICE_HIGHER_MATRIC);
+        assertEquals(List.of(ZOE, ALICE_HIGHER_MATRIC),
+                studentDirectoryStorage.readStudentDirectory().orElseThrow().getStudentList());
+    }
+
+    @Test
+    public void execute_followUpAfterSwitchingSortFields_usesUpdatedIndicesAndKeepsFilter() throws Exception {
+        for (int i = 1; i <= ORIGINAL_ORDER.size(); i++) {
+            logic.execute("followup " + i + " on");
+        }
+        Student markedAliceLow = new StudentBuilder(ALICE_LOWER_MATRIC).withFollowUp(true).build();
+        Student markedAliceHigh = new StudentBuilder(ALICE_HIGHER_MATRIC).withFollowUp(true).build();
+        Student markedZoe = new StudentBuilder(ZOE).withFollowUp(true).build();
+        logic.execute("followups");
+        logic.execute("sort name");
+        logic.execute("sort group desc");
+        logic.execute("followup 1 done");
+        assertDisplayed(markedAliceLow, markedAliceHigh, markedZoe);
+
+        logic.execute("sort name desc");
+        assertDisplayed(markedZoe, markedAliceLow, markedAliceHigh);
+        logic.execute("followup 1 done");
+        assertDisplayed(markedAliceLow, markedAliceHigh);
+        assertEquals(List.of(ZOE, BOB, markedAliceHigh, markedAliceLow),
+                studentDirectoryStorage.readStudentDirectory().orElseThrow().getStudentList());
+    }
+
     private void assertDisplayed(Student... students) {
         assertEquals(List.of(students), logic.getFilteredStudentList());
     }

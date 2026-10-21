@@ -2,13 +2,12 @@ package tutorlink.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Comparator;
 import java.util.logging.Logger;
 
 import tutorlink.commons.core.LogsCenter;
 import tutorlink.commons.util.ToStringBuilder;
 import tutorlink.model.Model;
-import tutorlink.model.student.Student;
+import tutorlink.model.StudentSortOrder;
 
 /**
  * Sorts the currently displayed students by tutorial group without changing the active filter.
@@ -27,13 +26,6 @@ public class SortGroupCommand extends Command {
 
     private static final Logger logger = LogsCenter.getLogger(SortGroupCommand.class);
 
-    private static final Comparator<Student> GROUP_COMPARATOR = Comparator.comparing(
-            student -> student.getTutorialGroup().value);
-    private static final Comparator<Student> ASCENDING_COMPARATOR = GROUP_COMPARATOR
-            .thenComparing(student -> student.getMatricNumber().value);
-    private static final Comparator<Student> DESCENDING_COMPARATOR = GROUP_COMPARATOR.reversed()
-            .thenComparing(student -> student.getMatricNumber().value);
-
     private final boolean isDescending;
 
     /**
@@ -48,7 +40,7 @@ public class SortGroupCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         int displayedStudentCount = model.getFilteredStudentList().size();
-        model.sortStudents(isDescending ? DESCENDING_COMPARATOR : ASCENDING_COMPARATOR);
+        model.sortStudents(isDescending ? StudentSortOrder.GROUP_DESC : StudentSortOrder.GROUP_ASC);
         assert model.getFilteredStudentList().size() == displayedStudentCount
                 : "Sorting must not change the number of displayed students.";
         logger.fine(() -> "Sorted " + displayedStudentCount + " displayed student(s) by tutorial group in "
