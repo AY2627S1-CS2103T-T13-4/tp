@@ -9,7 +9,6 @@ import java.util.Set;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -26,13 +25,19 @@ public class StudentCardTest {
     @BeforeAll
     public static void initializeJavaFx() throws Exception {
         FutureTask<Void> initialized = new FutureTask<>(() -> null);
-        Platform.startup(initialized);
+        try {
+            Platform.startup(initialized);
+        } catch (IllegalStateException e) {
+            // Another UI test has initialized the toolkit; wait on its application thread instead.
+            Platform.runLater(initialized);
+        }
         initialized.get(10, TimeUnit.SECONDS);
     }
 
-    @AfterAll
-    public static void stopJavaFx() {
-        Platform.exit();
+    @Test
+    public void initializeJavaFx_toolkitAlreadyStarted_reusesToolkit() throws Exception {
+        initializeJavaFx();
+        onJavaFxThread(() -> assertEquals("Ready", new Label("Ready").getText()));
     }
 
     @Test
