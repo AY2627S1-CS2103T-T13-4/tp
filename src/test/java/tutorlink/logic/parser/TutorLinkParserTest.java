@@ -20,9 +20,12 @@ import tutorlink.logic.commands.EditCommand.EditStudentDescriptor;
 import tutorlink.logic.commands.ExitCommand;
 import tutorlink.logic.commands.FindCommand;
 import tutorlink.logic.commands.FindTagCommand;
+import tutorlink.logic.commands.GroupsCommand;
 import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.commands.RemarkCommand;
+import tutorlink.logic.commands.SortCommand;
+import tutorlink.logic.commands.SortGroupCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.student.Student;
 import tutorlink.model.student.StudentContainsKeywordsPredicate;
@@ -121,9 +124,31 @@ public class TutorLinkParserTest {
     }
 
     @Test
+    public void parseCommand_sort() throws Exception {
+        assertEquals(new SortCommand(false), parser.parseCommand("sort name"));
+        assertEquals(new SortCommand(false), parser.parseCommand("sort name asc"));
+        assertEquals(new SortCommand(true), parser.parseCommand("sort name desc"));
+        assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group"));
+        assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group asc"));
+        assertEquals(new SortGroupCommand(true), parser.parseCommand("sort group desc"));
+    }
+
+    @Test
     public void parseCommand_listWithInvalidArguments_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListCommand.MESSAGE_USAGE);
         assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand(ListCommand.COMMAND_WORD + " 3"));
+    }
+
+    @Test
+    public void parseCommand_groups() throws Exception {
+        assertEquals(new GroupsCommand(), parser.parseCommand(GroupsCommand.COMMAND_WORD));
+    }
+
+    @Test
+    public void parseCommand_groupsWithArguments_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, GroupsCommand.MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, () ->
+            parser.parseCommand(GroupsCommand.COMMAND_WORD + " T01"));
     }
 
     @Test

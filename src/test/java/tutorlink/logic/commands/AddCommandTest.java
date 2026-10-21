@@ -21,6 +21,7 @@ import tutorlink.model.Model;
 import tutorlink.model.ReadOnlyStudentDirectory;
 import tutorlink.model.ReadOnlyUserPrefs;
 import tutorlink.model.StudentDirectory;
+import tutorlink.model.StudentSortOrder;
 import tutorlink.model.student.Student;
 import tutorlink.testutil.StudentBuilder;
 
@@ -134,6 +135,11 @@ public class AddCommandTest {
 
         @Override
         public ObservableList<Student> getFilteredStudentList() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void sortStudents(StudentSortOrder sortOrder) {
             throw new AssertionError("This method should not be called.");
         }
 

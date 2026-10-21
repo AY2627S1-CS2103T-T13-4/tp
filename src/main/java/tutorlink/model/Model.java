@@ -61,11 +61,19 @@ public interface Model {
      */
     void setStudent(Student target, Student editedStudent);
 
-    /** Returns an unmodifiable view of the filtered student list */
+    /** Returns an unmodifiable view of the filtered student list in displayed order. */
     ObservableList<Student> getFilteredStudentList();
 
     /**
-     * Updates the filter of the filtered student list to filter by the given {@code predicate}.
+     * Sorts the currently filtered students using {@code sortOrder}, without changing the filter or directory order.
+     * The ordering remains active as students are edited or deleted.
+     * {@link StudentSortOrder#DIRECTORY} restores the original directory order for the current results.
+     * @throws NullPointerException if {@code sortOrder} is null.
+     */
+    void sortStudents(StudentSortOrder sortOrder);
+
+    /**
+     * Updates the filter using {@code predicate} and restores the original directory order.
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredStudentList(Predicate<Student> predicate);
