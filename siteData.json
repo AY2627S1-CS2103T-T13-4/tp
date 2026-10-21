@@ -120,7 +120,7 @@
         "viewing-help-help": "Viewing help: help",
         "adding-a-student-add": "Adding a student: add",
         "listing-students-list": "Listing students: list",
-        "sorting-displayed-students-by-name-sort": "Sorting displayed students by name: sort",
+        "sorting-displayed-students-by-name-or-tutorial-group-sort": "Sorting displayed students by name or tutorial group: sort",
         "editing-a-student-edit": "Editing a student: edit",
         "finding-students-by-name-or-matriculation-number-find": "Finding students by name or matriculation number: find",
         "finding-students-by-tag-findtag": "Finding students by tag: findtag",
