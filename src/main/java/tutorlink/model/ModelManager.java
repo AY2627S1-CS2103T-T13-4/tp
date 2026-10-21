@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import tutorlink.commons.core.GuiSettings;
 import tutorlink.commons.core.LogsCenter;
 import tutorlink.model.student.Student;
@@ -21,6 +22,8 @@ public class ModelManager implements Model {
     private final StudentDirectory studentDirectory;
     private final UserPrefs userPrefs;
     private final FilteredList<Student> filteredStudents;
+    private final SortedList<Student> sortedStudents;
+    private StudentSortOrder sortOrder = StudentSortOrder.DIRECTORY;
 
     /**
      * Initializes a ModelManager with the given studentDirectory and userPrefs.
@@ -33,6 +36,7 @@ public class ModelManager implements Model {
         this.studentDirectory = new StudentDirectory(studentDirectory);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredStudents = new FilteredList<>(this.studentDirectory.getStudentList());
+        sortedStudents = new SortedList<>(filteredStudents);
     }
 
     public ModelManager() {
@@ -62,6 +66,7 @@ public class ModelManager implements Model {
     @Override
     public void setStudentDirectory(ReadOnlyStudentDirectory studentDirectory) {
         this.studentDirectory.resetData(studentDirectory);
+        sortStudents(StudentSortOrder.DIRECTORY);
     }
 
     @Override
@@ -96,17 +101,30 @@ public class ModelManager implements Model {
     //=========== Filtered Student List Accessors =============================================================
 
     /**
-     * Returns an unmodifiable view of the list of {@code Student} backed by the internal list of
-     * {@code studentDirectory}
+     * Returns an unmodifiable view of the filtered students in their displayed order.
      */
     @Override
     public ObservableList<Student> getFilteredStudentList() {
-        return filteredStudents;
+        return sortedStudents;
+    }
+
+    @Override
+    public void sortStudents(StudentSortOrder sortOrder) {
+        requireNonNull(sortOrder, "Student sort order must not be null.");
+        int displayedStudentCount = sortedStudents.size();
+        sortedStudents.setComparator(sortOrder.getComparator());
+        this.sortOrder = sortOrder;
+        assert sortedStudents.size() == displayedStudentCount
+                : "Sorting must not change the number of displayed students.";
     }
 
     @Override
     public void updateFilteredStudentList(Predicate<Student> predicate) {
         requireNonNull(predicate);
+        if (sortOrder != StudentSortOrder.DIRECTORY) {
+            logger.fine("Resetting student sorting to directory order for a new filter.");
+        }
+        sortStudents(StudentSortOrder.DIRECTORY);
         filteredStudents.setPredicate(predicate);
     }
 
@@ -123,7 +141,8 @@ public class ModelManager implements Model {
 
         return studentDirectory.equals(otherModelManager.studentDirectory)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredStudents.equals(otherModelManager.filteredStudents);
+                && filteredStudents.equals(otherModelManager.filteredStudents)
+                && sortOrder == otherModelManager.sortOrder;
     }
 
 }
