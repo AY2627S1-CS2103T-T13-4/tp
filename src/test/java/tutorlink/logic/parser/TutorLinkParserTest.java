@@ -20,6 +20,7 @@ import tutorlink.logic.commands.EditCommand.EditStudentDescriptor;
 import tutorlink.logic.commands.ExitCommand;
 import tutorlink.logic.commands.FindCommand;
 import tutorlink.logic.commands.FindTagCommand;
+import tutorlink.logic.commands.GroupsCommand;
 import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.commands.SortCommand;
@@ -129,6 +130,18 @@ public class TutorLinkParserTest {
     public void parseCommand_listWithInvalidArguments_throwsParseException() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, ListCommand.MESSAGE_USAGE);
         assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand(ListCommand.COMMAND_WORD + " 3"));
+    }
+
+    @Test
+    public void parseCommand_groups() throws Exception {
+        assertEquals(new GroupsCommand(), parser.parseCommand(GroupsCommand.COMMAND_WORD));
+    }
+
+    @Test
+    public void parseCommand_groupsWithArguments_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, GroupsCommand.MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, () ->
+            parser.parseCommand(GroupsCommand.COMMAND_WORD + " T01"));
     }
 
     @Test
