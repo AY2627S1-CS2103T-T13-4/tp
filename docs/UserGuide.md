@@ -42,6 +42,10 @@ TutorLink is a **desktop application for managing student records, optimized for
 
    * `groups` : Lists every tutorial group and its student count.
 
+   * `sort name` : Sorts the displayed students by name from A to Z.
+
+   * `sort group` : Sorts the displayed students by tutorial group in ascending order.
+
    * `add n/John Doe m/A0123456X g/T01 e/johnd@example.com` : Adds a student named `John Doe` to TutorLink.
 
    * `find John` : Finds students whose names contain the whole word `John`.
@@ -83,6 +87,7 @@ Attendance tracking, participation records, and student remarks are future enhan
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
+  Positional arguments in `sort name [asc|desc]` and `sort group [asc|desc]` must follow the order shown.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
@@ -107,6 +112,8 @@ Format: `add n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP [p/PHONE_NUMBER] [e/EMAIL] 
 
 The name, matriculation number, and tutorial group are required. Phone number, email, address, and tags are optional.
 If omitted, the corresponding contact details are displayed as `Not provided`.
+A successful addition clears the current filter and sorting, showing the full roster in directory order
+with the new student at the end.
 
 Names can contain letters, digits, and spaces, up to 70 characters after leading/trailing whitespace is removed and consecutive spaces are collapsed. For example, `John  Doe` is saved as `John Doe`.
 
@@ -134,6 +141,7 @@ Format: `list [g/TUTORIAL_GROUP]`
 
 * `list` shows all students and resets any active search or tutorial group filter.
 * `list g/TUTORIAL_GROUP` shows only students whose tutorial group exactly matches the specified group.
+* Both forms cancel sorting and show matching students in their original directory order.
 * The tutorial group must be one letter followed by exactly two digits. Lowercase letters are accepted, so `g/t01`
   is interpreted as `g/T01`.
 * The result message reports the number of matching students. If there are no matches, an empty list is shown.
@@ -167,6 +175,55 @@ T01: 2 students
 T02: 1 student
 ```
 
+### Sorting displayed students by name or tutorial group: `sort`
+
+Orders the students currently displayed, keeping the current search, tutorial-group, tag, or follow-up filter.
+
+Format: `sort name [asc|desc]` or `sort group [asc|desc]`
+
+* `sort name` and `sort name asc` sort names in ascending order (A to Z).
+* `sort name desc` sorts names in descending order (Z to A).
+* `sort group` and `sort group asc` sort tutorial groups in ascending order, such as `T01`, `T02`, `T03`.
+* `sort group desc` sorts tutorial groups in descending order, such as `T03`, `T02`, `T01`.
+* The direction defaults to ascending for both fields.
+* The keywords `sort`, `name`, `group`, `asc`, and `desc` must be lowercase and in the order shown.
+* Names are compared as complete names, ignoring case. For example, `alice` comes before `Bob` in ascending order.
+  Digits and spaces are compared character by character, rather than as numbers or separate words.
+* Equal names, including names differing only in case, are always ordered by matriculation number in ascending
+  order, even when names are sorted in descending order.
+* Tutorial groups are compared by their normalized values: uppercase letter first, then both digits.
+  For example, `a99` is stored as `A99` and comes before `T01`; `T02` comes before `T10`.
+* Students in the same tutorial group are always ordered by matriculation number in ascending order,
+  even when groups are sorted in descending order. Names do not affect the order within a group.
+* Switching between `sort name` and `sort group` replaces the previous sorting rule and keeps the filter.
+* Sorting changes only the displayed order. It does not add or remove students from the current results,
+  modify student records, or change the directory order saved in the data file.
+* `edit INDEX`, `delete INDEX`, and `followup INDEX ...` use the indices in the sorted display. After an edit,
+  matching students automatically move to the correct sorted position. Students that no longer match the current
+  filter disappear. After an edit or deletion, check the displayed indices before the next indexed command.
+* A successful `list`, `list g/GROUP`, `find`, `findtag`, or `followups` cancels sorting and displays its new results
+  in directory order. Adding a student also cancels sorting and restores the full roster. Clearing the roster
+  cancels sorting. Invalid commands leave the current filter and sorting unchanged.
+* Sorting is not retained after restarting. Default directory order follows the saved student array; new students
+  are appended, edits retain their directory position, and deletions preserve the remaining students' relative order.
+* Empty and single-student results can also be sorted. Repeating the same sort keeps the same order.
+
+Example workflow:
+
+1. `list g/T01` shows only students in `T01`.
+2. `sort name` orders those students by name, still showing only `T01`.
+3. `edit 1 n/Wendy` edits the first student in the sorted display and moves them to their new sorted position.
+4. `delete 1` previews whoever is now first. Check the preview before using `delete 1 confirm`.
+5. `list g/T01` cancels sorting and shows the remaining `T01` students in directory order.
+
+To arrange search results by tutorial group:
+
+1. `find Alice Bob` shows students matching either keyword.
+2. `sort group desc` orders only those results by tutorial group, from largest to smallest.
+   Within each group, matriculation numbers remain in ascending order.
+3. `edit 1 g/T03` changes the first displayed student's group and updates their sorted position.
+4. `sort name` replaces group sorting with name sorting for the same search results.
+
 ### Editing a student: `edit`
 
 Edits an existing student record.
@@ -180,6 +237,8 @@ Format: `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE] [e/E
   A matriculation number already used by another student is rejected, regardless of letter case.
 * The current filtered view remains active after an edit. If the edited student no longer matches the active filter,
   the student disappears from the displayed list. Use `list` to show all students again.
+* Active sorting also remains in effect. Changing the sorted field (name or tutorial group) or matriculation
+  number immediately updates the student's displayed position; indices refer to the updated display.
 * When editing tags, all of the student's existing tags are removed; adding tags is not cumulative.
 * To remove all of a student's tags, enter `t/` without a tag after it.
 
@@ -204,6 +263,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Students matching at least one keyword are returned (an `OR` search). You can mix names and matriculation numbers.
 * Each matching student appears once, in their original directory order, even if multiple keywords match.
 * Each search covers the complete directory and replaces the previous displayed results. Use `list` to show all students again.
+* A successful search cancels sorting. Use `sort name [asc|desc]` or `sort group [asc|desc]` to sort the new results.
 * No matches produces an empty list and a zero-result message. Searching does not change student records.
 * `find` without keywords shows a usage error and keeps the current list unchanged.
 * Phone numbers, email addresses, addresses, tutorial groups, tags, and remarks are not searched.
@@ -375,5 +435,7 @@ Action     | Format, Examples
 **List follow-ups** | `followups`
 **List**   | `list [g/TUTORIAL_GROUP]`<br> e.g., `list g/T01`
 **List tutorial-group counts** | `groups`
+**Sort by name** | `sort name [asc\|desc]`<br> e.g., `sort name`, `sort name desc`
+**Sort by tutorial group** | `sort group [asc\|desc]`<br> e.g., `sort group`, `sort group desc`
 **Help**   | `help`
 **Exit**   | `exit`
