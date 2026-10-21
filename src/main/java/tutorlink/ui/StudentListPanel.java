@@ -33,16 +33,56 @@ public class StudentListPanel extends UiPart<Region> {
      * Custom {@code ListCell} that displays the graphics of a {@code Student} using a {@code StudentCard}.
      */
     class StudentListViewCell extends ListCell<Student> {
+        private StudentCard studentCard;
+
+        /**
+         * Recomputes the card width when the list cell is resized. This is needed because a wrapped remark's
+         * preferred height depends on the width available to the card.
+         */
+        private void updateCardWidth() {
+            if (studentCard == null) {
+                return;
+            }
+
+            Region card = studentCard.getRoot();
+            double availableWidth = Math.max(0,
+                    getWidth() - snappedLeftInset() - snappedRightInset());
+            card.setPrefWidth(availableWidth);
+            card.setMaxWidth(availableWidth);
+            requestLayout();
+        }
+
         @Override
         protected void updateItem(Student student, boolean empty) {
             super.updateItem(student, empty);
 
             if (empty || student == null) {
+                studentCard = null;
                 setGraphic(null);
                 setText(null);
+                setPrefHeight(USE_COMPUTED_SIZE);
             } else {
-                setGraphic(new StudentCard(student, getIndex() + 1).getRoot());
+                studentCard = new StudentCard(student, getIndex() + 1);
+                setGraphic(studentCard.getRoot());
+                updateCardWidth();
             }
+        }
+
+        @Override
+        protected double computePrefHeight(double width) {
+            if (studentCard == null) {
+                return super.computePrefHeight(width);
+            }
+
+            double availableWidth = Math.max(0, width - snappedLeftInset() - snappedRightInset());
+            return snappedTopInset() + snappedBottomInset()
+                    + studentCard.getRoot().prefHeight(availableWidth);
+        }
+
+        @Override
+        protected void layoutChildren() {
+            updateCardWidth();
+            super.layoutChildren();
         }
     }
 
