@@ -1,7 +1,9 @@
 package tutorlink.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
@@ -28,12 +30,18 @@ public class StudentCardTest {
     }
 
     @Test
+    public void initializeJavaFxToolkit_whenCalledTwice_doesNotThrow() {
+        initializeJavaFxToolkit();
+    }
+
+    @Test
     public void constructor_displaysFollowUpStatus() throws Exception {
         Student student = new StudentBuilder().withFollowUp(true).build();
 
         onJavaFxThread(() -> {
             StudentCard card = new StudentCard(student, 1);
             Label followUp = (Label) card.getRoot().lookup("#followUp");
+            assertNotNull(followUp);
             assertEquals("Follow-up: Required", followUp.getText());
         });
     }
@@ -45,6 +53,7 @@ public class StudentCardTest {
         onJavaFxThread(() -> {
             StudentCard card = new StudentCard(student, 1);
             Label followUp = (Label) card.getRoot().lookup("#followUp");
+            assertNotNull(followUp);
             assertEquals("Follow-up: Not required", followUp.getText());
         });
     }
@@ -52,6 +61,17 @@ public class StudentCardTest {
     private void onJavaFxThread(Runnable assertions) throws Exception {
         FutureTask<Void> task = new FutureTask<>(assertions, null);
         Platform.runLater(task);
-        task.get(10, TimeUnit.SECONDS);
+        try {
+            task.get(10, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            if (cause instanceof Exception exception) {
+                throw exception;
+            }
+            throw new AssertionError(cause);
+        }
     }
 }
