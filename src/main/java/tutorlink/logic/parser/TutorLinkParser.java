@@ -18,6 +18,7 @@ import tutorlink.logic.commands.FindCommand;
 import tutorlink.logic.commands.FindTagCommand;
 import tutorlink.logic.commands.FollowUpCommand;
 import tutorlink.logic.commands.FollowUpsCommand;
+import tutorlink.logic.commands.GroupsCommand;
 import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.commands.SortCommand;
@@ -64,6 +65,7 @@ public class TutorLinkParser {
             case FindTagCommand.COMMAND_WORD -> new FindTagCommandParser().parse(arguments);
             case FollowUpCommand.COMMAND_WORD -> new FollowUpCommandParser().parse(arguments);
             case FollowUpsCommand.COMMAND_WORD -> new FollowUpsCommandParser().parse(arguments);
+            case GroupsCommand.COMMAND_WORD -> new GroupsCommandParser().parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommandParser().parse(arguments);
             case SortCommand.COMMAND_WORD -> new SortCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();
