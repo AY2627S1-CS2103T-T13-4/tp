@@ -4,9 +4,11 @@ import java.util.Comparator;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import tutorlink.model.student.Student;
 
 /**
@@ -40,6 +42,8 @@ public class StudentCard extends UiPart<Region> {
     @FXML
     private Label followUp;
     @FXML
+    private Label remark;
+    @FXML
     private Label phone;
     @FXML
     private Label address;
@@ -47,6 +51,8 @@ public class StudentCard extends UiPart<Region> {
     private Label email;
     @FXML
     private FlowPane tags;
+    @FXML
+    private VBox cardContent;
 
     /**
      * Creates a {@code StudentCard} with the given {@code Student} and index to display.
@@ -59,11 +65,50 @@ public class StudentCard extends UiPart<Region> {
         matricNumber.setText("Matric: " + student.getMatricNumber().value);
         tutorialGroup.setText("Group: " + student.getTutorialGroup().value);
         followUp.setText("Follow-up: " + (student.requiresFollowUp() ? "Required" : "Not required"));
+        String remarkText = student.getRemark() == null ? NOT_PROVIDED : student.getRemark();
+        remark.setText("Remark: " + remarkText);
+        remark.setWrapText(true);
+        remark.setMaxWidth(Double.MAX_VALUE);
+        if (student.getRemark() != null) {
+            remark.setTooltip(new Tooltip(student.getRemark()));
+        }
         phone.setText("Phone: " + (student.getPhone() == null ? NOT_PROVIDED : student.getPhone().value));
         address.setText("Address: " + (student.getAddress() == null ? NOT_PROVIDED : student.getAddress().value));
         email.setText("Email: " + (student.getEmail() == null ? NOT_PROVIDED : student.getEmail().value));
         student.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+    }
+
+    /**
+     * Lays out the card at the given width and returns the height occupied by its content.
+     */
+    public double layoutAtWidth(double width) {
+        Region root = getRoot();
+        root.setPrefWidth(width);
+        root.setMaxWidth(width);
+        double contentWidth = Math.max(0, width - cardContent.getInsets().getLeft()
+                - cardContent.getInsets().getRight());
+        remark.setPrefWidth(contentWidth);
+        remark.setMaxWidth(contentWidth);
+        remark.setPrefHeight(Region.USE_COMPUTED_SIZE);
+        root.resize(width, Math.max(root.getHeight(), root.prefHeight(width)));
+        root.applyCss();
+        root.layout();
+        double remarkHeight = remark.prefHeight(contentWidth);
+        remark.setPrefHeight(remarkHeight);
+        remark.resize(contentWidth, remark.getPrefHeight());
+        cardContent.layout();
+
+        double contentHeight = cardContent.getInsets().getTop()
+                + cardContent.getChildrenUnmodifiable().stream()
+                        .mapToDouble(child -> child.prefHeight(child.getLayoutBounds().getWidth()))
+                        .sum()
+                + Math.max(0, cardContent.getChildrenUnmodifiable().size() - 1) * cardContent.getSpacing()
+                + cardContent.getInsets().getBottom();
+        root.setPrefHeight(contentHeight);
+        root.resize(width, contentHeight);
+        root.layout();
+        return contentHeight;
     }
 }

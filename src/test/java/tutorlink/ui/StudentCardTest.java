@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 
 import java.util.List;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import tutorlink.model.student.Student;
@@ -41,6 +44,41 @@ public class StudentCardTest {
     public void initializeJavaFx_toolkitAlreadyStarted_reusesToolkit() throws Exception {
         initializeJavaFx();
         onJavaFxThread(() -> assertEquals("Ready", new Label("Ready").getText()));
+    }
+
+    @Test
+    public void constructor_withRemark_displaysRemark() throws Exception {
+        Student student = new StudentBuilder().withRemark("Needs help with recursion").build();
+
+        onJavaFxThread(() -> {
+            StudentCard studentCard = new StudentCard(student, 1);
+            assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Needs help with recursion"));
+        });
+    }
+
+    @Test
+    public void constructor_withoutRemark_displaysNotProvided() throws Exception {
+        Student student = new StudentBuilder().build();
+
+        onJavaFxThread(() -> {
+            StudentCard studentCard = new StudentCard(student, 1);
+            assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Not provided"));
+        });
+    }
+
+    @Test
+    public void constructor_withLongRemark_wrapsAndProvidesTooltip() throws Exception {
+        String longRemark = "Discuss recursion and file access modes with the student";
+        Student student = new StudentBuilder().withRemark(longRemark).build();
+
+        onJavaFxThread(() -> {
+            StudentCard studentCard = new StudentCard(student, 1);
+            Label remark = (Label) studentCard.getRoot().lookup("#remark");
+            assertNotNull(remark);
+            assertTrue(remark.isWrapText());
+            assertNotNull(remark.getTooltip());
+            assertEquals(longRemark, remark.getTooltip().getText());
+        });
     }
 
     @Test
@@ -109,5 +147,16 @@ public class StudentCardTest {
             }
             throw new AssertionError(cause);
         }
+    }
+
+    private boolean containsLabelWithText(Node node, String expectedText) {
+        if (node instanceof Label label && expectedText.equals(label.getText())) {
+            return true;
+        }
+        if (node instanceof Parent parent) {
+            return parent.getChildrenUnmodifiable().stream()
+                    .anyMatch(child -> containsLabelWithText(child, expectedText));
+        }
+        return false;
     }
 }

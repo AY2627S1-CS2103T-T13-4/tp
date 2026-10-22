@@ -72,7 +72,7 @@ TutorLink is a **desktop application for managing student records, optimized for
 
 This release focuses on managing a student roster. Tutorial groups are stored as part of each student's record and can be used to filter the roster with `list g/TUTORIAL_GROUP`. Standalone tutorial-group creation, editing, and deletion are not available in this release.
 
-Attendance tracking, participation records, and student remarks are future enhancements and are not available in this version.
+Attendance tracking and participation records are future enhancements and are not available in this version.
 
 <box type="info" seamless>
 
@@ -269,6 +269,23 @@ Examples:
 *  `edit 1 g/l03` Moves the 1st student to tutorial group `L03`. If `list g/T01` is active, that student
    disappears from the displayed list while the `T01` filter remains active.
 
+### Managing a student's remark: `remark`
+
+Sets, replaces, or clears the current free-text remark of an existing student.
+
+Format: `remark INDEX r/REMARK`
+
+* The `INDEX` refers to the student in the currently displayed list and must be a positive integer.
+* The remark may contain spaces and punctuation. Leading and trailing whitespace is removed.
+* Use `r/` without text to clear the student's current remark.
+* TutorLink stores one current remark. It does not keep a history of previous remarks.
+* Existing remarks, tags, and follow-up status are preserved when other student fields are edited.
+
+Examples:
+* `remark 1 r/Needs help with recursion` sets the 1st student's remark.
+* `remark 1 r/Discuss scholarship options` replaces the existing remark.
+* `remark 1 r/` clears the existing remark.
+
 ### Finding students by name or matriculation number: `find`
 
 Finds students whose names or matriculation numbers match any of the given keywords.
@@ -449,6 +466,7 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g., `edit 2 m/A1234567Z g/T02`
+**Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Needs help with recursion`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **Find by tag** | `findtag TAG`<br> e.g., `findtag needsHelp`
 **Follow-up status** | `followup INDEX on` or `followup INDEX done`<br> e.g., `followup 1 on`
