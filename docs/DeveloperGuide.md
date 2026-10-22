@@ -129,13 +129,18 @@ How the parsing works:
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+<puml src="diagrams/ModelClassDiagram.puml" width="1000" />
 
 
 The `Model` component,
 
 * stores the student directory data i.e., all `Student` objects (which are contained in a `UniqueStudentList` object).
-* stores the `Student` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Student>` that the UI can observe and bind to, so the UI updates when the list changes.
+* maintains a `FilteredList<Student>` over the directory's unmodifiable student list and a `SortedList<Student>`
+  over that filtered view. `getFilteredStudentList()` exposes the sorted view as an `ObservableList<Student>`
+  that the UI can observe, so displayed indices follow the current filter and sorting order.
+* uses `StudentSortOrder` to choose name or tutorial-group ordering in either direction. Sorting changes only the
+  displayed order, preserving the current filter and underlying directory order. `sort reset` selects `DIRECTORY`
+  (a null comparator), restoring directory order for the current results. Updating the filter also resets sorting.
 * exposes the complete `StudentDirectory` separately from the filtered list, allowing commands such as `groups` to
   aggregate data without being affected by the current display filter.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
