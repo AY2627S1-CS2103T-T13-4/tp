@@ -23,12 +23,15 @@ import tutorlink.testutil.StudentBuilder;
 public class StudentListPanelTest {
 
     @BeforeAll
-    public static void setUpJavaFxToolkit() {
+    public static void setUpJavaFxToolkit() throws Exception {
+        FutureTask<Void> initialized = new FutureTask<>(() -> null);
         try {
-            Platform.startup(() -> { });
+            Platform.startup(initialized);
         } catch (IllegalStateException e) {
-            // The toolkit may already be initialized by another UI test.
+            // Another UI test may have initialized the toolkit; wait on its application thread instead.
+            Platform.runLater(initialized);
         }
+        initialized.get(10, TimeUnit.SECONDS);
     }
 
     @Test
