@@ -139,6 +139,16 @@ public class StudentListPanelTest {
         listView.resize(width, 600);
         listView.requestLayout();
         listView.layout();
+        double cellWidth = Math.max(0, width - 2);
+        listView.lookupAll(".list-cell").stream()
+                .filter(ListCell.class::isInstance)
+                .map(ListCell.class::cast)
+                .forEach(cell -> {
+                    cell.resize(cellWidth, cell.prefHeight(cellWidth));
+                    cell.layout();
+                });
+        listView.requestLayout();
+        listView.layout();
     }
 
     private void onJavaFxThread(Runnable assertions) throws Exception {
