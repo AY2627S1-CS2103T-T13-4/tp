@@ -23,6 +23,8 @@ public class FollowUpCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 on";
     public static final String MESSAGE_MARKED = "Marked for follow-up: %1$s";
     public static final String MESSAGE_COMPLETED = "Completed follow-up: %1$s";
+    public static final String MESSAGE_ALREADY_MARKED = "Already requires follow-up: %1$s";
+    public static final String MESSAGE_ALREADY_DONE = "No outstanding follow-up: %1$s";
 
     private final Index index;
     private final boolean requiresFollowUp;
@@ -44,6 +46,10 @@ public class FollowUpCommand extends Command {
         }
 
         Student student = displayedStudents.get(index.getZeroBased());
+        if (student.requiresFollowUp() == requiresFollowUp) {
+            return new CommandResult(String.format(requiresFollowUp ? MESSAGE_ALREADY_MARKED : MESSAGE_ALREADY_DONE,
+                    Messages.format(student)));
+        }
         model.setStudent(student, student.withFollowUp(requiresFollowUp));
         return new CommandResult(String.format(requiresFollowUp ? MESSAGE_MARKED : MESSAGE_COMPLETED,
                 Messages.format(student)));
