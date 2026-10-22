@@ -35,7 +35,6 @@ public class StudentListPanel extends UiPart<Region> {
     class StudentListViewCell extends ListCell<Student> {
         private StudentCard studentCard;
         private double lastAvailableWidth = -1;
-        private double lastCardHeight = -1;
 
         StudentListViewCell() {
             widthProperty().addListener((observable, oldWidth, newWidth) -> {
@@ -63,15 +62,12 @@ public class StudentListPanel extends UiPart<Region> {
                 card.setPrefWidth(availableWidth);
                 card.setMaxWidth(availableWidth);
             }
-            double cardHeight = card.prefHeight(availableWidth);
-            boolean heightChanged = Double.compare(lastCardHeight, cardHeight) != 0;
-            if (!widthChanged && !heightChanged) {
+            if (!widthChanged) {
                 return;
             }
 
             lastAvailableWidth = availableWidth;
-            lastCardHeight = cardHeight;
-            setPrefHeight(snappedTopInset() + snappedBottomInset() + cardHeight);
+            setPrefHeight(USE_COMPUTED_SIZE);
             requestLayout();
             if (getListView() != null) {
                 getListView().requestLayout();
@@ -85,14 +81,12 @@ public class StudentListPanel extends UiPart<Region> {
             if (empty || student == null) {
                 studentCard = null;
                 lastAvailableWidth = -1;
-                lastCardHeight = -1;
                 setGraphic(null);
                 setText(null);
                 setPrefHeight(USE_COMPUTED_SIZE);
             } else {
                 studentCard = new StudentCard(student, getIndex() + 1);
                 lastAvailableWidth = -1;
-                lastCardHeight = -1;
                 setGraphic(studentCard.getRoot());
                 updateCardWidth();
             }
