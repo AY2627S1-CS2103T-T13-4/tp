@@ -63,7 +63,7 @@ public class StudentListPanelTest {
             ListView<Student> listView = getStudentListView(panelHolder[0]);
             ListCell<Student> firstCell = getCell(listView, 0);
             assertNotNull(firstCell);
-            narrowCellHeight[0] = firstCell.getHeight();
+            narrowCellHeight[0] = firstCell.prefHeight(450);
             ListCell<Student> secondCell = findCell(listView, 1).orElse(null);
             narrowSecondRowY[0] = secondCell == null ? Double.NaN : secondCell.getLayoutY();
         });
@@ -72,7 +72,7 @@ public class StudentListPanelTest {
             layoutScene(sceneHolder[0], 800);
             ListView<Student> listView = getStudentListView(panelHolder[0]);
             ListCell<Student> firstCell = getCell(listView, 0);
-            double wideCellHeight = firstCell.getHeight();
+            double wideCellHeight = firstCell.prefHeight(800);
 
             assertTrue(narrowCellHeight[0] > wideCellHeight,
                     "The cell should shrink when the wrapped remark gets more width");
