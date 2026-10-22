@@ -61,6 +61,9 @@ public class StudentListPanel extends UiPart<Region> {
             if (widthChanged) {
                 card.setPrefWidth(availableWidth);
                 card.setMaxWidth(availableWidth);
+                card.resize(availableWidth, Math.max(card.getHeight(), card.prefHeight(availableWidth)));
+                card.applyCss();
+                card.layout();
             }
             if (!widthChanged) {
                 return;
@@ -100,8 +103,14 @@ public class StudentListPanel extends UiPart<Region> {
 
             double cellWidth = width > 0 ? width : getWidth();
             double availableWidth = Math.max(0, cellWidth - snappedLeftInset() - snappedRightInset());
+            Region card = studentCard.getRoot();
+            card.setPrefWidth(availableWidth);
+            card.setMaxWidth(availableWidth);
+            card.resize(availableWidth, Math.max(card.getHeight(), card.prefHeight(availableWidth)));
+            card.applyCss();
+            card.layout();
             return snappedTopInset() + snappedBottomInset()
-                    + studentCard.getRoot().prefHeight(availableWidth);
+                    + card.prefHeight(availableWidth);
         }
 
         @Override
