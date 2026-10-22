@@ -122,7 +122,7 @@
         "adding-a-student-add": "Adding a student: add",
         "listing-students-list": "Listing students: list",
         "viewing-tutorial-group-counts-groups": "Viewing tutorial-group counts: groups",
-        "sorting-displayed-students-by-name-or-tutorial-group-sort": "Sorting displayed students by name or tutorial group: sort",
+        "sorting-displayed-students-or-restoring-directory-order-sort": "Sorting displayed students or restoring directory order: sort",
         "editing-a-student-edit": "Editing a student: edit",
         "managing-a-student-s-remark-remark": "Managing a student's remark: remark",
         "finding-students-by-name-or-matriculation-number-find": "Finding students by name or matriculation number: find",
