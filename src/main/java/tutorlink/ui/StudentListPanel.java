@@ -57,7 +57,7 @@ public class StudentListPanel extends UiPart<Region> {
                     getWidth() - snappedLeftInset() - snappedRightInset());
             card.setPrefWidth(availableWidth);
             card.setMaxWidth(availableWidth);
-            setPrefHeight(USE_COMPUTED_SIZE);
+            setPrefHeight(snappedTopInset() + snappedBottomInset() + card.prefHeight(availableWidth));
             requestLayout();
             if (getListView() != null) {
                 getListView().requestLayout();
