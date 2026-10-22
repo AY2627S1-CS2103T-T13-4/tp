@@ -1,7 +1,12 @@
 package tutorlink.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -16,39 +21,93 @@ import tutorlink.testutil.StudentBuilder;
 public class StudentCardTest {
 
     @BeforeAll
-    public static void setUpJavaFxToolkit() {
+    public static void initializeJavaFxToolkit() {
         try {
             Platform.startup(() -> { });
         } catch (IllegalStateException e) {
-            // The toolkit may already be initialized by another UI test.
+            // Another UI test may have initialized the toolkit already.
         }
     }
 
     @Test
-    public void constructor_withRemark_displaysRemark() {
+    public void initializeJavaFxToolkit_whenCalledTwice_doesNotThrow() {
+        initializeJavaFxToolkit();
+    }
+
+    @Test
+    public void constructor_withRemark_displaysRemark() throws Exception {
         Student student = new StudentBuilder().withRemark("Needs help with recursion").build();
-        StudentCard studentCard = new StudentCard(student, 1);
 
-        assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Needs help with recursion"));
+        onJavaFxThread(() -> {
+            StudentCard studentCard = new StudentCard(student, 1);
+            assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Needs help with recursion"));
+        });
     }
 
     @Test
-    public void constructor_withoutRemark_displaysNotProvided() {
+    public void constructor_withoutRemark_displaysNotProvided() throws Exception {
         Student student = new StudentBuilder().build();
-        StudentCard studentCard = new StudentCard(student, 1);
 
-        assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Not provided"));
+        onJavaFxThread(() -> {
+            StudentCard studentCard = new StudentCard(student, 1);
+            assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Not provided"));
+        });
     }
 
     @Test
-    public void constructor_withLongRemark_wrapsAndProvidesTooltip() {
+    public void constructor_withLongRemark_wrapsAndProvidesTooltip() throws Exception {
         String longRemark = "Discuss recursion and file access modes with the student";
         Student student = new StudentBuilder().withRemark(longRemark).build();
-        StudentCard studentCard = new StudentCard(student, 1);
 
-        Label remark = (Label) studentCard.getRoot().lookup("#remark");
-        assertTrue(remark.isWrapText());
-        assertEquals(longRemark, remark.getTooltip().getText());
+        onJavaFxThread(() -> {
+            StudentCard studentCard = new StudentCard(student, 1);
+            Label remark = (Label) studentCard.getRoot().lookup("#remark");
+            assertNotNull(remark);
+            assertTrue(remark.isWrapText());
+            assertNotNull(remark.getTooltip());
+            assertEquals(longRemark, remark.getTooltip().getText());
+        });
+    }
+
+    @Test
+    public void constructor_displaysFollowUpStatus() throws Exception {
+        Student student = new StudentBuilder().withFollowUp(true).build();
+
+        onJavaFxThread(() -> {
+            StudentCard card = new StudentCard(student, 1);
+            Label followUp = (Label) card.getRoot().lookup("#followUp");
+            assertNotNull(followUp);
+            assertEquals("Follow-up: Required", followUp.getText());
+        });
+    }
+
+    @Test
+    public void constructor_displaysNotRequiredStatus() throws Exception {
+        Student student = new StudentBuilder().withFollowUp(false).build();
+
+        onJavaFxThread(() -> {
+            StudentCard card = new StudentCard(student, 1);
+            Label followUp = (Label) card.getRoot().lookup("#followUp");
+            assertNotNull(followUp);
+            assertEquals("Follow-up: Not required", followUp.getText());
+        });
+    }
+
+    private void onJavaFxThread(Runnable assertions) throws Exception {
+        FutureTask<Void> task = new FutureTask<>(assertions, null);
+        Platform.runLater(task);
+        try {
+            task.get(10, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            if (cause instanceof Exception exception) {
+                throw exception;
+            }
+            throw new AssertionError(cause);
+        }
     }
 
     private boolean containsLabelWithText(Node node, String expectedText) {
