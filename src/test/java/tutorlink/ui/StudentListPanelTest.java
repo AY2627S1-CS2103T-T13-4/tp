@@ -55,9 +55,12 @@ public class StudentListPanelTest {
             layoutScene(scene, 800);
             firstCell = getCell(listView, 0);
             double wideHeight = firstCell.getHeight();
+            double wideCellWidth = firstCell.getWidth();
 
             assertTrue(narrowHeight > wideHeight,
-                    "The cell should shrink when the wrapped remark gets more width");
+                    String.format("The cell should shrink when the wrapped remark gets more width "
+                            + "(narrowHeight=%.2f, wideHeight=%.2f, listWidth=%.2f, cellWidth=%.2f)",
+                            narrowHeight, wideHeight, listView.getWidth(), wideCellWidth));
             assertTrue(wideHeight >= 145);
             assertTrue(getCell(listView, 1).getLayoutY() < narrowHeight + 145,
                     "The second student should follow the resized first cell");
@@ -75,6 +78,7 @@ public class StudentListPanelTest {
             var students = FXCollections.observableArrayList(longRemarkStudent);
             StudentListPanel panel = new StudentListPanel(students);
             Scene scene = new Scene(panel.getRoot(), 450, 600);
+
             layoutScene(scene, 450);
 
             ListView<Student> listView = getStudentListView(panel);
@@ -132,7 +136,6 @@ public class StudentListPanelTest {
         listView.resize(width, 600);
         listView.requestLayout();
         listView.layout();
-        scene.getRoot().layout();
     }
 
     private void onJavaFxThread(Runnable assertions) throws Exception {

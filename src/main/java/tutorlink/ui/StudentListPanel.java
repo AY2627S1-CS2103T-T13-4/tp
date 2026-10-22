@@ -34,6 +34,8 @@ public class StudentListPanel extends UiPart<Region> {
      */
     class StudentListViewCell extends ListCell<Student> {
         private StudentCard studentCard;
+        private double lastAvailableWidth = -1;
+        private double lastCardHeight = -1;
 
         StudentListViewCell() {
             widthProperty().addListener((observable, oldWidth, newWidth) -> {
@@ -55,9 +57,21 @@ public class StudentListPanel extends UiPart<Region> {
             Region card = studentCard.getRoot();
             double availableWidth = Math.max(0,
                     getWidth() - snappedLeftInset() - snappedRightInset());
-            card.setPrefWidth(availableWidth);
-            card.setMaxWidth(availableWidth);
-            setPrefHeight(snappedTopInset() + snappedBottomInset() + card.prefHeight(availableWidth));
+
+            boolean widthChanged = Double.compare(lastAvailableWidth, availableWidth) != 0;
+            if (widthChanged) {
+                card.setPrefWidth(availableWidth);
+                card.setMaxWidth(availableWidth);
+            }
+            double cardHeight = card.prefHeight(availableWidth);
+            boolean heightChanged = Double.compare(lastCardHeight, cardHeight) != 0;
+            if (!widthChanged && !heightChanged) {
+                return;
+            }
+
+            lastAvailableWidth = availableWidth;
+            lastCardHeight = cardHeight;
+            setPrefHeight(snappedTopInset() + snappedBottomInset() + cardHeight);
             requestLayout();
             if (getListView() != null) {
                 getListView().requestLayout();
@@ -70,11 +84,15 @@ public class StudentListPanel extends UiPart<Region> {
 
             if (empty || student == null) {
                 studentCard = null;
+                lastAvailableWidth = -1;
+                lastCardHeight = -1;
                 setGraphic(null);
                 setText(null);
                 setPrefHeight(USE_COMPUTED_SIZE);
             } else {
                 studentCard = new StudentCard(student, getIndex() + 1);
+                lastAvailableWidth = -1;
+                lastCardHeight = -1;
                 setGraphic(studentCard.getRoot());
                 updateCardWidth();
             }
