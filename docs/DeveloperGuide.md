@@ -185,7 +185,8 @@ Edits and deletions continue to use the current displayed indices. Replacing a s
 clearing them with `t/`, causes the filtered view to re-evaluate the updated student. A student who no longer
 matches disappears, and the remaining indices change accordingly. The filter remains active after edits and
 deletions. Sorting the results also keeps the tag filter; edits that change the sort key update the displayed order.
-A subsequent `findtag` search cancels that sorting and searches the full roster again. Storage saves the complete
+A subsequent `findtag` search cancels that sorting and searches the full roster again; `sort reset` instead
+restores directory order while keeping the current tag predicate. Storage saves the complete
 roster in directory order, including students hidden by the search. Tag and ordinary profile edits retain the
 student's current remark and follow-up status.
 

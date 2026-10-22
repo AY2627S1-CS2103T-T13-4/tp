@@ -39,9 +39,9 @@ GitHub: [@pinxinfang](https://github.com/pinxinfang)
   and saving/reloading retain an existing student remark.
   [PR #82](https://github.com/AY2627S1-CS2103T-T13-4/tp/pull/82).
 * **Alpha preparation:** updated the application version to V1.4 and verified the merged features together in the
-  packaged application: tag search, name/group sorting, displayed-index edits and deletion, full-roster group
-  counts, follow-up completion, and saved-data restarts. The release tracker distinguishes tested candidate
-  assets from the final release, which still depends on the remaining feature PRs.
+  packaged application: tag search, name/group sorting and reset, displayed-index edits and deletion, full-roster
+  group counts, remark replacement/clearing, follow-up completion, and saved-data restarts. The release tracker records the candidate checks
+  and final publication status.
   [Version PR #98](https://github.com/AY2627S1-CS2103T-T13-4/tp/pull/98),
   [release verification #77](https://github.com/AY2627S1-CS2103T-T13-4/tp/issues/77).
 
