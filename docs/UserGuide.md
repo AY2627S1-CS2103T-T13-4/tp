@@ -46,6 +46,8 @@ TutorLink is a **desktop application for managing student records, optimized for
 
    * `sort group` : Sorts the displayed students by tutorial group in ascending order.
 
+   * `sort reset` : Restores directory order for the displayed students, keeping the current filter.
+
    * `add n/John Doe m/A0123456X g/T01 e/johnd@example.com` : Adds a student named `John Doe` to TutorLink.
 
    * `find John` : Finds students whose names contain the whole word `John`.
@@ -70,7 +72,7 @@ TutorLink is a **desktop application for managing student records, optimized for
 
 This release focuses on managing a student roster. Tutorial groups are stored as part of each student's record and can be used to filter the roster with `list g/TUTORIAL_GROUP`. Standalone tutorial-group creation, editing, and deletion are not available in this release.
 
-Attendance tracking, participation records, and student remarks are future enhancements and are not available in this version.
+Attendance tracking and participation records are future enhancements and are not available in this version.
 
 <box type="info" seamless>
 
@@ -182,18 +184,21 @@ displayed student to T02 updates the counts while retaining the T01 filter:
 
 ![Tutorial-group counts after moving a student](images/groupsAfterMove.png)
 
-### Sorting displayed students by name or tutorial group: `sort`
+### Sorting displayed students or restoring directory order: `sort`
 
 Orders the students currently displayed, keeping the current search, tutorial-group, tag, or follow-up filter.
 
-Format: `sort name [asc|desc]` or `sort group [asc|desc]`
+Format: `sort name [asc|desc]`, `sort group [asc|desc]`, or `sort reset`
 
 * `sort name` and `sort name asc` sort names in ascending order (A to Z).
 * `sort name desc` sorts names in descending order (Z to A).
 * `sort group` and `sort group asc` sort tutorial groups in ascending order, such as `T01`, `T02`, `T03`.
 * `sort group desc` sorts tutorial groups in descending order, such as `T03`, `T02`, `T01`.
 * The direction defaults to ascending for both fields.
-* The keywords `sort`, `name`, `group`, `asc`, and `desc` must be lowercase and in the order shown.
+* `sort reset` cancels name or tutorial-group sorting and restores directory order for the current results,
+  keeping the current search, tutorial-group, tag, or follow-up filter active.
+  It accepts no extra arguments: `sort reset asc` and `sort reset extra` are invalid and leave the display unchanged.
+* The keywords `sort`, `name`, `group`, `asc`, `desc`, and `reset` must be lowercase and in the order shown.
 * Names are compared as complete names, ignoring case. For example, `alice` comes before `Bob` in ascending order.
   Digits and spaces are compared character by character, rather than as numbers or separate words.
 * Equal names, including names differing only in case, are always ordered by matriculation number in ascending
@@ -213,7 +218,15 @@ Format: `sort name [asc|desc]` or `sort group [asc|desc]`
   cancels sorting. Invalid commands leave the current filter and sorting unchanged.
 * Sorting is not retained after restarting. Default directory order follows the saved student array; new students
   are appended, edits retain their directory position, and deletions preserve the remaining students' relative order.
-* Empty and single-student results can also be sorted. Repeating the same sort keeps the same order.
+  `sort reset` uses this current directory order; it does not restore a historical snapshot or undo edits or deletions.
+* After `sort reset`, indexed commands use the restored display order. Later edits retain their directory position
+  while they still match the filter; the previous name or group sorting rule no longer applies.
+* Empty and single-student results can also be sorted or reset. Resetting an already unsorted list succeeds.
+  Repeating the same sort or reset keeps the same order. Either sort field can be used again after a reset.
+
+Unlike `sort reset`, `list` replaces the current filter with the full roster, and `list g/GROUP` replaces it with
+the specified tutorial-group filter. For example, after `find Alice Bob` and `sort group desc`, `sort reset`
+keeps only those search matches in directory order; `list` shows all students in directory order.
 
 Example workflow:
 
@@ -221,7 +234,7 @@ Example workflow:
 2. `sort name` orders those students by name, still showing only `T01`.
 3. `edit 1 n/Wendy` edits the first student in the sorted display and moves them to their new sorted position.
 4. `delete 1` previews whoever is now first. Check the preview before using `delete 1 confirm`.
-5. `list g/T01` cancels sorting and shows the remaining `T01` students in directory order.
+5. `sort reset` cancels sorting and shows the remaining `T01` students in directory order, retaining the filter.
 
 To arrange search results by tutorial group:
 
@@ -255,6 +268,23 @@ Examples:
 *  `edit 1 m/a1234567z` Changes only the 1st student's matriculation number to `A1234567Z`.
 *  `edit 1 g/l03` Moves the 1st student to tutorial group `L03`. If `list g/T01` is active, that student
    disappears from the displayed list while the `T01` filter remains active.
+
+### Managing a student's remark: `remark`
+
+Sets, replaces, or clears the current free-text remark of an existing student.
+
+Format: `remark INDEX r/REMARK`
+
+* The `INDEX` refers to the student in the currently displayed list and must be a positive integer.
+* The remark may contain spaces and punctuation. Leading and trailing whitespace is removed.
+* Use `r/` without text to clear the student's current remark.
+* TutorLink stores one current remark. It does not keep a history of previous remarks.
+* Existing remarks, tags, and follow-up status are preserved when other student fields are edited.
+
+Examples:
+* `remark 1 r/Needs help with recursion` sets the 1st student's remark.
+* `remark 1 r/Discuss scholarship options` replaces the existing remark.
+* `remark 1 r/` clears the existing remark.
 
 ### Finding students by name or matriculation number: `find`
 
@@ -436,6 +466,7 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g., `edit 2 m/A1234567Z g/T02`
+**Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Needs help with recursion`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **Find by tag** | `findtag TAG`<br> e.g., `findtag needsHelp`
 **Follow-up status** | `followup INDEX on` or `followup INDEX done`<br> e.g., `followup 1 on`
@@ -444,5 +475,6 @@ Action     | Format, Examples
 **List tutorial-group counts** | `groups`
 **Sort by name** | `sort name [asc\|desc]`<br> e.g., `sort name`, `sort name desc`
 **Sort by tutorial group** | `sort group [asc\|desc]`<br> e.g., `sort group`, `sort group desc`
+**Reset sorting** | `sort reset` (keeps the current filter; `list` resets the filter)
 **Help**   | `help`
 **Exit**   | `exit`

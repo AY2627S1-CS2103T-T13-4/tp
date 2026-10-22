@@ -8,8 +8,8 @@
 
 TutorLink is a desktop application for managing student rosters across tutorial groups.
 
-Tutors can add, edit, find, filter, and delete student records through concise commands. The graphical list cards show
-each student's stored details, including their tutorial group and optional contact information.
+Tutors can add, edit, find, filter, sort, and delete student records through concise commands. The graphical list cards
+show each student's tutorial group, optional contact information, remark, tags, and follow-up status.
 
 ## Target Users
 
@@ -19,15 +19,21 @@ TutorLink is intended for tutors who manage one or more tutorial groups and need
 
 * **Student rosters** — Add, edit, and delete students with unique matriculation numbers and tutorial groups.
 * **Group filtering** — Show all students or only those in a specified tutorial group with `list`.
+* **Group overview** — List tutorial groups and their student counts with `groups`.
 * **Student details** — Read academic and contact details directly on each student list card.
-* **Search** — Find students by name or matriculation number.
-* **Data persistence** — Save student records automatically after every successful command.
+* **Student remarks** — Add, replace, and clear one current free-text remark per student.
+* **Search** — Find students by name, matriculation number, or tag.
+* **Sorting** — Sort the displayed students by name or tutorial group.
+* **Follow-ups** — Mark students for follow-up, view the follow-up list, and mark follow-ups complete.
+* **Data persistence** — Save student record changes automatically.
 
 ## Current release scope
 
-The v1.3 MVP focuses on managing a student roster. Tutorial groups are stored as part of each student's record and can be used for filtering, but TutorLink does not yet provide standalone tutorial-group creation, editing, or deletion.
+The v1.4 alpha version manages student rosters across tutorial groups. Tutors can filter students by group, view each
+group's student count, and move students between groups by editing their records. TutorLink does not provide standalone
+tutorial-group creation, editing, or deletion.
 
-Attendance tracking, participation records, and student remarks are future enhancements and are not available in v1.3.
+Attendance tracking and participation records are future enhancements and are not available in v1.4.
 
 ## Documentation
 

@@ -309,7 +309,7 @@ public class SortGroupCommandIntegrationTest {
     public void execute_invalidCommandsAfterGroupSort_preservesFilterAndSorting() throws Exception {
         logic.execute("list g/T01");
         logic.execute("sort group desc");
-        for (String command : List.of("sort group up", "sort reset", "find", "list g/T1")) {
+        for (String command : List.of("sort group up", "sort reset extra", "find", "list g/T1")) {
             assertThrows(ParseException.class, () -> logic.execute(command));
             assertDisplayed(ALICE_LOWER_MATRIC, ALICE_HIGHER_MATRIC, ZOE);
         }

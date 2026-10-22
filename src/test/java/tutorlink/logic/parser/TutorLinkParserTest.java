@@ -23,8 +23,10 @@ import tutorlink.logic.commands.FindTagCommand;
 import tutorlink.logic.commands.GroupsCommand;
 import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
+import tutorlink.logic.commands.RemarkCommand;
 import tutorlink.logic.commands.SortCommand;
 import tutorlink.logic.commands.SortGroupCommand;
+import tutorlink.logic.commands.SortResetCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.student.Student;
 import tutorlink.model.student.StudentContainsKeywordsPredicate;
@@ -117,6 +119,12 @@ public class TutorLinkParserTest {
     }
 
     @Test
+    public void parseCommand_remark() throws Exception {
+        assertEquals(new RemarkCommand(INDEX_FIRST_STUDENT, "Needs help"),
+                parser.parseCommand("remark 1 r/Needs help"));
+    }
+
+    @Test
     public void parseCommand_sort() throws Exception {
         assertEquals(new SortCommand(false), parser.parseCommand("sort name"));
         assertEquals(new SortCommand(false), parser.parseCommand("sort name asc"));
@@ -124,6 +132,7 @@ public class TutorLinkParserTest {
         assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group"));
         assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group asc"));
         assertEquals(new SortGroupCommand(true), parser.parseCommand("sort group desc"));
+        assertEquals(new SortResetCommand(), parser.parseCommand("sort reset"));
     }
 
     @Test

@@ -193,6 +193,22 @@ student's current remark and follow-up status.
 and reloading the saved roster, as well as filter replacement, invalid input, tag changes, and displayed-index
 editing and deletion.
 
+### Student remarks
+
+The `remark INDEX r/TEXT` command updates the current remark of the student at `INDEX` in the displayed list.
+The command accepts free text after the `r/` prefix; `r/` with no text clears the remark. It uses the same
+`Model#getFilteredStudentList()` index source as `edit`, `delete`, and follow-up commands, so searching or filtering
+does not change which displayed student an index refers to.
+
+`RemarkCommand` creates a copy using `Student#withRemark(String)`, which retains the student's name, matriculation
+number, tutorial group, contact details, tags, and follow-up status. The existing `JsonAdaptedStudent` mapping stores
+the remark in JSON, so it survives application restarts. Only one editable current remark is stored; remark history
+is outside the feature scope.
+
+The command flow is represented in the following diagrams:
+
+<puml src="diagrams/add-remark/RemarkClass.puml" alt="Remark command class diagram" />
+<puml src="diagrams/add-remark/ParserClass.puml" alt="Remark command parser class diagram" />
 ### Current follow-up status
 
 `followup INDEX on` and `followup INDEX done` set the immutable `Student.requiresFollowUp` boolean.
@@ -229,7 +245,6 @@ Integration contract for remarks (#78), sorting (#80), and release coordination 
 `FollowUpCommandIntegrationTest` covers mark → list → reload → complete → reload through parsing and JSON storage,
 and loads a genuine older record without the field. Command tests cover unrelated-field preservation and
 full-roster filtering. Further regressions exercise combined edits and error cases.
-
 ### Tutorial group filtering
 
 Tutorial group filtering is implemented as an optional mode of the `list` command. The supported forms are `list`,
@@ -390,9 +405,9 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Value proposition**: TutorLink helps university tutors manage student rosters quickly and accurately from a desktop application. Concise commands make it easy to add, filter, edit, delete, and list students. The list cards show each student's stored details, while input validation and duplicate matriculation checks reduce roster errors.
 
-### MVP student data contract
+### Student data contract
 
-The following decisions define the MVP behaviour for the model, commands, storage, and UI.
+The following decisions define the current behaviour for the model, commands, storage, and UI.
 
 | Field | Requirement | Missing value |
 |-------|-------------|---------------|
@@ -402,14 +417,14 @@ The following decisions define the MVP behaviour for the model, commands, storag
 | Phone, email, address | Retain the existing fields, but make each optional | Represent an absent value as `null` in the model and JSON; display `Not provided` in the UI |
 | Tags | Retain the existing field | Use an empty set in the model and an empty array in JSON, rather than `null` |
 | Follow-up | Track one current `requiresFollowUp` boolean | Default to false for new students and older JSON without the field; retain through replacements |
-| Remark | Preserve any existing remark when loading, editing, or saving a student | Use `null` when absent; adding or changing remarks is outside the profile data contract |
+| Remark | Store one current remark that can be set, replaced, or cleared with `remark INDEX r/TEXT`; retain it through other edits | Use `null` when absent or cleared |
 
 An `add` command must accept a name, matriculation number, and tutorial group without requiring phone, email, or address. Existing `p/`, `e/`, `a/`, and `t/` inputs remain supported as optional details. Commands and UI components must handle absent optional values without dereferencing `null`. An `edit` command leaves omitted fields unchanged; it must not interpret omission as a request to clear a field.
 
 The current list cards are the student profile view. They show the name, matriculation number, tutorial group, optional
-contact fields, and tags without a separate `view INDEX`
-command. A tutorial group is an attribute of each student; the MVP supports group filtering and changing a student's
-group through `edit`, rather than independent tutorial-group records or management commands.
+contact fields, tags, current remark, and follow-up status without a separate `view INDEX` command. A tutorial group is
+an attribute of each student; TutorLink supports group filtering, group counts, and changing a student's group through
+`edit`, rather than independent tutorial-group records or management commands.
 
 Names are trimmed at both ends, and consecutive internal spaces are collapsed to one before the 70-character limit is checked. For example, `John  Doe` is stored as `John Doe`. Letter case is preserved; punctuation and other internal whitespace are invalid.
 
