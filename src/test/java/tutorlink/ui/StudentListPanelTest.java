@@ -5,12 +5,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.scene.layout.Region;
+import javafx.scene.Scene;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import tutorlink.model.student.Student;
 import tutorlink.testutil.StudentBuilder;
 
@@ -26,28 +32,65 @@ public class StudentListPanelTest {
     }
 
     @Test
-    public void studentListViewCell_recalculatesHeightWhenWidthChanges() {
-        StudentListPanel panel = new StudentListPanel(FXCollections.observableArrayList());
-        StudentListPanel.StudentListViewCell cell = panel.new StudentListViewCell();
-        Student student = new StudentBuilder()
-                .withRemark("Needs practice with recursion. ".repeat(20))
+    public void studentListViewCell_recalculatesHeightWhenWidthChanges() throws Exception {
+        Student amy = new StudentBuilder()
+                .withRemark("Needs practice with recursion. ".repeat(20)
+                        + "Remember the deadline on Friday.")
+                .build();
+        Student bob = new StudentBuilder()
+                .withName("Bob Tan")
+                .withMatricNumber("A0000002B")
                 .build();
 
-        cell.updateItem(student, false);
-        assertNotNull(cell.getGraphic());
-        Region graphic = (Region) cell.getGraphic();
-        cell.resize(450, 1000);
-        cell.layout();
-        double narrowHeight = cell.prefHeight(450);
-        assertEquals(450, graphic.getPrefWidth());
+        onJavaFxThread(() -> {
+            StudentListPanel panel = new StudentListPanel(FXCollections.observableArrayList(amy, bob));
+            Scene scene = new Scene(panel.getRoot(), 450, 600);
+            layoutScene(scene, 450);
 
-        cell.resize(800, 1000);
-        cell.layout();
-        double wideHeight = cell.prefHeight(800);
+            ListView<Student> listView = getStudentListView(panel);
+            ListCell<Student> firstCell = getCell(listView, 0);
+            assertNotNull(firstCell);
+            double narrowHeight = firstCell.getHeight();
 
-        assertEquals(800, graphic.getPrefWidth());
-        assertTrue(narrowHeight >= 145);
-        assertTrue(wideHeight >= 145);
+            layoutScene(scene, 800);
+            firstCell = getCell(listView, 0);
+            double wideHeight = firstCell.getHeight();
+
+            assertTrue(narrowHeight > wideHeight,
+                    "The cell should shrink when the wrapped remark gets more width");
+            assertTrue(wideHeight >= 145);
+            assertTrue(getCell(listView, 1).getLayoutY() < narrowHeight + 145,
+                    "The second student should follow the resized first cell");
+        });
+    }
+
+    @Test
+    public void studentListViewCell_reusedItemRecalculatesHeight() throws Exception {
+        Student longRemarkStudent = new StudentBuilder()
+                .withRemark("Needs practice with recursion. ".repeat(20))
+                .build();
+        Student shortRemarkStudent = new StudentBuilder().withRemark("Short remark").build();
+
+        onJavaFxThread(() -> {
+            var students = FXCollections.observableArrayList(longRemarkStudent);
+            StudentListPanel panel = new StudentListPanel(students);
+            Scene scene = new Scene(panel.getRoot(), 450, 600);
+            layoutScene(scene, 450);
+
+            ListView<Student> listView = getStudentListView(panel);
+            double longHeight = getCell(listView, 0).getHeight();
+
+            students.set(0, shortRemarkStudent);
+            layoutScene(scene, 450);
+            double shortHeight = getCell(listView, 0).getHeight();
+
+            students.set(0, longRemarkStudent);
+            layoutScene(scene, 450);
+            double longHeightAgain = getCell(listView, 0).getHeight();
+
+            assertTrue(shortHeight < longHeight);
+            assertTrue(longHeightAgain > shortHeight);
+        });
     }
 
     @Test
@@ -64,5 +107,43 @@ public class StudentListPanelTest {
         assertNull(cell.getGraphic());
         assertNull(cell.getText());
         assertEquals(javafx.scene.layout.Region.USE_COMPUTED_SIZE, cell.getPrefHeight());
+    }
+
+    @SuppressWarnings("unchecked")
+    private ListView<Student> getStudentListView(StudentListPanel panel) {
+        return (ListView<Student>) panel.getRoot().lookup("#studentListView");
+    }
+
+    @SuppressWarnings("unchecked")
+    private ListCell<Student> getCell(ListView<Student> listView, int index) {
+        return listView.lookupAll(".list-cell").stream()
+                .filter(ListCell.class::isInstance)
+                .map(node -> (ListCell<Student>) node)
+                .filter(cell -> cell.getIndex() == index)
+                .findFirst()
+                .orElseThrow();
+    }
+
+    private void layoutScene(Scene scene, double width) {
+        scene.getRoot().resize(width, 600);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+    }
+
+    private void onJavaFxThread(Runnable assertions) throws Exception {
+        FutureTask<Void> task = new FutureTask<>(assertions, null);
+        Platform.runLater(task);
+        try {
+            task.get(10, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            if (cause instanceof Exception exception) {
+                throw exception;
+            }
+            throw new AssertionError(cause);
+        }
     }
 }

@@ -34,13 +34,12 @@ public class RemarkCommandTest {
 
         new RemarkCommand(INDEX_FIRST_STUDENT, "New remark").execute(model);
         Student replaced = model.getFilteredStudentList().get(INDEX_FIRST_STUDENT.getZeroBased());
-        assertEquals("New remark", replaced.getRemark());
-        assertEquals(withExistingData.getTags(), replaced.getTags());
-        assertTrue(replaced.requiresFollowUp());
+        Student expectedReplaced = new StudentBuilder(withExistingData).withRemark("New remark").build();
+        assertEquals(expectedReplaced, replaced);
 
         new RemarkCommand(INDEX_FIRST_STUDENT, null).execute(model);
         Student cleared = model.getFilteredStudentList().get(INDEX_FIRST_STUDENT.getZeroBased());
-        assertEquals(new StudentBuilder(replaced).withRemark(null).build(), cleared);
+        assertEquals(new StudentBuilder(expectedReplaced).withRemark(null).build(), cleared);
     }
 
     @Test
