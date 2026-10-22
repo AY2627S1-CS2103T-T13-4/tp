@@ -49,6 +49,8 @@ public class Messages {
                 .append(student.getEmail() == null ? NOT_PROVIDED : student.getEmail())
                 .append("; Address: ")
                 .append(student.getAddress() == null ? NOT_PROVIDED : student.getAddress())
+                .append("; Remark: ")
+                .append(student.getRemark() == null ? NOT_PROVIDED : student.getRemark())
                 .append("; Tags: ");
         student.getTags().forEach(builder::append);
         return builder.toString();
