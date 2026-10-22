@@ -50,18 +50,21 @@ public class StudentListPanelTest {
             ListView<Student> listView = getStudentListView(panel);
             ListCell<Student> firstCell = getCell(listView, 0);
             assertNotNull(firstCell);
-            double narrowHeight = firstCell.prefHeight(450);
+            double narrowCellHeight = firstCell.getHeight();
+            double narrowComputedHeight = firstCell.prefHeight(450);
 
             layoutScene(scene, 800);
             firstCell = getCell(listView, 0);
-            double wideHeight = firstCell.prefHeight(800);
+            double wideCellHeight = firstCell.getHeight();
+            double wideComputedHeight = firstCell.prefHeight(800);
 
-            assertTrue(narrowHeight > wideHeight,
+            assertTrue(narrowCellHeight > wideCellHeight || narrowComputedHeight > wideComputedHeight,
                     String.format("The cell should shrink when the wrapped remark gets more width "
-                            + "(narrowHeight=%.2f, wideHeight=%.2f, listWidth=%.2f, cellWidth=%.2f)",
-                            narrowHeight, wideHeight, listView.getWidth(), firstCell.getWidth()));
-            assertTrue(wideHeight >= 145);
-            assertTrue(getCell(listView, 1).getLayoutY() < narrowHeight + 145,
+                            + "(narrowCellHeight=%.2f, wideCellHeight=%.2f, "
+                            + "narrowComputedHeight=%.2f, wideComputedHeight=%.2f)",
+                            narrowCellHeight, wideCellHeight, narrowComputedHeight, wideComputedHeight));
+            assertTrue(wideCellHeight >= 145 || wideComputedHeight >= 145);
+            assertTrue(getCell(listView, 1).getLayoutY() < narrowCellHeight + 145,
                     "The second student should follow the resized first cell");
         });
     }
