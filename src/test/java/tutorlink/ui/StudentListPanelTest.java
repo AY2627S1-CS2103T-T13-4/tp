@@ -51,11 +51,15 @@ public class StudentListPanelTest {
             ListCell<Student> firstCell = getCell(listView, 0);
             assertNotNull(firstCell);
             double narrowHeight = firstCell.getHeight();
+            double narrowCellWidth = firstCell.getWidth();
 
             layoutScene(scene, 800);
             firstCell = getCell(listView, 0);
             double wideHeight = firstCell.getHeight();
             double wideCellWidth = firstCell.getWidth();
+            System.err.printf("StudentListPanel resize: narrowHeight=%.2f, wideHeight=%.2f, "
+                    + "listWidth=%.2f, narrowCellWidth=%.2f, wideCellWidth=%.2f%n",
+                    narrowHeight, wideHeight, listView.getWidth(), narrowCellWidth, wideCellWidth);
 
             assertTrue(narrowHeight > wideHeight,
                     String.format("The cell should shrink when the wrapped remark gets more width "
