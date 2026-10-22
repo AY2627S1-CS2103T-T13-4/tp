@@ -136,6 +136,18 @@ public class LogicManagerTest {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredStudentList().remove(0));
     }
 
+    @Test
+    public void getStudentList_filterChanges_retainsCompleteReadOnlyRoster() throws Exception {
+        logic.execute("add n/Amy Bee m/A0000011K g/T01");
+        var completeRoster = logic.getStudentList();
+        logic.execute("list g/T99");
+        assertEquals(0, logic.getFilteredStudentList().size());
+        assertEquals(1, completeRoster.size());
+        assertThrows(UnsupportedOperationException.class, () -> completeRoster.clear());
+        logic.execute("add n/Bob Choo m/A0000012L g/T02");
+        assertEquals(2, completeRoster.size());
+    }
+
     /**
      * Executes the command and confirms that
      * - no exceptions are thrown <br>

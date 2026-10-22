@@ -48,6 +48,10 @@ public class LogicManager implements Logic {
         Command command = tutorLinkParser.parseCommand(commandText);
         commandResult = command.execute(model);
 
+        if (commandResult.getStudentToView().isPresent()) {
+            return commandResult;
+        }
+
         try {
             storage.saveStudentDirectory(model.getStudentDirectory());
         } catch (AccessDeniedException e) {
@@ -62,6 +66,11 @@ public class LogicManager implements Logic {
     @Override
     public ObservableList<Student> getFilteredStudentList() {
         return model.getFilteredStudentList();
+    }
+
+    @Override
+    public ObservableList<Student> getStudentList() {
+        return model.getStudentDirectory().getStudentList();
     }
 
     @Override
