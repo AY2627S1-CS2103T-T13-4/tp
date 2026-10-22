@@ -1,6 +1,7 @@
 package tutorlink.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static tutorlink.storage.JsonAdaptedStudent.MISSING_FIELD_MESSAGE_FORMAT;
 import static tutorlink.testutil.Assert.assertThrows;
@@ -39,6 +40,23 @@ public class JsonAdaptedStudentTest {
     private static final List<JsonAdaptedTag> VALID_TAGS = BENSON.getTags().stream()
             .map(JsonAdaptedTag::new)
             .collect(Collectors.toList());
+
+    @Test
+    public void toModelType_followUpStatus_roundTripsBothStatesWithRemarkAndTags() throws Exception {
+        for (boolean status : new boolean[]{true, false}) {
+            Student original = BENSON.withRemark("Retain context").withFollowUp(status);
+            assertEquals(original, new JsonAdaptedStudent(original).toModelType());
+        }
+    }
+
+    @Test
+    public void toModelType_nullFollowUpStatus_defaultsToFalseAndKeepsOtherFields() throws Exception {
+        JsonAdaptedStudent adapted = new JsonAdaptedStudent(VALID_NAME, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
+                VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, "Retain context", VALID_TAGS, null);
+        Student student = adapted.toModelType();
+        assertFalse(student.requiresFollowUp());
+        assertEquals(BENSON.withRemark("Retain context"), student);
+    }
 
     @Test
     public void toModelType_validStudentDetails_returnsStudent() throws Exception {

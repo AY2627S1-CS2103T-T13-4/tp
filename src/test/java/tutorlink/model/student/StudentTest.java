@@ -67,6 +67,30 @@ public class StudentTest {
     }
 
     @Test
+    public void followUpStatus_defaultsToFalseAndChangesDataEqualityOnly() {
+        assertFalse(ALICE.requiresFollowUp());
+        Student marked = ALICE.withFollowUp(true);
+        assertTrue(marked.requiresFollowUp());
+        assertFalse(marked.equals(ALICE));
+        assertTrue(marked.isSameStudent(ALICE));
+        assertEquals(ALICE, marked.withFollowUp(false));
+        Student copy = new StudentBuilder(marked).build();
+        assertEquals(marked, copy);
+        assertEquals(marked.hashCode(), copy.hashCode());
+    }
+
+    @Test
+    public void withRemark_setReplaceAndClear_retainsFollowUpAndOtherFields() {
+        Student marked = ALICE.withFollowUp(true);
+        Student withRemark = marked.withRemark("Discuss recursion");
+        assertEquals(new StudentBuilder(marked).withRemark("Discuss recursion").build(), withRemark);
+        assertEquals(new StudentBuilder(marked).withRemark("Discuss loops instead").build(),
+                withRemark.withRemark("Discuss loops instead"));
+        assertEquals(marked, withRemark.withRemark(null));
+        assertEquals(new StudentBuilder(marked).withRemark("").build(), withRemark.withRemark(""));
+    }
+
+    @Test
     public void hashCode_equalPeople_haveSameHashCode() {
         Student student = new StudentBuilder(ALICE).build();
 

@@ -3,7 +3,12 @@ package tutorlink.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static tutorlink.testutil.TypicalStudents.ALICE;
 
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -15,26 +20,30 @@ import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import tutorlink.model.student.Student;
 import tutorlink.testutil.StudentBuilder;
 
 /**
- * Tests the labels rendered by a student card.
+ * Loads the real student-card FXML and checks its displayed follow-up status on the JavaFX thread.
  */
 public class StudentCardTest {
-
     @BeforeAll
-    public static void initializeJavaFxToolkit() {
+    public static void initializeJavaFx() throws Exception {
+        FutureTask<Void> initialized = new FutureTask<>(() -> null);
         try {
-            Platform.startup(() -> { });
+            Platform.startup(initialized);
         } catch (IllegalStateException e) {
-            // Another UI test may have initialized the toolkit already.
+            // Another UI test has initialized the toolkit; wait on its application thread instead.
+            Platform.runLater(initialized);
         }
+        initialized.get(10, TimeUnit.SECONDS);
     }
 
     @Test
-    public void initializeJavaFxToolkit_whenCalledTwice_doesNotThrow() {
-        initializeJavaFxToolkit();
+    public void initializeJavaFx_toolkitAlreadyStarted_reusesToolkit() throws Exception {
+        initializeJavaFx();
+        onJavaFxThread(() -> assertEquals("Ready", new Label("Ready").getText()));
     }
 
     @Test
@@ -73,27 +82,54 @@ public class StudentCardTest {
     }
 
     @Test
-    public void constructor_displaysFollowUpStatus() throws Exception {
-        Student student = new StudentBuilder().withFollowUp(true).build();
+    public void onJavaFxThread_assertionFails_reportsOriginalFailure() {
+        AssertionError failure = new AssertionError("Original JavaFX assertion failure");
+        assertSame(failure, assertThrows(AssertionError.class, () -> onJavaFxThread(() -> {
+            throw failure;
+        })));
+    }
 
+    @Test
+    public void constructor_markedStudent_showsRequiredStatusAndRetainsProfile() throws Exception {
+        Student student = new StudentBuilder(ALICE).withFollowUp(true).withTags("zebra", "alpha").build();
         onJavaFxThread(() -> {
-            StudentCard card = new StudentCard(student, 1);
-            Label followUp = (Label) card.getRoot().lookup("#followUp");
-            assertNotNull(followUp);
-            assertEquals("Follow-up: Required", followUp.getText());
+            StudentCard card = new StudentCard(student, 2);
+            assertSame(student, card.student);
+            assertLabel(card, "id", "2. ");
+            assertLabel(card, "name", student.getName().fullName);
+            assertLabel(card, "matricNumber", "Matric: " + student.getMatricNumber().value);
+            assertLabel(card, "tutorialGroup", "Group: " + student.getTutorialGroup().value);
+            assertLabel(card, "followUp", "Follow-up: Required");
+            assertLabel(card, "phone", "Phone: " + student.getPhone().value);
+            assertLabel(card, "email", "Email: " + student.getEmail().value);
+            assertLabel(card, "address", "Address: " + student.getAddress().value);
+            FlowPane tags = (FlowPane) card.getRoot().lookup("#tags");
+            assertEquals(List.of("alpha", "zebra"), tags.getChildren().stream()
+                    .map(node -> ((Label) node).getText()).toList());
         });
     }
 
     @Test
-    public void constructor_displaysNotRequiredStatus() throws Exception {
-        Student student = new StudentBuilder().withFollowUp(false).build();
-
+    public void constructor_completedStudent_showsNotRequiredWithMissingContactDetails() throws Exception {
+        Student marked = new Student(ALICE.getName(), ALICE.getMatricNumber(), ALICE.getTutorialGroup(),
+                null, null, null, Set.of(), "Retain context", true);
+        Student completed = marked.withFollowUp(false);
         onJavaFxThread(() -> {
-            StudentCard card = new StudentCard(student, 1);
-            Label followUp = (Label) card.getRoot().lookup("#followUp");
-            assertNotNull(followUp);
-            assertEquals("Follow-up: Not required", followUp.getText());
+            StudentCard card = new StudentCard(completed, 1);
+            assertSame(completed, card.student);
+            assertLabel(card, "followUp", "Follow-up: Not required");
+            assertLabel(card, "phone", "Phone: Not provided");
+            assertLabel(card, "email", "Email: Not provided");
+            assertLabel(card, "address", "Address: Not provided");
+            assertEquals(0, ((FlowPane) card.getRoot().lookup("#tags")).getChildren().size());
+            assertEquals("Retain context", card.student.getRemark());
         });
+    }
+
+    private void assertLabel(StudentCard card, String id, String text) {
+        Label label = (Label) card.getRoot().lookup("#" + id);
+        assertNotNull(label);
+        assertEquals(text, label.getText());
     }
 
     private void onJavaFxThread(Runnable assertions) throws Exception {
