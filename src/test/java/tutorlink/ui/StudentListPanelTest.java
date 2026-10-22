@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -50,7 +49,6 @@ public class StudentListPanelTest {
         StudentListPanel[] panelHolder = new StudentListPanel[1];
         Scene[] sceneHolder = new Scene[1];
         double[] narrowCellHeight = new double[1];
-        double[] narrowActualCellHeight = new double[1];
         double[] narrowSecondRowY = new double[1];
 
         onJavaFxThread(() -> {
@@ -66,7 +64,6 @@ public class StudentListPanelTest {
             ListCell<Student> firstCell = getCell(listView, 0);
             assertNotNull(firstCell);
             narrowCellHeight[0] = firstCell.prefHeight(450);
-            narrowActualCellHeight[0] = firstCell.getHeight();
             ListCell<Student> secondCell = findCell(listView, 1).orElse(null);
             narrowSecondRowY[0] = secondCell == null ? Double.NaN : secondCell.getLayoutY();
         });
@@ -76,14 +73,6 @@ public class StudentListPanelTest {
             ListView<Student> listView = getStudentListView(panelHolder[0]);
             ListCell<Student> firstCell = getCell(listView, 0);
             double wideCellHeight = firstCell.prefHeight(800);
-            Node card = firstCell.getGraphic();
-            Node remark = card.lookup("#remark");
-            System.out.printf("resize pref narrow=%.2f wide=%.2f actual narrow=%.2f wide=%.2f "
-                            + "card=%.2fx%.2f remark=%.2fx%.2f%n",
-                    narrowCellHeight[0], wideCellHeight, narrowActualCellHeight[0], firstCell.getHeight(),
-                    card.getLayoutBounds().getWidth(), card.getLayoutBounds().getHeight(),
-                    remark.getLayoutBounds().getWidth(), remark.getLayoutBounds().getHeight());
-
             assertTrue(narrowCellHeight[0] > wideCellHeight,
                     "The cell should shrink when the wrapped remark gets more width");
             assertTrue(wideCellHeight >= 145);

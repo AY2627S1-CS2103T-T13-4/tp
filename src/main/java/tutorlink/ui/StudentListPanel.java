@@ -53,17 +53,12 @@ public class StudentListPanel extends UiPart<Region> {
                 return;
             }
 
-            Region card = studentCard.getRoot();
             double availableWidth = Math.max(0,
                     getWidth() - snappedLeftInset() - snappedRightInset());
 
             boolean widthChanged = Double.compare(lastAvailableWidth, availableWidth) != 0;
             if (widthChanged) {
-                card.setPrefWidth(availableWidth);
-                card.setMaxWidth(availableWidth);
-                card.resize(availableWidth, Math.max(card.getHeight(), card.prefHeight(availableWidth)));
-                card.applyCss();
-                card.layout();
+                studentCard.layoutAtWidth(availableWidth);
             }
             if (!widthChanged) {
                 return;
@@ -103,14 +98,8 @@ public class StudentListPanel extends UiPart<Region> {
 
             double cellWidth = width > 0 ? width : getWidth();
             double availableWidth = Math.max(0, cellWidth - snappedLeftInset() - snappedRightInset());
-            Region card = studentCard.getRoot();
-            card.setPrefWidth(availableWidth);
-            card.setMaxWidth(availableWidth);
-            card.resize(availableWidth, Math.max(card.getHeight(), card.prefHeight(availableWidth)));
-            card.applyCss();
-            card.layout();
             return snappedTopInset() + snappedBottomInset()
-                    + card.prefHeight(availableWidth);
+                    + studentCard.layoutAtWidth(availableWidth);
         }
 
         @Override
