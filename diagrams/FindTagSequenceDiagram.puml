@@ -39,6 +39,7 @@ activate Command
 Command -> Model : updateFilteredStudentList(predicate)
 activate Model
 note right of Model
+  Reset sorting to directory order.
   Replace the active predicate on the
   FilteredList backed by the full roster.
   Student records remain unchanged.
@@ -46,7 +47,7 @@ end note
 Model --> Command
 deactivate Model
 Command -> Model : getFilteredStudentList()
-Model --> Command : matching students
+Model --> Command : matching students in directory order
 Command --> LogicManager : CommandResult with match count
 deactivate Command
 ref over LogicManager, Model
