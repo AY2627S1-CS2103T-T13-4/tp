@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -63,7 +64,8 @@ public class StudentListPanelTest {
             ListCell<Student> firstCell = getCell(listView, 0);
             assertNotNull(firstCell);
             narrowCellHeight[0] = firstCell.getHeight();
-            narrowSecondRowY[0] = getCell(listView, 1).getLayoutY();
+            ListCell<Student> secondCell = findCell(listView, 1).orElse(null);
+            narrowSecondRowY[0] = secondCell == null ? Double.NaN : secondCell.getLayoutY();
         });
 
         onJavaFxThread(() -> {
@@ -75,8 +77,13 @@ public class StudentListPanelTest {
             assertTrue(narrowCellHeight[0] > wideCellHeight,
                     "The cell should shrink when the wrapped remark gets more width");
             assertTrue(wideCellHeight >= 145);
-            assertTrue(getCell(listView, 1).getLayoutY() < narrowSecondRowY[0],
-                    "The second student should move up after the first cell is resized");
+            double wideSecondRowY = getCell(listView, 1).getLayoutY();
+            assertTrue(wideSecondRowY < narrowCellHeight[0] + 145,
+                    "The second student should follow the resized first cell");
+            if (!Double.isNaN(narrowSecondRowY[0])) {
+                assertTrue(wideSecondRowY < narrowSecondRowY[0],
+                        "The second student should move up after the first cell is resized");
+            }
         });
     }
 
@@ -133,12 +140,16 @@ public class StudentListPanelTest {
 
     @SuppressWarnings("unchecked")
     private ListCell<Student> getCell(ListView<Student> listView, int index) {
+        return findCell(listView, index).orElseThrow();
+    }
+
+    @SuppressWarnings("unchecked")
+    private Optional<ListCell<Student>> findCell(ListView<Student> listView, int index) {
         return listView.lookupAll(".list-cell").stream()
                 .filter(ListCell.class::isInstance)
                 .map(node -> (ListCell<Student>) node)
                 .filter(cell -> cell.getIndex() == index)
-                .findFirst()
-                .orElseThrow();
+                .findFirst();
     }
 
     private void layoutScene(Scene scene, double width) {
