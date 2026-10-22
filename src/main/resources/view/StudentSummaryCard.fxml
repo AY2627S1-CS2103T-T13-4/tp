@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+      styleClass="student-summary" spacing="7" minWidth="0" maxWidth="Infinity">
+  <HBox spacing="7" alignment="TOP_LEFT">
+    <Label fx:id="id" styleClass="summary-index" minWidth="30" />
+    <Label fx:id="name" styleClass="summary-name" wrapText="true" minWidth="0" maxWidth="Infinity"
+           HBox.hgrow="ALWAYS" />
+  </HBox>
+  <HBox spacing="10">
+    <Label fx:id="matricNumber" styleClass="summary-secondary" />
+    <Label fx:id="tutorialGroup" styleClass="group-badge" />
+  </HBox>
+  <Label fx:id="followUp" text="Follow-up required" styleClass="follow-up-badge" />
+</VBox>

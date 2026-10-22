@@ -7,6 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import tutorlink.testutil.StudentBuilder;
+
 public class CommandResultTest {
     @Test
     public void equals() {
@@ -57,7 +59,19 @@ public class CommandResultTest {
         CommandResult commandResult = new CommandResult("feedback");
         String expected = CommandResult.class.getCanonicalName() + "{feedbackToUser="
                 + commandResult.getFeedbackToUser() + ", showHelp=" + commandResult.isShowHelp()
-                + ", exit=" + commandResult.isExit() + "}";
+                + ", exit=" + commandResult.isExit() + ", studentToView=null}";
         assertEquals(expected, commandResult.toString());
+    }
+
+    @Test
+    public void viewResult_retainsStudentAndIncludesSelectionInEquality() {
+        var student = new StudentBuilder().build();
+        CommandResult result = new CommandResult("Showing student", student);
+        assertEquals(student, result.getStudentToView().orElseThrow());
+        assertEquals(result, new CommandResult("Showing student", student));
+        assertEquals(result.hashCode(), new CommandResult("Showing student", student).hashCode());
+        assertNotEquals(result, new CommandResult("Showing student"));
+        assertNotEquals(result, new CommandResult("Showing student", student.withRemark("Changed")));
+        assertFalse(new CommandResult("No selection").getStudentToView().isPresent());
     }
 }

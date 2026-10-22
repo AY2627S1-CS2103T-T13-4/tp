@@ -2,13 +2,13 @@ package tutorlink.ui;
 
 import java.util.Comparator;
 
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import tutorlink.model.student.Student;
 
 /**
@@ -51,8 +51,6 @@ public class StudentCard extends UiPart<Region> {
     private Label email;
     @FXML
     private FlowPane tags;
-    @FXML
-    private VBox cardContent;
 
     /**
      * Creates a {@code StudentCard} with the given {@code Student} and index to display.
@@ -77,38 +75,16 @@ public class StudentCard extends UiPart<Region> {
         email.setText("Email: " + (student.getEmail() == null ? NOT_PROVIDED : student.getEmail().value));
         student.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+                .forEach(tag -> {
+                    Label tagLabel = new Label(tag.tagName);
+                    tagLabel.setWrapText(true);
+                    tagLabel.setMinWidth(0);
+                    tagLabel.maxWidthProperty().bind(tags.widthProperty());
+                    tagLabel.minHeightProperty().bind(Bindings.createDoubleBinding(() -> tagLabel.prefHeight(
+                            Math.max(1, tags.getWidth())), tags.widthProperty(), tagLabel.fontProperty()));
+                    tagLabel.setTooltip(new Tooltip(tag.tagName));
+                    tags.getChildren().add(tagLabel);
+                });
     }
 
-    /**
-     * Lays out the card at the given width and returns the height occupied by its content.
-     */
-    public double layoutAtWidth(double width) {
-        Region root = getRoot();
-        root.setPrefWidth(width);
-        root.setMaxWidth(width);
-        double contentWidth = Math.max(0, width - cardContent.getInsets().getLeft()
-                - cardContent.getInsets().getRight());
-        remark.setPrefWidth(contentWidth);
-        remark.setMaxWidth(contentWidth);
-        remark.setPrefHeight(Region.USE_COMPUTED_SIZE);
-        root.resize(width, Math.max(root.getHeight(), root.prefHeight(width)));
-        root.applyCss();
-        root.layout();
-        double remarkHeight = remark.prefHeight(contentWidth);
-        remark.setPrefHeight(remarkHeight);
-        remark.resize(contentWidth, remark.getPrefHeight());
-        cardContent.layout();
-
-        double contentHeight = cardContent.getInsets().getTop()
-                + cardContent.getChildrenUnmodifiable().stream()
-                        .mapToDouble(child -> child.prefHeight(child.getLayoutBounds().getWidth()))
-                        .sum()
-                + Math.max(0, cardContent.getChildrenUnmodifiable().size() - 1) * cardContent.getSpacing()
-                + cardContent.getInsets().getBottom();
-        root.setPrefHeight(contentHeight);
-        root.resize(width, contentHeight);
-        root.layout();
-        return contentHeight;
-    }
 }

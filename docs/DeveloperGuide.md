@@ -71,7 +71,17 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `StudentListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` containing `CommandBox`, `ResultDisplay`, `GroupListPanel`, `StudentListPanel`,
+`StudentDetailsPanel`, and `StatusBarFooter`. These components inherit from `UiPart`.
+
+The group panel observes `Logic#getStudentList()`, the complete read-only roster, so its groups and counts remain
+available during searches. Selecting a group executes the existing `list` command through `Logic`. The student panel
+observes `Logic#getFilteredStudentList()` directly, keeping its summary indices aligned with indexed commands.
+Selecting a summary, or executing `view INDEX`, displays a `StudentCard` in the details panel. `ViewCommand` validates
+the displayed index and returns the student in `CommandResult`; `MainWindow` then selects and scrolls to that student.
+This view-only result does not write roster data. After each command, `MainWindow` restores the
+selection across record replacements if that student remains visible, and otherwise clears the details. Three resizable
+columns separate group navigation, student summaries, and full details.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
@@ -398,7 +408,7 @@ _{Explain here how the data archiving feature will be implemented}_
 * is reasonably comfortable using a desktop application and concise CLI commands for repetitive tasks
 * values fast, keyboard-driven workflows, clear validation, and protection against duplicate student records
 
-**Value proposition**: TutorLink helps university tutors manage student rosters quickly and accurately from a desktop application. Concise commands make it easy to add, filter, edit, delete, and list students. The list cards show each student's stored details, while input validation and duplicate matriculation checks reduce roster errors.
+**Value proposition**: TutorLink helps university tutors manage student rosters quickly and accurately from a desktop application. Concise commands make it easy to add, filter, edit, delete, and list students. The workspace shows student summaries and the selected student's full details, while input validation and duplicate matriculation checks reduce roster errors.
 
 ### Student data contract
 
@@ -416,8 +426,9 @@ The following decisions define the current behaviour for the model, commands, st
 
 An `add` command must accept a name, matriculation number, and tutorial group without requiring phone, email, or address. Existing `p/`, `e/`, `a/`, and `t/` inputs remain supported as optional details. Commands and UI components must handle absent optional values without dereferencing `null`. An `edit` command leaves omitted fields unchanged; it must not interpret omission as a request to clear a field.
 
-The current list cards are the student profile view. They show the name, matriculation number, tutorial group, optional
-contact fields, tags, current remark, and follow-up status without a separate `view INDEX` command. A tutorial group is
+The middle list shows student summaries. Selecting one or executing `view INDEX` displays its name, matriculation
+number, tutorial group, optional contact fields, tags, current remark, and follow-up status in the details panel.
+A tutorial group is
 an attribute of each student; TutorLink supports group filtering, group counts, and changing a student's group through
 `edit`, rather than independent tutorial-group records or management commands.
 
@@ -441,7 +452,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 | `* * *`  | new tutor                                  | see usage instructions           | learn how to use TutorLink effectively                                |
 | `* * *`  | tutor                                      | add a student's details          | create a roster record for a newly assigned student                    |
 | `* * *`  | tutor                                      | list all students                | inspect the complete roster and reset an active group filter           |
-| `* * *`  | tutor                                      | see a student's details on the list card | inspect academic and contact information in the current list    |
+| `* * *`  | tutor                                      | view a student's full details | inspect academic and contact information for a selected student    |
 | `* * *`  | tutor                                      | filter students by tutorial group | focus on students attending a particular tutorial session            |
 | `* * *`  | tutor                                      | edit a student's details         | correct errors or update a student's matriculation number or group     |
 | `* * *`  | tutor                                      | delete a student's record        | remove students who drop the course or change tutorials                |
@@ -513,8 +524,8 @@ An index refers to the student's one-based position in the current list, includi
 **MSS**
 
 1. Tutor requests the students in a specified tutorial group with `list g/TUTORIAL_GROUP`.
-2. TutorLink shows the matching students, the number of matches, and each student's profile fields on a list card.
-3. Tutor reads a student's academic and contact details from that card.
+2. TutorLink shows the matching student summaries and the number of matches.
+3. Tutor enters `view INDEX` or selects a student and reads their academic and contact details in the details panel.
 
    Use case ends.
 
@@ -666,7 +677,8 @@ them in a folder containing records you want to keep. Start with `java -jar Tuto
 1. Enter `clear`, then add these synthetic students:
    * `add n/Alice Test m/A1111111A g/T01`
    * `add n/Ben Test m/A2222222B g/T02`
-   * Expected: Both students are listed, with omitted contact details shown as `Not provided`.
+   * Expected: Both students are listed. Selecting either shows omitted contact details as `Not provided` in the
+     details panel.
 1. Enter `list g/t01`, then `find a2222222b`.
    * Expected: The group filter first shows only Alice. The search then shows only Ben at index `1`, even though
      Ben belongs to another group. Search replaces the group filter and accepts lowercase matriculation numbers.

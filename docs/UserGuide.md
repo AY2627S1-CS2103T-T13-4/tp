@@ -33,6 +33,15 @@ TutorLink is a **desktop application for managing student records, optimized for
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
+1. The left column lists all tutorial groups and their student counts. The middle column initially shows all students.
+   Select a group to show its students, or select **All Students** to restore the full roster. These actions have the
+   same effect as `list g/GROUP` and `list`, including resetting sorting.
+
+1. Enter `view INDEX` or select a student in the middle column to see their full details on the right.
+   You can also focus a list with Tab
+   and move its selection with the arrow keys. The middle list shows the indices used by `edit`, `delete`, `remark`,
+   and `followup`. Drag the dividers to adjust column widths; long details can be scrolled.
+
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
@@ -53,6 +62,8 @@ TutorLink is a **desktop application for managing student records, optimized for
    * `find John` : Finds students whose names contain the whole word `John`.
 
    * `findtag needsHelp` : Finds students with the tag `needsHelp`, ignoring case.
+
+   * `view 1` : Opens the full details of the 1st displayed student.
 
    * `followup 1 on`, then `followups` : Marks the 1st displayed student and lists outstanding follow-ups.
 
@@ -269,6 +280,20 @@ Examples:
 *  `edit 1 g/l03` Moves the 1st student to tutorial group `L03`. If `list g/T01` is active, that student
    disappears from the displayed list while the `T01` filter remains active.
 
+### Viewing a student's details: `view`
+
+Selects a student in the displayed list, scrolls their summary into view, and opens their full details on the right.
+
+Format: `view INDEX`
+
+* `INDEX` is the positive integer shown in the current student list, including filtered and sorted results.
+* The details panel shows the student's name, matriculation number, group, contact details, tags, remark,
+  and follow-up status. You can scroll to read long details.
+* Viewing does not change student records, the current filter, or the sort order, and does not write the data file.
+* A missing, invalid, or out-of-range index shows an error and keeps the previous selection.
+
+Example: `list g/T01`, then `sort name`, then `view 1` shows the first student in the sorted T01 results.
+
 ### Managing a student's remark: `remark`
 
 Sets, replaces, or clears the current free-text remark of an existing student.
@@ -349,7 +374,8 @@ Example workflow (using unused matriculation numbers and a tag not yet in your r
 ### Tracking student follow-ups: `followup` and `followups`
 
 Tracks whether a student currently requires follow-up. Newly added students start with no follow-up required.
-The student card shows `Follow-up: Required` or `Follow-up: Not required`.
+The selected student's details show `Follow-up: Required` or `Follow-up: Not required`.
+Student summaries also mark students who require follow-up.
 
 Formats:
 * `followup INDEX on` marks a student as requiring follow-up.
@@ -388,8 +414,8 @@ Example acceptance workflow (use an unused matriculation number):
 
 The packaged app retains Casey after restarting, then shows an empty follow-up list after completion:
 
-![Casey requiring follow-up after restarting](images/followUpAfterRestart.png)
-![No outstanding follow-ups after completing Casey](images/followUpCompleted.png)
+![Casey requiring follow-up after restarting](images/followUpAfterRestartWorkspace.png)
+![No outstanding follow-ups after completing Casey](images/followUpCompletedWorkspace.png)
 
 ### Deleting a student with confirmation: `delete`
 
@@ -423,7 +449,8 @@ Format: `exit`
 
 ### Saving the data
 
-TutorLink automatically saves data after every command. You do not need to save manually.
+TutorLink automatically saves changes to student records. You do not need to save manually.
+The `view` command only changes the selection and does not write the data file.
 
 ### Editing the data file
 
@@ -467,6 +494,7 @@ Action     | Format, Examples
 **Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g., `edit 2 m/A1234567Z g/T02`
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Needs help with recursion`
+**View details** | `view INDEX`<br> e.g., `view 1`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **Find by tag** | `findtag TAG`<br> e.g., `findtag needsHelp`
 **Follow-up status** | `followup INDEX on` or `followup INDEX done`<br> e.g., `followup 1 on`

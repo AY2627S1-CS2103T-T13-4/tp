@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.StackPane?>
+
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" minWidth="0">
+  <Label fx:id="emptySelection" text="Select a student to view their details."
+         styleClass="empty-prompt" wrapText="true" />
+  <ScrollPane fx:id="detailsScroll" fitToWidth="true" hbarPolicy="NEVER"
+              visible="false" managed="false" styleClass="details-scroll" />
+</StackPane>
