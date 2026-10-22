@@ -177,12 +177,17 @@ names or other fields, and a student with multiple matching tags still appears o
 `FindTagCommand` replaces the predicate on the model's `FilteredList<Student>` using
 `Model#updateFilteredStudentList(Predicate)` and reports the result count. Because that list is backed by the full
 `StudentDirectory`, the command also finds students outside the previous search or tutorial-group results.
-No matches produces an empty view. A parse failure leaves the current predicate and stored data unchanged.
+The model first resets its `SortedList<Student>` to directory order, then applies the new tag predicate.
+`Model#getFilteredStudentList()` returns this sorted view, which is shared by the UI and index-based commands.
+No matches produces an empty view. A parse failure leaves the current predicate, sorting, and stored data unchanged.
 
 Edits and deletions continue to use the current displayed indices. Replacing a student's tags with `edit`, including
 clearing them with `t/`, causes the filtered view to re-evaluate the updated student. A student who no longer
 matches disappears, and the remaining indices change accordingly. The filter remains active after edits and
-deletions. Storage saves the complete roster, including students hidden by the search.
+deletions. Sorting the results also keeps the tag filter; edits that change the sort key update the displayed order.
+A subsequent `findtag` search cancels that sorting and searches the full roster again. Storage saves the complete
+roster in directory order, including students hidden by the search. Tag and ordinary profile edits retain the
+student's current remark and follow-up status.
 
 `FindTagCommandIntegrationTest` covers adding two tagged students, clearing one student's tags, searching again,
 and reloading the saved roster, as well as filter replacement, invalid input, tag changes, and displayed-index
