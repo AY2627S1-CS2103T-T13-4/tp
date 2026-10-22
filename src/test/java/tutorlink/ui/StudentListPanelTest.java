@@ -128,6 +128,11 @@ public class StudentListPanelTest {
         scene.getRoot().resize(width, 600);
         scene.getRoot().applyCss();
         scene.getRoot().layout();
+        ListView<?> listView = (ListView<?>) scene.getRoot().lookup("#studentListView");
+        listView.resize(width, 600);
+        listView.requestLayout();
+        listView.layout();
+        scene.getRoot().layout();
     }
 
     private void onJavaFxThread(Runnable assertions) throws Exception {

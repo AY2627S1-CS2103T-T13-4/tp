@@ -35,6 +35,14 @@ public class StudentListPanel extends UiPart<Region> {
     class StudentListViewCell extends ListCell<Student> {
         private StudentCard studentCard;
 
+        StudentListViewCell() {
+            widthProperty().addListener((observable, oldWidth, newWidth) -> {
+                if (Double.compare(oldWidth.doubleValue(), newWidth.doubleValue()) != 0) {
+                    updateCardWidth();
+                }
+            });
+        }
+
         /**
          * Recomputes the card width when the list cell is resized. This is needed because a wrapped remark's
          * preferred height depends on the width available to the card.
@@ -49,7 +57,11 @@ public class StudentListPanel extends UiPart<Region> {
                     getWidth() - snappedLeftInset() - snappedRightInset());
             card.setPrefWidth(availableWidth);
             card.setMaxWidth(availableWidth);
+            setPrefHeight(USE_COMPUTED_SIZE);
             requestLayout();
+            if (getListView() != null) {
+                getListView().requestLayout();
+            }
         }
 
         @Override
@@ -74,7 +86,8 @@ public class StudentListPanel extends UiPart<Region> {
                 return super.computePrefHeight(width);
             }
 
-            double availableWidth = Math.max(0, width - snappedLeftInset() - snappedRightInset());
+            double cellWidth = width > 0 ? width : getWidth();
+            double availableWidth = Math.max(0, cellWidth - snappedLeftInset() - snappedRightInset());
             return snappedTopInset() + snappedBottomInset()
                     + studentCard.getRoot().prefHeight(availableWidth);
         }
