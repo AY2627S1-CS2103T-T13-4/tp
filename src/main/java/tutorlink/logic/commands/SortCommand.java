@@ -15,8 +15,9 @@ import tutorlink.model.StudentSortOrder;
 public class SortCommand extends Command {
 
     public static final String COMMAND_WORD = "sort";
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Sorts displayed students by name or tutorial group.\n"
-            + "Parameters: name|group [asc|desc]\n"
+    public static final String MESSAGE_USAGE = COMMAND_WORD
+            + ": Sorts displayed students by name or tutorial group, or restores directory order, keeping the filter.\n"
+            + "Parameters: name|group [asc|desc] OR reset\n"
             + "Example: " + COMMAND_WORD + " name desc";
     public static final String MESSAGE_SUCCESS_ASCENDING = "Sorted displayed students by name (A-Z).";
     public static final String MESSAGE_SUCCESS_DESCENDING = "Sorted displayed students by name (Z-A).";

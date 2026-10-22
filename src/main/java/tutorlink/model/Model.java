@@ -67,7 +67,7 @@ public interface Model {
     /**
      * Sorts the currently filtered students using {@code sortOrder}, without changing the filter or directory order.
      * The ordering remains active as students are edited or deleted.
-     * {@link StudentSortOrder#DIRECTORY} restores the original directory order for the current results.
+     * {@link StudentSortOrder#DIRECTORY} restores the current underlying directory order for the current results.
      * @throws NullPointerException if {@code sortOrder} is null.
      */
     void sortStudents(StudentSortOrder sortOrder);

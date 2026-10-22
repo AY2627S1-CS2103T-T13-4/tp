@@ -25,6 +25,7 @@ import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.commands.SortCommand;
 import tutorlink.logic.commands.SortGroupCommand;
+import tutorlink.logic.commands.SortResetCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.student.Student;
 import tutorlink.model.student.StudentContainsKeywordsPredicate;
@@ -124,6 +125,7 @@ public class TutorLinkParserTest {
         assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group"));
         assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group asc"));
         assertEquals(new SortGroupCommand(true), parser.parseCommand("sort group desc"));
+        assertEquals(new SortResetCommand(), parser.parseCommand("sort reset"));
     }
 
     @Test
