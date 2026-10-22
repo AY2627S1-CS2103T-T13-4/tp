@@ -216,7 +216,7 @@ public class SortCommandIntegrationTest {
     public void execute_invalidSortOrQuery_preservesFilterAndSorting() throws Exception {
         logic.execute("list g/T01");
         logic.execute("sort name");
-        for (String command : List.of("sort", "sort groups", "sort reset", "sort name up", "find", "list g/T1")) {
+        for (String command : List.of("sort", "sort groups", "sort reset asc", "sort name up", "find", "list g/T1")) {
             assertThrows(ParseException.class, () -> logic.execute(command));
             assertDisplayed(ALICE_LOWER_MATRIC, ALICE_HIGHER_MATRIC, ZOE);
         }
