@@ -73,6 +73,8 @@ public class StudentListPanelTest {
             ListView<Student> listView = getStudentListView(panelHolder[0]);
             ListCell<Student> firstCell = getCell(listView, 0);
             double wideCellHeight = firstCell.prefHeight(800);
+            System.out.printf("resize heights narrow=%.2f wide=%.2f cellWidth=%.2f listWidth=%.2f%n",
+                    narrowCellHeight[0], wideCellHeight, firstCell.getWidth(), listView.getWidth());
 
             assertTrue(narrowCellHeight[0] > wideCellHeight,
                     "The cell should shrink when the wrapped remark gets more width");

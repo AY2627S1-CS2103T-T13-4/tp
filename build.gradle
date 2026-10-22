@@ -31,6 +31,9 @@ checkstyle {
 test {
     useJUnitPlatform()
     enableAssertions = true
+    testLogging {
+        showStandardStreams = true
+    }
     finalizedBy jacocoTestReport
 }
 
