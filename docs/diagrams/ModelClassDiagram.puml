@@ -4,6 +4,7 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
+skinparam classAttributeFontColor #FFFFFF
 
 Package Model as ModelPackage <<Rectangle>>{
 Class "<<interface>>\nReadOnlyStudentDirectory" as ReadOnlyStudentDirectory
@@ -14,7 +15,13 @@ Class ModelManager
 Class UserPrefs
 
 Class UniqueStudentList
-Class Student
+Class Student {
+  -requiresFollowUp : boolean
+  +requiresFollowUp() : boolean
+  +withFollowUp(boolean) : Student
+  +withRemark(String) : Student
+}
+show Student members
 Class Address
 Class Email
 Class Name

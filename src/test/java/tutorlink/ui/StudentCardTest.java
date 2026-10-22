@@ -1,11 +1,14 @@
 package tutorlink.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
@@ -38,6 +41,14 @@ public class StudentCardTest {
     public void initializeJavaFx_toolkitAlreadyStarted_reusesToolkit() throws Exception {
         initializeJavaFx();
         onJavaFxThread(() -> assertEquals("Ready", new Label("Ready").getText()));
+    }
+
+    @Test
+    public void onJavaFxThread_assertionFails_reportsOriginalFailure() {
+        AssertionError failure = new AssertionError("Original JavaFX assertion failure");
+        assertSame(failure, assertThrows(AssertionError.class, () -> onJavaFxThread(() -> {
+            throw failure;
+        })));
     }
 
     @Test
@@ -78,12 +89,25 @@ public class StudentCardTest {
     }
 
     private void assertLabel(StudentCard card, String id, String text) {
-        assertEquals(text, ((Label) card.getRoot().lookup("#" + id)).getText());
+        Label label = (Label) card.getRoot().lookup("#" + id);
+        assertNotNull(label);
+        assertEquals(text, label.getText());
     }
 
     private void onJavaFxThread(Runnable assertions) throws Exception {
         FutureTask<Void> task = new FutureTask<>(assertions, null);
         Platform.runLater(task);
-        task.get(10, TimeUnit.SECONDS);
+        try {
+            task.get(10, TimeUnit.SECONDS);
+        } catch (ExecutionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Error error) {
+                throw error;
+            }
+            if (cause instanceof Exception exception) {
+                throw exception;
+            }
+            throw new AssertionError(cause);
+        }
     }
 }

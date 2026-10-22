@@ -126,6 +126,8 @@ The `Model` component,
 
 * stores the student directory data i.e., all `Student` objects (which are contained in a `UniqueStudentList` object).
 * stores the `Student` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Student>` that the UI can observe and bind to, so the UI updates when the list changes.
+* exposes the complete `StudentDirectory` separately from the filtered list, allowing commands such as `groups` to
+  aggregate data without being affected by the current display filter.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -186,6 +188,43 @@ deletions. Storage saves the complete roster, including students hidden by the s
 and reloading the saved roster, as well as filter replacement, invalid input, tag changes, and displayed-index
 editing and deletion.
 
+### Current follow-up status
+
+`followup INDEX on` and `followup INDEX done` set the immutable `Student.requiresFollowUp` boolean.
+`FollowUpCommandParser` validates the two positional arguments and uses `ParserUtil.parseIndex`.
+`FollowUpCommand` resolves the index from `Model#getFilteredStudentList()`, rejects an index outside that displayed
+list, and replaces just that student through `Model#setStudent`. It uses `Student#withFollowUp(boolean)` to retain
+all unrelated fields, including the existing remark. Repeating either action leaves the status unchanged.
+
+<puml src="diagrams/FollowUpSequenceDiagram.puml" alt="Completing a follow-up using the current displayed index" />
+
+`followups` accepts no arguments. `FollowUpsCommand` replaces the active predicate using
+`Model#updateFilteredStudentList(Student::requiresFollowUp)`. The filtered list is backed by the entire roster,
+so results are independent of the previous name search, tag search, or group filter. The command neither copies nor
+mutates the source roster. Results follow roster order and an empty result has an explicit message.
+After `setStudent`, JavaFX re-evaluates the active predicate; completing a follow-up therefore immediately removes
+the student from that view and renumbers the remaining results. The filter stays active after edits and updates.
+`list`, `find`, and `findtag` replace it, and adding a student restores the full roster.
+
+`JsonAdaptedStudent` saves `requiresFollowUp` and restores it through the full `Student` constructor.
+Missing or null fields default to false for compatibility with older records. `LogicManager` saves the complete
+roster after successful commands, including hidden students. No history or completion timestamps are stored.
+
+Integration contract for remarks (#78), sorting (#80), and release coordination (#77):
+* `Student` equality, hashing, and string output include current status; identity still uses only matriculation number.
+* `StudentBuilder(Student)` and `withFollowUp(boolean)` retain status in expected test records.
+* `EditCommand` passes the original status and remark when replacing details, groups, or tags.
+* Remark commands should call `Student#withRemark(String)` to retain status when setting, replacing, or clearing a
+  remark. Older constructor overloads describe **new** records with no follow-up; they must not be used to copy an
+  existing student during updates.
+* Sorting should order the same list exposed by `getFilteredStudentList()`, because follow-up updates use that
+  displayed order. It must retain whole `Student` objects and status. The sorting owner must define how a new
+  `followups` query resets or retains sorting when that feature is integrated.
+
+`FollowUpCommandIntegrationTest` covers mark → list → reload → complete → reload through parsing and JSON storage,
+and loads a genuine older record without the field. Command tests cover unrelated-field preservation and
+full-roster filtering. Further regressions exercise combined edits and error cases.
+
 ### Tutorial group filtering
 
 Tutorial group filtering is implemented as an optional mode of the `list` command. The supported forms are `list`,
@@ -207,6 +246,24 @@ The original `UniqueStudentList` is not modified or copied during filtering. It 
 records, while `FilteredList<Student>` provides the current view. Consequently, filtering does not change stored data.
 Commands that operate on the displayed list use its current one-based indexes. Editing or deleting a displayed
 student retains the active filter, while running `list` without `g/` restores the complete list.
+
+### Tutorial-group overview
+
+The `groups` command reports the number of students in every tutorial group represented in the complete roster. It
+accepts no arguments; `GroupsCommandParser` rejects non-empty arguments before creating a `GroupsCommand`.
+
+`GroupsCommand` reads `Model#getStudentDirectory().getStudentList()` rather than
+`Model#getFilteredStudentList()`. It groups students by their normalized `TutorialGroup` value and stores the counts in
+a sorted map, producing deterministic output. Since the counts are derived at execution time, additions, deletions,
+and tutorial-group changes made through `edit INDEX g/GROUP` are reflected without a separate cache or update hook.
+
+The command only creates a result message. It does not update the model's active predicate, so the currently displayed
+student list and its displayed-index contract remain unchanged. An empty directory produces the explicit message
+`No tutorial groups found.`.
+
+`GroupsCommandTest` covers complete-roster counting while a group filter is active, empty rosters, stable ordering,
+and changes caused by adding, deleting, and moving students. `GroupsCommandParserTest` covers argument validation.
+`GroupsCommandIntegrationTest` covers the complete parsing, filtering, command, and storage path.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -339,6 +396,7 @@ The following decisions define the MVP behaviour for the model, commands, storag
 | Tutorial group | Required | Reject the record or command |
 | Phone, email, address | Retain the existing fields, but make each optional | Represent an absent value as `null` in the model and JSON; display `Not provided` in the UI |
 | Tags | Retain the existing field | Use an empty set in the model and an empty array in JSON, rather than `null` |
+| Follow-up | Track one current `requiresFollowUp` boolean | Default to false for new students and older JSON without the field; retain through replacements |
 | Remark | Preserve any existing remark when loading, editing, or saving a student | Use `null` when absent; adding or changing remarks is outside the profile data contract |
 
 An `add` command must accept a name, matriculation number, and tutorial group without requiring phone, email, or address. Existing `p/`, `e/`, `a/`, and `t/` inputs remain supported as optional details. Commands and UI components must handle absent optional values without dereferencing `null`. An `edit` command leaves omitted fields unchanged; it must not interpret omission as a request to clear a field.
