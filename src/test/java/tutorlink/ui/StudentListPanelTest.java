@@ -133,6 +133,9 @@ public class StudentListPanelTest {
         scene.getRoot().applyCss();
         scene.getRoot().layout();
         ListView<?> listView = (ListView<?>) scene.getRoot().lookup("#studentListView");
+        listView.setMinWidth(width);
+        listView.setPrefWidth(width);
+        listView.setMaxWidth(width);
         listView.resize(width, 600);
         listView.requestLayout();
         listView.layout();
