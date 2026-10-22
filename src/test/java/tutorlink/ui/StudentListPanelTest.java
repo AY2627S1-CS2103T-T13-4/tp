@@ -42,30 +42,35 @@ public class StudentListPanelTest {
                 .withMatricNumber("A0000002B")
                 .build();
 
+        StudentListPanel[] panelHolder = new StudentListPanel[1];
+        Scene[] sceneHolder = new Scene[1];
+        double[] narrowCellHeight = new double[1];
+        double[] narrowSecondRowY = new double[1];
+
         onJavaFxThread(() -> {
             StudentListPanel panel = new StudentListPanel(FXCollections.observableArrayList(amy, bob));
             Scene scene = new Scene(panel.getRoot(), 450, 600);
             layoutScene(scene, 450);
-
             ListView<Student> listView = getStudentListView(panel);
             ListCell<Student> firstCell = getCell(listView, 0);
             assertNotNull(firstCell);
-            double narrowComputedHeight = firstCell.prefHeight(450);
-            double narrowCellHeight = firstCell.getHeight();
+            panelHolder[0] = panel;
+            sceneHolder[0] = scene;
+            narrowCellHeight[0] = firstCell.getHeight();
+            narrowSecondRowY[0] = getCell(listView, 1).getLayoutY();
+        });
 
-            layoutScene(scene, 800);
-            firstCell = getCell(listView, 0);
-            double wideComputedHeight = firstCell.prefHeight(800);
+        onJavaFxThread(() -> {
+            layoutScene(sceneHolder[0], 800);
+            ListView<Student> listView = getStudentListView(panelHolder[0]);
+            ListCell<Student> firstCell = getCell(listView, 0);
             double wideCellHeight = firstCell.getHeight();
 
-            assertTrue(narrowCellHeight > wideCellHeight || narrowComputedHeight > wideComputedHeight,
-                    String.format("The cell should shrink when the wrapped remark gets more width "
-                            + "(narrowCellHeight=%.2f, wideCellHeight=%.2f, "
-                            + "narrowComputedHeight=%.2f, wideComputedHeight=%.2f)",
-                            narrowCellHeight, wideCellHeight, narrowComputedHeight, wideComputedHeight));
-            assertTrue(wideCellHeight >= 145 || wideComputedHeight >= 145);
-            assertTrue(getCell(listView, 1).getLayoutY() < narrowCellHeight + 145,
-                    "The second student should follow the resized first cell");
+            assertTrue(narrowCellHeight[0] > wideCellHeight,
+                    "The cell should shrink when the wrapped remark gets more width");
+            assertTrue(wideCellHeight >= 145);
+            assertTrue(getCell(listView, 1).getLayoutY() < narrowSecondRowY[0],
+                    "The second student should move up after the first cell is resized");
         });
     }
 
