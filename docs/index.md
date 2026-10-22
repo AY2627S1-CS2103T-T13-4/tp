@@ -10,7 +10,8 @@
 
 ![Ui](images/Ui.png)
 
-**TutorLink is a desktop application for managing your students' contact details.** While it has a GUI, most of the user interactions happen using a CLI (Command Line Interface).
+**TutorLink is a desktop application for managing student records across tutorial groups.** It supports searching,
+sorting, remarks, and follow-ups through a CLI (Command Line Interface), with student details shown in a GUI.
 
 * If you are interested in using TutorLink, head over to the [_Quick Start_ section of the **User Guide**](UserGuide.html#quick-start).
 * If you are interested in developing TutorLink, the [**Developer Guide**](DeveloperGuide.html) is a good place to start.

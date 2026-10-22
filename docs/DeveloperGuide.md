@@ -400,9 +400,9 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Value proposition**: TutorLink helps university tutors manage student rosters quickly and accurately from a desktop application. Concise commands make it easy to add, filter, edit, delete, and list students. The list cards show each student's stored details, while input validation and duplicate matriculation checks reduce roster errors.
 
-### MVP student data contract
+### Student data contract
 
-The following decisions define the MVP behaviour for the model, commands, storage, and UI.
+The following decisions define the current behaviour for the model, commands, storage, and UI.
 
 | Field | Requirement | Missing value |
 |-------|-------------|---------------|
@@ -412,14 +412,14 @@ The following decisions define the MVP behaviour for the model, commands, storag
 | Phone, email, address | Retain the existing fields, but make each optional | Represent an absent value as `null` in the model and JSON; display `Not provided` in the UI |
 | Tags | Retain the existing field | Use an empty set in the model and an empty array in JSON, rather than `null` |
 | Follow-up | Track one current `requiresFollowUp` boolean | Default to false for new students and older JSON without the field; retain through replacements |
-| Remark | Preserve any existing remark when loading, editing, or saving a student | Use `null` when absent; adding or changing remarks is outside the profile data contract |
+| Remark | Store one current remark that can be set, replaced, or cleared with `remark INDEX r/TEXT`; retain it through other edits | Use `null` when absent or cleared |
 
 An `add` command must accept a name, matriculation number, and tutorial group without requiring phone, email, or address. Existing `p/`, `e/`, `a/`, and `t/` inputs remain supported as optional details. Commands and UI components must handle absent optional values without dereferencing `null`. An `edit` command leaves omitted fields unchanged; it must not interpret omission as a request to clear a field.
 
 The current list cards are the student profile view. They show the name, matriculation number, tutorial group, optional
-contact fields, and tags without a separate `view INDEX`
-command. A tutorial group is an attribute of each student; the MVP supports group filtering and changing a student's
-group through `edit`, rather than independent tutorial-group records or management commands.
+contact fields, tags, current remark, and follow-up status without a separate `view INDEX` command. A tutorial group is
+an attribute of each student; TutorLink supports group filtering, group counts, and changing a student's group through
+`edit`, rather than independent tutorial-group records or management commands.
 
 Names are trimmed at both ends, and consecutive internal spaces are collapsed to one before the 70-character limit is checked. For example, `John  Doe` is stored as `John Doe`. Letter case is preserved; punctuation and other internal whitespace are invalid.
 
