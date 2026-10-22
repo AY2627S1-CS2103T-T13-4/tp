@@ -53,12 +53,15 @@ public class StudentListPanelTest {
         onJavaFxThread(() -> {
             StudentListPanel panel = new StudentListPanel(FXCollections.observableArrayList(amy, bob));
             Scene scene = new Scene(panel.getRoot(), 450, 600);
-            layoutScene(scene, 450);
-            ListView<Student> listView = getStudentListView(panel);
-            ListCell<Student> firstCell = getCell(listView, 0);
-            assertNotNull(firstCell);
             panelHolder[0] = panel;
             sceneHolder[0] = scene;
+        });
+
+        onJavaFxThread(() -> {
+            layoutScene(sceneHolder[0], 450);
+            ListView<Student> listView = getStudentListView(panelHolder[0]);
+            ListCell<Student> firstCell = getCell(listView, 0);
+            assertNotNull(firstCell);
             narrowCellHeight[0] = firstCell.getHeight();
             narrowSecondRowY[0] = getCell(listView, 1).getLayoutY();
         });
