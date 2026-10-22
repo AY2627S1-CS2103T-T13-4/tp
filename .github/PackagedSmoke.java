@@ -12,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.WritableImage;
@@ -57,10 +58,17 @@ public class PackagedSmoke {
                         help.hide();
                         command("clear", 0, false);
                         command("add n/Alice  Tan m/a1234567b g/t01", 1, false);
-                        scene.getRoot().applyCss();
-                        scene.getRoot().layout();
-                        check(scene.getRoot().lookupAll(".label").stream().anyMatch(node -> node instanceof Label
-                                && ((Label) node).getText().contains("Not provided")), "optional details display");
+                        check(!details().isVisible() && details().getContent() == null,
+                                "details remain empty until a student is selected");
+                        String beforeView = data();
+                        command("view 1", 1, false);
+                        check(data().equals(beforeView), "view preserves saved data");
+                        check(detailLabel("name").getText().equals("Alice Tan"), "view selects Alice's details");
+                        check(detailLabel("phone").getText().equals("Phone: Not provided")
+                                && detailLabel("email").getText().equals("Email: Not provided")
+                                && detailLabel("address").getText().equals("Address: Not provided")
+                                && detailLabel("remark").getText().equals("Remark: Not provided"),
+                                "optional details display in the selected profile");
                         command("add n/Bob Lee m/A7654321C g/T02 e/bob@example.com", 2, false);
                         command("edit 1 t/FollowUp", 2, false);
                         command("edit 2 t/followup", 2, false);
@@ -164,26 +172,32 @@ public class PackagedSmoke {
             command("followups g/T02", 1, true);
             check(data().equals(saved), "followup errors preserve data and filter");
             command("followups", 1, false);
-            scene.getRoot().applyCss();
-            scene.getRoot().layout();
-            check(scene.getRoot().lookupAll(".label").stream().anyMatch(node -> node instanceof Label
-                    && ((Label) node).getText().equals("Follow-up: Required")), "follow-up card label");
+            command("view 1", 1, false);
+            check(detailLabel("followUp").getText().equals("Follow-up: Required"), "follow-up detail label");
             snapshot(scene, "followUpMarked.png");
         } else if (phase.equals("followup-complete")) {
             command("list g/T02", 1, false);
             command("followups", 1, false);
             check(student().requiresFollowUp(), "follow-up status survives process restart");
             check(student().getRemark().equals("Discuss recursion"), "remark survives process restart");
+            command("view 1", 1, false);
+            check(detailLabel("followUp").getText().equals("Follow-up: Required"),
+                    "follow-up detail label survives process restart");
             snapshot(scene, "followUpAfterRestart.png");
             command("followup 1 done", 0, false);
             command("followups", 0, false);
             check(feedback().equals("No students require follow-up."), "empty follow-up list feedback");
+            check(!details().isVisible() && details().getContent() == null,
+                    "details clear when the selected student leaves the results");
             snapshot(scene, "followUpCompleted.png");
             command("find A6666666Z", 1, false);
             command("followup 1 done", 1, false);
             check(feedback().startsWith("No outstanding follow-up:"), "repeated completion feedback");
             check(!student().requiresFollowUp(), "completed student record retained");
             check(student().getRemark().equals("Discuss recursion"), "completion retains remark");
+            command("view 1", 1, false);
+            check(detailLabel("followUp").getText().equals("Follow-up: Not required"),
+                    "completed follow-up detail label");
         } else {
             command("followups", 0, false);
             check(feedback().equals("No students require follow-up."), "completion survives process restart");
@@ -211,6 +225,17 @@ public class PackagedSmoke {
 
     private static java.util.List<?> items() {
         return list().getItems();
+    }
+
+    private static ScrollPane details() {
+        return (ScrollPane) scene.lookup("#detailsScroll");
+    }
+
+    private static Label detailLabel(String id) {
+        check(details().isVisible() && details().getContent() != null, "selected profile is visible");
+        Label label = (Label) details().getContent().lookup("#" + id);
+        check(label != null, "selected profile contains " + id);
+        return label;
     }
 
     private static void command(String text, int count, boolean error) {
