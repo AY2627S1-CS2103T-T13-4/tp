@@ -18,6 +18,9 @@ import javafx.scene.control.Label;
 import tutorlink.model.student.Student;
 import tutorlink.testutil.StudentBuilder;
 
+/**
+ * Tests the labels rendered by a student card.
+ */
 public class StudentCardTest {
 
     @BeforeAll

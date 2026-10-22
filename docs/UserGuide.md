@@ -175,6 +175,13 @@ T01: 2 students
 T02: 1 student
 ```
 
+The packaged application below is filtered to T01, but `groups` still counts the complete roster. Moving the first
+displayed student to T02 updates the counts while retaining the T01 filter:
+
+![Tutorial-group counts before moving a student](images/groupsBeforeMove.png)
+
+![Tutorial-group counts after moving a student](images/groupsAfterMove.png)
+
 ### Sorting displayed students by name or tutorial group: `sort`
 
 Orders the students currently displayed, keeping the current search, tutorial-group, tag, or follow-up filter.
