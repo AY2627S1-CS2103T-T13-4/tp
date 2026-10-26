@@ -40,6 +40,10 @@ public class StudentListPanel extends UiPart<Region> {
     public void showStudent(Student student) {
         studentListView.getSelectionModel().clearSelection();
         restoreSelection(student);
+        // Filtering/reordering may leave the virtualized cells awaiting layout. Finish that
+        // layout before scrolling so the target uses the new item count and cell heights.
+        studentListView.applyCss();
+        studentListView.layout();
         studentListView.scrollTo(studentListView.getSelectionModel().getSelectedIndex());
     }
 
