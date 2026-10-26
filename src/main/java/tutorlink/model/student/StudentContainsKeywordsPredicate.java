@@ -24,6 +24,11 @@ public class StudentContainsKeywordsPredicate implements Predicate<Student> {
                         || student.getMatricNumber().value.equalsIgnoreCase(keyword));
     }
 
+    /** Describes the search condition independently of transient command feedback. */
+    public String getDescription() {
+        return "Name or matriculation: " + String.join(" ", keywords);
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {

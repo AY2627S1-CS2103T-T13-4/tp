@@ -185,6 +185,9 @@ The `findtag TAG` command searches the full roster for students with an exact, c
 It accepts one tag using the existing `Tag` validation rules, so add, edit, and search accept the same tag format.
 Stored tag spelling and `Tag` equality are unchanged; only the search comparison ignores case.
 
+The parser gives corrective usage guidance for an accidental `t/` prefix. Other invalid tags still use the shared
+tag constraints. Neither error changes the current search.
+
 <puml src="diagrams/FindTagSequenceDiagram.puml" alt="Parsing and executing a tag search over the full roster" />
 
 `TutorLinkParser` delegates to `FindTagCommandParser`, which rejects missing arguments with a usage error and
@@ -326,6 +329,25 @@ email subset; it is not an email-delivery or full RFC-compliance check.
 
 `ContactDetailsIntegrationTest` checks displayed-index clearing, all-or-nothing invalid edits, omitted-field
 preservation, remark/status preservation, and saving/reloading. Value-object tests cover each email boundary.
+
+For free-text addresses, a backslash immediately before a recognized prefix at the start of the value or after
+whitespace escapes that prefix (for example, `a/Block 10 \p/Lane`). The tokenizer does not recognize `\p/` as `p/`;
+`ParserUtil#parseAddress` removes that escape after tokenization. Other backslashes are retained. Both add and edit
+use this path, while JSON loading preserves stored address text without interpreting escapes.
+
+### Persistent filter condition
+
+The model stores a human-readable description with the active predicate. Search, group-filter, and follow-up
+commands supply both through `updateFilteredStudentList(predicate, description)`. Name/matriculation and tag
+predicates expose their description without exposing mutable keyword collections. The all-students update resets
+the description; sorting, ordinary edits, remarks, and deletion leave it unchanged. It is transient view state and
+is not saved in JSON.
+
+`Logic` exposes the current description to `MainWindow`, which refreshes the label above the student list after
+every command, including failures. Refreshing cannot depend only on list-change events: one empty search can be
+replaced by a different empty search without any student-list change. Reading model state also handles a save error
+that occurs after a successful filter change. Long conditions are truncated in the label and shown in a tooltip.
+UI regressions cover these cases and verify that invalid searches retain the previous condition.
 
 ### Deletion preview and confirmation
 

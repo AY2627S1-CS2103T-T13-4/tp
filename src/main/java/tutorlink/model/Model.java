@@ -64,6 +64,9 @@ public interface Model {
     /** Returns an unmodifiable view of the filtered student list in displayed order. */
     ObservableList<Student> getFilteredStudentList();
 
+    /** Returns the human-readable condition for the current displayed list. */
+    String getFilterDescription();
+
     /**
      * Sorts the currently filtered students using {@code sortOrder}, without changing the filter or directory order.
      * The ordering remains active as students are edited or deleted.
@@ -77,4 +80,7 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredStudentList(Predicate<Student> predicate);
+
+    /** Updates the filter and its visible description, resetting sorting to directory order. */
+    void updateFilteredStudentList(Predicate<Student> predicate, String description);
 }

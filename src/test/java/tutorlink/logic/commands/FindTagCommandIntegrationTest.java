@@ -102,7 +102,9 @@ public class FindTagCommandIntegrationTest {
     @Test
     public void execute_invalidTag_preservesPreviousResultsAndSavedDirectory() throws Exception {
         assertSearch("findtag owesMoney", List.of(BENSON));
-        for (String command : List.of("findtag t/friends", "findtag friends family", "findtag needs-help")) {
+        String prefixError = "Use the tag without t/.\n" + FindTagCommand.MESSAGE_USAGE;
+        assertThrows(ParseException.class, prefixError, () -> logic.execute("findtag t/friends"));
+        for (String command : List.of("findtag friends family", "findtag needs-help")) {
             assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> logic.execute(command));
         }
         assertThrows(ParseException.class,

@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.geometry.Point3D;
@@ -81,6 +84,44 @@ public class MainWindowTest {
     @BeforeAll
     public static void initializeJavaFx() throws Exception {
         JavaFxTestUtil.initialize();
+    }
+
+    @Test
+    public void execute_searchCondition_remainsVisibleThroughUpdatesAndEmptyResults() throws Exception {
+        runOnFxThread(() -> {
+            Label filter = (Label) stage.getScene().lookup("#activeFilter");
+            window.executeCommand("findtag needsHelp");
+            window.executeCommand("remark 1 r/Consultation");
+            window.executeCommand("sort name desc");
+            window.executeCommand("delete 1");
+            assertEquals("Tag: needsHelp", filter.getText());
+            assertThrows(ParseException.class, () -> window.executeCommand("findtag t/friends"));
+            assertEquals("Tag: needsHelp", filter.getText());
+            window.executeCommand("edit 1 t/");
+            assertTrue(model.getFilteredStudentList().isEmpty());
+            assertEquals("Tag: needsHelp", filter.getText());
+            window.executeCommand("find Nobody"); // empty-to-empty filter change still updates the label
+            assertEquals("Name or matriculation: Nobody", filter.getText());
+            window.executeCommand("list g/T01");
+            assertEquals("Tutorial group: T01", filter.getText());
+            window.executeCommand("followups");
+            window.executeCommand("followup 1 done");
+            assertEquals("Follow-up required", filter.getText());
+            window.executeCommand("add n/Dana Test m/A0000004D g/T03");
+            assertEquals("All students", filter.getText());
+            assertEquals(filter.getText(), filter.getTooltip().getText());
+        });
+    }
+
+    @Test
+    public void execute_filterSaveFailure_showsTheActualChangedView() throws Exception {
+        runOnFxThread(() -> {
+            isSaveBlocked = true;
+            assertThrows(CommandException.class, () -> window.executeCommand("find Nobody"));
+            assertTrue(model.getFilteredStudentList().isEmpty());
+            Label filter = (Label) stage.getScene().lookup("#activeFilter");
+            assertEquals("Name or matriculation: Nobody", filter.getText());
+        });
     }
 
     @BeforeEach
@@ -340,22 +381,25 @@ public class MainWindowTest {
                         .withTutorialGroup("T01").build());
             }
             window.executeCommand("view 43");
-            layout();
-            assertVisibleStudent(42);
         });
+        assertVisibleStudentAfterPulse(42);
         runOnFxThread(() -> {
             window.executeCommand("sort name desc");
             window.executeCommand("view 43");
-            layout();
-            assertVisibleStudent(42);
+        });
+        assertVisibleStudentAfterPulse(42);
+        runOnFxThread(() -> {
             window.executeCommand("list g/T01");
             window.executeCommand("view 42");
-            layout();
-            assertVisibleStudent(41);
-            window.executeCommand("view 1");
-            layout();
-            assertVisibleStudent(0);
         });
+        assertVisibleStudentAfterPulse(41);
+        runOnFxThread(() -> window.executeCommand("view 21"));
+        assertVisibleStudentAfterPulse(20);
+        runOnFxThread(() -> {
+            window.executeCommand("view 42");
+            window.executeCommand("view 1"); // replace the earlier target before the next pulse
+        });
+        assertVisibleStudentAfterPulse(0);
     }
 
     @Test
@@ -499,9 +543,15 @@ public class MainWindowTest {
     }
 
     private ListCell<?> studentCell(int index) {
+        String visibleIndices = studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
+                .map(ListCell.class::cast).filter(cell -> !cell.isEmpty())
+                .map(cell -> Integer.toString(cell.getIndex())).collect(Collectors.joining(", "));
         return studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
                 .map(ListCell.class::cast).filter(cell -> cell.getIndex() == index && !cell.isEmpty())
-                .findFirst().orElseThrow();
+                .findFirst().orElseThrow(() -> new AssertionError("Missing rendered row " + index
+                        + "; rendered rows=" + visibleIndices + "; list height=" + studentList().getHeight()
+                        + "; selected=" + studentList().getSelectionModel().getSelectedIndex()
+                        + "; filter=" + logic.getFilterDescription()));
     }
 
     private void assertVisibleStudent(int index) {
@@ -512,6 +562,35 @@ public class MainWindowTest {
         Student expected = logic.getFilteredStudentList().get(index);
         assertEquals(expected.getName().fullName, ((Label) cell.getGraphic().lookup("#name")).getText());
         assertEquals(expected.getName().fullName, label("name").getText());
+    }
+
+    private void assertVisibleStudentAfterPulse(int index) throws Exception {
+        // VirtualFlow can need multiple pulses to measure wrapped rows after a filter change.
+        // Wait for the observable viewport state, with a deadline, rather than a fixed delay.
+        CountDownLatch laidOut = new CountDownLatch(1);
+        Runnable listener = () -> {
+            boolean visible = studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
+                    .map(ListCell.class::cast).filter(cell -> cell.getIndex() == index && !cell.isEmpty())
+                    .anyMatch(cell -> {
+                        var bounds = studentList().sceneToLocal(cell.localToScene(cell.getBoundsInLocal()));
+                        return bounds.getMaxY() > 0 && bounds.getMinY() < studentList().getHeight();
+                    });
+            if (visible) {
+                laidOut.countDown();
+            } else {
+                Platform.requestNextPulse();
+            }
+        };
+        runOnFxThread(() -> {
+            stage.getScene().addPostLayoutPulseListener(listener);
+            Platform.requestNextPulse();
+        });
+        try {
+            laidOut.await(5, TimeUnit.SECONDS);
+            runOnFxThread(() -> assertVisibleStudent(index));
+        } finally {
+            runOnFxThread(() -> stage.getScene().removePostLayoutPulseListener(listener));
+        }
     }
 
     private Set<String> groupLabels() {

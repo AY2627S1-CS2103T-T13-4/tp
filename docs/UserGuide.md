@@ -37,6 +37,11 @@ TutorLink is a **desktop application for managing student records, optimized for
    Select a group to show its students, or select **All Students** to restore the full roster. These actions have the
    same effect as `list g/GROUP` and `list`, including resetting sorting.
 
+1. Above the student list, the active condition remains visible after edits, remarks, sorting, and other commands.
+   It shows `All students`, a tutorial group, the name/matriculation keywords, a tag, or `Follow-up required`.
+   Hover over a truncated condition to read it in full. A new search replaces it; `list` or adding a student
+   restores `All students`. Restarting also starts with the full roster.
+
 1. Enter `view INDEX` or select a student in the middle column to see their full details on the right.
    You can also focus a list with Tab
    and move its selection with the arrow keys. The middle list shows the indices used by `edit`, `delete`, `remark`,
@@ -143,6 +148,11 @@ Contact details follow these rules:
   start and end with a letter or digit, and are separated by periods. The final label has at least two characters.
   The complete address is at most 254 characters. These are TutorLink's supported formats; no email is sent or verified.
 * Addresses can contain free text but cannot be blank when supplied to `add`.
+  A space followed by a recognized prefix starts another parameter. To include a literal prefix in an address,
+  put a backslash immediately before it: `a/Block 10 \p/Lane` stores `Block 10 p/Lane`, and
+  `a/NUS \e/learning centre` stores `NUS e/learning centre`. This works in `add` and `edit` for
+  `\n/`, `\m/`, `\g/`, `\p/`, `\e/`, `\a/`, and `\t/` at the start of the address or after whitespace.
+  Other backslashes are retained. Unescaped prefixes keep their usual parameter meaning.
 * To add a student without a contact detail, omit that prefix. Empty `p/`, `e/`, or `a/` in `add` is invalid.
 
 <box type="tip" seamless>
@@ -367,6 +377,7 @@ Finds students with a particular tag added using `add` or `edit`.
 Format: `findtag TAG`
 
 * Supply exactly one tag without the `t/` prefix, for example `findtag needsHelp`.
+  If you accidentally use `findtag t/needsHelp`, the error shows the correct syntax; the current results stay unchanged.
 * Matching is **case-insensitive and exact**: `needsHelp`, `NEEDSHELP`, and `needshelp` match the same tag.
   `help` and `needsHelpSoon` do not match `needsHelp`. Only tags are searched.
 * Tags follow the same rules as `add` and `edit`: one or more letters `A`–`Z`, `a`–`z`, or digits `0`–`9`.
@@ -390,6 +401,10 @@ Example workflow (using unused matriculation numbers and a tag not yet in your r
 4. `edit 1 t/` clears Dana's tags. Evan remains in the results and is now numbered 1.
 5. `findtag needsHelp` finds only Evan.
 6. `list` shows the full roster, including Dana without the tag.
+
+The active tag condition remains visible after setting a remark, even though the result message changes:
+
+![Active tag search retained after updating a remark](images/activeSearchCondition.png)
 
 ### Tracking student follow-ups: `followup` and `followups`
 
@@ -500,6 +515,9 @@ folder. Existing valid records, remarks, and follow-up statuses are retained. v1
 above when loading saved records as well as when entering commands. If an earlier version saved an oversized email,
 startup stops with the protective error described above. Correct that email in a backed-up copy of the JSON file
 (or use `null` for an unavailable email), then relaunch. Do not delete the original roster to bypass an error.
+
+The v1.5.1 patch adds the persistent filter condition, address-prefix escapes, and corrective `findtag` guidance.
+It uses the same saved-data format as v1.5.
 
 --------------------------------------------------------------------------------------------------------------------
 

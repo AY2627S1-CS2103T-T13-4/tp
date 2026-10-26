@@ -103,6 +103,13 @@ launch(alpha, "alpha-restart")
 alpha_restarted = json.loads((alpha / "data/tutorlink.json").read_text())["students"]
 assert alpha_restarted == [dict(alpha_saved[0], requiresFollowUp=False), alpha_saved[1]], alpha_restarted
 
+peer = work / "peer-alpha"
+launch(peer, "peer-alpha")
+peer_saved = json.loads((peer / "data/tutorlink.json").read_text())["students"]
+assert len(peer_saved) == 2 and peer_saved[0]["address"] == "NUS e/learning centre", peer_saved
+assert peer_saved[0]["phone"] == "12345678", peer_saved
+assert peer_saved[1]["email"] == "user@xn--bcher-kva.de", peer_saved
+
 for name, invalid in [("corrupt", b"{not valid JSON"),
                       ("json-null", b"null\n"),
                       ("missing-students", b'{}'),

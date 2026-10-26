@@ -68,6 +68,10 @@ The PR pages show the review, CI, and merge history. These contributions shipped
   attributes my search predicates, tag-search implementation, tests, and documentation to `pinxinfang`; shared AB3
   code and teammates' renaming/integration changes retain their existing credit. No blanket author tags were added.
   [Verification notes](../testing/v1.5-verification.md).
+* **Peer alpha follow-up:** compared Xiuyuan's reports #111–#115 with the release. Added literal address-prefix
+  escapes, corrected tag-search usage guidance, and a persistent active-filter label. Extended parser, integration,
+  UI, and packaged tests, including empty-to-empty searches and a save failure after a filter change. The v1.5.1
+  patch retains the original v1.5 tag and artifacts while addressing the newly reported usability issues.
 
 ## Peer review
 

@@ -5,6 +5,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.skin.ListViewSkin;
 import javafx.scene.layout.Region;
 import tutorlink.model.student.Student;
 
@@ -13,6 +14,7 @@ import tutorlink.model.student.Student;
  */
 public class StudentListPanel extends UiPart<Region> {
     private static final String FXML = "StudentListPanel.fxml";
+    private final StudentListViewSkin studentListSkin;
 
     @FXML
     private ListView<Student> studentListView;
@@ -24,6 +26,8 @@ public class StudentListPanel extends UiPart<Region> {
         super(FXML);
         studentListView.setItems(students);
         studentListView.setCellFactory(list -> new StudentListViewCell());
+        studentListSkin = new StudentListViewSkin(studentListView);
+        studentListView.setSkin(studentListSkin);
     }
 
     public ReadOnlyObjectProperty<Student> selectedStudentProperty() {
@@ -40,7 +44,9 @@ public class StudentListPanel extends UiPart<Region> {
     public void showStudent(Student student) {
         studentListView.getSelectionModel().clearSelection();
         restoreSelection(student);
-        studentListView.scrollTo(studentListView.getSelectionModel().getSelectedIndex());
+        studentListView.applyCss();
+        studentListView.layout();
+        studentListSkin.showIndex(studentListView.getSelectionModel().getSelectedIndex());
     }
 
     /**
@@ -56,6 +62,28 @@ public class StudentListPanel extends UiPart<Region> {
             }
         }
         studentListView.getSelectionModel().clearSelection();
+    }
+
+    /**
+     * Scrolls boundary rows to the actual viewport ends instead of estimating their top offset.
+     */
+    private static class StudentListViewSkin extends ListViewSkin<Student> {
+        StudentListViewSkin(ListView<Student> listView) {
+            super(listView);
+        }
+
+        void showIndex(int index) {
+            if (index < 0) {
+                return;
+            }
+            if (index == 0) {
+                getVirtualFlow().setPosition(0);
+            } else if (index == getSkinnable().getItems().size() - 1) {
+                getVirtualFlow().setPosition(1);
+            } else {
+                getVirtualFlow().scrollTo(index);
+            }
+        }
     }
 
     /**

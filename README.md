@@ -37,7 +37,8 @@ v1.5 improves email validation, lets tutors clear optional contact details, and 
 preview. Attendance tracking and participation records are outside the current release scope.
 
 Download the architecture-appropriate JAR and `SHA256SUMS.txt` from the
-[v1.5 release](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases/tag/v1.5).
+[v1.5.1 patch release](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases/tag/v1.5.1), which also keeps the current
+filter visible, explains accidental `findtag t/` input, and supports literal prefixes inside addresses.
 
 ## Documentation
 
