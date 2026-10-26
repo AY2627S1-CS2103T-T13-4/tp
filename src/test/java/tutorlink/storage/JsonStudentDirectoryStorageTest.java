@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -66,6 +67,17 @@ public class JsonStudentDirectoryStorageTest {
     @Test
     public void readStudentDirectory_invalidAndValidStudentsFile_throwsDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readStudentDirectory("invalidAndValidStudents.json"));
+    }
+
+    @Test
+    public void readStudentDirectory_nullOrMissingStudents_preservesInvalidFile() throws Exception {
+        Path filePath = testFolder.resolve("invalid-structure.json");
+        JsonStudentDirectoryStorage storage = new JsonStudentDirectoryStorage(filePath);
+        for (String content : List.of("{}", "{\"students\":null}", "{\"students\":[null]}")) {
+            Files.writeString(filePath, content);
+            assertThrows(DataLoadingException.class, storage::readStudentDirectory);
+            assertEquals(content, Files.readString(filePath));
+        }
     }
 
     @Test

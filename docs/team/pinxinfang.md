@@ -45,7 +45,29 @@ GitHub: [@pinxinfang](https://github.com/pinxinfang)
   [Version PR #98](https://github.com/AY2627S1-CS2103T-T13-4/tp/pull/98),
   [release verification #77](https://github.com/AY2627S1-CS2103T-T13-4/tp/issues/77).
 
-The PR pages show the current review, CI, and merge status. These contributions are scheduled for the v1.4 release.
+The PR pages show the review, CI, and merge history. These contributions shipped in v1.4.
+
+### v1.5 contributions
+
+* **Independent alpha testing:** tested adding students, optional contacts, remarks, deletion confirmation, and
+  follow-ups using the published v1.4 JAR in isolated folders. Submitted five reproducible `alpha-bug` issues with
+  evidence: [#104](https://github.com/AY2627S1-CS2103T-T13-4/tp/issues/104),
+  [#105](https://github.com/AY2627S1-CS2103T-T13-4/tp/issues/105),
+  [#106](https://github.com/AY2627S1-CS2103T-T13-4/tp/issues/106),
+  [#107](https://github.com/AY2627S1-CS2103T-T13-4/tp/issues/107), and
+  [#108](https://github.com/AY2627S1-CS2103T-T13-4/tp/issues/108).
+* **Alpha fixes and regression tests:** corrected email alias/length validation, implemented explicit clearing of
+  optional contacts, aligned deletion preview selection with its target, and protected null/missing student arrays
+  and entries on startup. Tests cover sorted/filtered indices, all-or-nothing invalid edits, unrelated-field
+  preservation, persistence, and the packaged UI.
+* **Documentation and release preparation:** updated the UG with validation, clearing, preview, and upgrade rules;
+  replaced unfinished DG template sections with implemented design and manual tests; added a contact-edit sequence
+  diagram and real UI screenshots; repaired the v1.4 checksum manifest and documented final-artifact verification.
+  [v1.5 tracker #109](https://github.com/AY2627S1-CS2103T-T13-4/tp/issues/109) records publication and CI status.
+* **Authorship audit:** checked the course author mapping and generated RepoSense data on 26 October. The dashboard
+  attributes my search predicates, tag-search implementation, tests, and documentation to `pinxinfang`; shared AB3
+  code and teammates' renaming/integration changes retain their existing credit. No blanket author tags were added.
+  [Verification notes](../testing/v1.5-verification.md).
 
 ## Peer review
 

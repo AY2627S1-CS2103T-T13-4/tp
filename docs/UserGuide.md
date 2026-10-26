@@ -28,8 +28,8 @@ TutorLink is a **desktop application for managing student records, optimized for
 
 1. Copy the file to the folder you want to use as the _home folder_ for TutorLink.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar TutorLink.jar`
-   (or `java -jar TutorLink-mac-aarch64.jar` for the ARM64 package).<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -ea -jar TutorLink.jar`
+   (or `java -ea -jar TutorLink-mac-aarch64.jar` for the ARM64 package).<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
 
@@ -133,6 +133,17 @@ Names can contain letters, digits, and spaces, up to 70 characters after leading
 The matriculation number must be `A` followed by seven digits and a letter. Letter case is ignored on input, and the
 value is saved in uppercase. A tutorial group must be one letter followed by exactly two digits. Its letter is saved
 in uppercase, while leading zeros are kept, so `l03` is stored as `L03`.
+
+Contact details follow these rules:
+
+* Phone numbers contain at least three digits, with no spaces, punctuation, or country-code `+` sign.
+* Email addresses use `local-part@domain`. The local part contains 1–64 ASCII letters, digits, or `+_.-`,
+  starts and ends with a letter or digit, and has no consecutive periods. Adjacent supported special characters
+  such as `student+_tutorial@example.com` are accepted. Domain labels contain 1–63 letters, digits, or hyphens,
+  start and end with a letter or digit, and are separated by periods. The final label has at least two characters.
+  The complete address is at most 254 characters. These are TutorLink's supported formats; no email is sent or verified.
+* Addresses can contain free text but cannot be blank when supplied to `add`.
+* To add a student without a contact detail, omit that prefix. Empty `p/`, `e/`, or `a/` in `add` is invalid.
 
 <box type="tip" seamless>
 
@@ -264,6 +275,11 @@ Format: `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE] [e/E
 * Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Supplied fields replace their existing values; omitted fields keep their existing values.
+* To remove an optional contact detail, supply its prefix with no value: `edit 1 p/` clears the phone number.
+  `edit 1 p/ e/ a/` clears all three contact details. They display as `Not provided` and remain absent after restart.
+  Clearing an already absent value is harmless. Required fields (`n/`, `m/`, `g/`) cannot be cleared.
+* Contact details follow the same validation rules as `add`. If any supplied field is invalid, the entire edit is
+  rejected; no fields are partially changed. Edits preserve the student's remark and follow-up status.
 * Matriculation numbers and tutorial groups follow the same formats as in `add` and are saved in uppercase.
   A matriculation number already used by another student is rejected, regardless of letter case.
 * The current filtered view remains active after an edit. If the edited student no longer matches the active filter,
@@ -279,6 +295,10 @@ Examples:
 *  `edit 1 m/a1234567z` Changes only the 1st student's matriculation number to `A1234567Z`.
 *  `edit 1 g/l03` Moves the 1st student to tutorial group `L03`. If `list g/T01` is active, that student
    disappears from the displayed list while the `T01` filter remains active.
+
+Clearing optional contacts retains the student's remark and follow-up status:
+
+![Optional contacts cleared while other details remain](images/clearOptionalContacts.png)
 
 ### Viewing a student's details: `view`
 
@@ -423,7 +443,8 @@ Shows the selected student before deletion. Add `confirm` to explicitly authoris
 
 Format: `delete INDEX [confirm]`
 
-* `delete INDEX` displays the selected student's details and the command to confirm deletion. It does not remove them.
+* `delete INDEX` highlights that student in the list, shows their profile in the details panel, and displays the
+  command to confirm deletion. It does not remove them or change the saved data.
 * `delete INDEX confirm` deletes the student at the specified index in the currently displayed list.
 * The index **must be a positive integer** 1, 2, 3, ... and must refer to a student in that list.
 * The confirmation keyword is exactly `confirm` (lowercase).
@@ -435,9 +456,16 @@ Examples:
 * `list`, then `delete 2` previews the 2nd student. `delete 2 confirm` removes that student if the list is unchanged.
 * `find Betsy`, then `delete 1` previews the 1st student in the search results. `delete 1 confirm` removes that student if the results are unchanged.
 
+The preview selects the same student in the list and details panel, including when the list is filtered and sorted:
+
+![Deletion preview selects Zoe at displayed index 2](images/deletePreviewTarget.png)
+
 ### Clearing all students: `clear`
 
 Clears all student records from TutorLink.
+
+**This takes effect immediately, without confirmation or undo.** Back up `data/tutorlink.json` before using it
+if you may need to recover the roster. Use `delete INDEX` to preview removal of an individual student.
 
 Format: `clear`
 
@@ -450,7 +478,7 @@ Format: `exit`
 ### Saving the data
 
 TutorLink automatically saves changes to student records. You do not need to save manually.
-The `view` command only changes the selection and does not write the data file.
+The `view` command and an unconfirmed `delete INDEX` only change the selection and do not write the data file.
 
 ### Editing the data file
 
@@ -465,9 +493,13 @@ If TutorLink cannot load the data file, it shows an error and stops starting. It
 Furthermore, certain edits can cause TutorLink to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
-### Archiving data files `[coming in v2.0]`
+### Upgrading to v1.5
 
-_Details coming soon ..._
+Close TutorLink and copy `data/tutorlink.json` to a safe backup location before replacing the JAR in the same home
+folder. Existing valid records, remarks, and follow-up statuses are retained. v1.5 enforces the email length limits
+above when loading saved records as well as when entering commands. If an earlier version saved an oversized email,
+startup stops with the protective error described above. Correct that email in a backed-up copy of the JSON file
+(or use `null` for an unavailable email), then relaunch. Do not delete the original roster to bypass an error.
 
 --------------------------------------------------------------------------------------------------------------------
 

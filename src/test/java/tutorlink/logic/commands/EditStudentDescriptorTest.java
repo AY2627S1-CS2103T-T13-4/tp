@@ -70,6 +70,20 @@ public class EditStudentDescriptorTest {
     }
 
     @Test
+    public void clearContact_isAnEditAndSurvivesCopying() {
+        EditStudentDescriptor omitted = new EditStudentDescriptor();
+        assertFalse(new EditStudentDescriptor(omitted).isAnyFieldEdited());
+        EditStudentDescriptor cleared = new EditStudentDescriptor();
+        cleared.setPhone(null);
+        assertTrue(cleared.isAnyFieldEdited());
+        assertFalse(cleared.equals(omitted));
+        assertEquals(cleared, new EditStudentDescriptor(cleared));
+        cleared.setEmail(null);
+        cleared.setAddress(null);
+        assertEquals(cleared, new EditStudentDescriptor(cleared));
+    }
+
+    @Test
     public void toStringMethod() {
         EditStudentDescriptor editStudentDescriptor = new EditStudentDescriptor();
         String expected = EditStudentDescriptor.class.getCanonicalName() + "{name="

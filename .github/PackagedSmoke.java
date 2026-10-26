@@ -44,7 +44,9 @@ public class PackagedSmoke {
                     Stage stage = (Stage) Window.getWindows().stream().filter(w -> w instanceof Stage
                             && ((Stage) w).getTitle().equals("TutorLink")).findFirst().orElseThrow();
                     scene = stage.getScene();
-                    if (phase.startsWith("followup-")) {
+                    if (phase.startsWith("alpha-")) {
+                        alphaFixWorkflow(phase);
+                    } else if (phase.startsWith("followup-")) {
                         followUpWorkflow(phase);
                     } else if (phase.equals("workflow")) {
                         command("find alex david", 2, false);
@@ -203,6 +205,68 @@ public class PackagedSmoke {
             check(feedback().equals("No students require follow-up."), "completion survives process restart");
             command("list", 2, false);
         }
+    }
+
+    private static void alphaFixWorkflow(String phase) throws Exception {
+        if (phase.equals("alpha-restart")) {
+            command("followups", 1, false);
+            check(student().getName().fullName.equals("Zoe Test"), "correct student restored");
+            check(student().getPhone() == null && student().getEmail() == null && student().getAddress() == null,
+                    "cleared contacts survive restart");
+            check(student().getRemark().equals("Discuss recursion"), "remark survives contact clears and restart");
+            command("view 1", 1, false);
+            check(detailLabel("email").getText().equals("Email: Not provided"), "cleared email displayed");
+            command("followup 1 done", 0, false);
+            command("list", 2, false);
+            return;
+        }
+        command("clear", 0, false);
+        command("add n/Zoe Test m/A1111111A g/T01 p/91234567 e/student+_tutorial@example.com a/10 College Road", 1, false);
+        command("remark 1 r/Discuss recursion", 1, false);
+        command("followup 1 on", 1, false);
+        command("add n/Alpha Test m/A2222222B g/T01", 2, false);
+        command("add n/Other Test m/A3333333C g/T02", 3, false);
+        command("list g/T01", 2, false);
+        command("sort name", 2, false);
+        command("view 1", 2, false);
+        String before = data();
+        command("delete 2", 2, false);
+        check(data().equals(before), "deletion preview does not change saved records");
+        check(list().getSelectionModel().getSelectedIndex() == 1, "preview highlights displayed target");
+        check(detailLabel("name").getText().equals("Zoe Test"), "preview details match target");
+        snapshot(scene, "deletePreviewTarget.png");
+        command("delete 0", 2, true);
+        command("delete 99 confirm", 2, true);
+        command("edit 2 p/ e/" + "a".repeat(65) + "@example.com", 2, true);
+        check(data().equals(before), "invalid combined clear is atomic");
+        command("edit 2 e/a..b@example.com", 2, true);
+        command("edit 2 e/name@" + "a".repeat(64) + ".com", 2, true);
+        command("edit 2 e/" + "a".repeat(64) + "@example.com", 2, false);
+        command("edit 2 p/ e/ a/", 2, false);
+        check(detailLabel("phone").getText().equals("Phone: Not provided")
+                && detailLabel("email").getText().equals("Email: Not provided")
+                && detailLabel("address").getText().equals("Address: Not provided"), "cleared contact details visible");
+        snapshot(scene, "clearOptionalContacts.png");
+        command("edit 2 p/ e/ a/", 2, false);
+        command("find Zoe", 1, false);
+        check(student().requiresFollowUp() && student().getRemark().equals("Discuss recursion"),
+                "contact clear preserves follow-up and remark");
+        command("edit 1 t/needsHelp", 1, false);
+        command("findtag NEEDSHELP", 1, false);
+        command("remark 1 r/", 1, false);
+        check(student().getRemark() == null, "empty remark clears");
+        command("remark 1 r/Discuss recursion", 1, false);
+        command("list", 3, false);
+        command("sort group desc", 3, false);
+        command("view 2", 3, false);
+        command("delete 1", 3, false);
+        check(detailLabel("name").getText().equals("Other Test"), "sorted preview target");
+        command("delete 1 confirm", 2, false);
+        command("sort reset", 2, false);
+        command("groups", 2, false);
+        check(feedback().contains("T01: 2 students"), "counts reflect deletion");
+        command("followups", 1, false);
+        command("view 1", 1, false);
     }
 
     private static tutorlink.model.student.Student student() {

@@ -67,6 +67,26 @@ public class EmailTest {
     }
 
     @Test
+    public void isValidEmail_supportedAdjacentSpecialCharacters_acceptsAliases() {
+        assertTrue(Email.isValidEmail("student+_tutorial@example.com"));
+        assertTrue(Email.isValidEmail("student__tutorial@example.com"));
+        assertTrue(Email.isValidEmail("student+-tutorial@nus--tutorial.example"));
+        assertFalse(Email.isValidEmail("student..tutorial@example.com"));
+        assertFalse(Email.isValidEmail("student+@example.com"));
+    }
+
+    @Test
+    public void isValidEmail_lengthBoundaries() {
+        assertTrue(Email.isValidEmail("a".repeat(64) + "@example.com"));
+        assertFalse(Email.isValidEmail("a".repeat(65) + "@example.com"));
+        assertTrue(Email.isValidEmail("student@" + "a".repeat(63) + ".com"));
+        assertFalse(Email.isValidEmail("student@" + "a".repeat(64) + ".com"));
+        String domain = "b".repeat(63) + "." + "c".repeat(63) + "." + "d".repeat(61);
+        assertTrue(Email.isValidEmail("a".repeat(64) + "@" + domain)); // 254 characters
+        assertFalse(Email.isValidEmail("a".repeat(64) + "@" + domain + "d")); // 255 characters
+    }
+
+    @Test
     public void equals() {
         Email email = new Email("valid@email");
 

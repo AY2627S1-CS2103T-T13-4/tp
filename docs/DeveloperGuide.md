@@ -4,7 +4,7 @@
   pageNav: 3
 ---
 
-# AB-3 Developer Guide
+# TutorLink Developer Guide
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -13,7 +13,10 @@
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* TutorLink adapts the architecture, command framework, storage, testing utilities, and documentation of
+  [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org).
+* Libraries include [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson),
+  [JUnit](https://junit.org/), and [Guava](https://github.com/google/guava).
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -35,7 +38,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -67,7 +70,7 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/ui/Ui.java)
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
@@ -83,7 +86,7 @@ This view-only result does not write roster data. After each command, `MainWindo
 selection across record replacements if that student remains visible, and otherwise clears the details. Three resizable
 columns separate group navigation, student summaries, and full details.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/ui/MainWindow.java).
 
 The `UI` component,
 
@@ -94,7 +97,7 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -127,7 +130,7 @@ How the parsing works:
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/model/Model.java)
 
 <puml src="diagrams/ModelClassDiagram.puml" width="1000" />
 
@@ -157,7 +160,7 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/storage/Storage.java)
 
 <puml src="diagrams/StorageClassDiagram.puml" width="550" />
 
@@ -247,7 +250,7 @@ the student from that view and renumbers the remaining results. The filter stays
 Missing or null fields default to false for compatibility with older records. `LogicManager` saves the complete
 roster after successful commands, including hidden students. No history or completion timestamps are stored.
 
-Integration contract for remarks (#78), sorting (#80), and release coordination (#77):
+Preservation and ordering contract:
 * `Student` equality, hashing, and string output include current status; identity still uses only matriculation number.
 * `StudentBuilder(Student)` and `withFollowUp(boolean)` retain status in expected test records.
 * `EditCommand` passes the original status and remark when replacing details, groups, or tags.
@@ -255,8 +258,8 @@ Integration contract for remarks (#78), sorting (#80), and release coordination 
   remark. Older constructor overloads describe **new** records with no follow-up; they must not be used to copy an
   existing student during updates.
 * Sorting should order the same list exposed by `getFilteredStudentList()`, because follow-up updates use that
-  displayed order. It must retain whole `Student` objects and status. The sorting owner must define how a new
-  `followups` query resets or retains sorting when that feature is integrated.
+  displayed order. It retains whole `Student` objects and status. A new `followups` query resets sorting to
+  directory order through `Model#updateFilteredStudentList`; `sort reset` retains the follow-up predicate.
 
 `FollowUpCommandIntegrationTest` covers mark → list → reload → complete → reload through parsing and JSON storage,
 and loads a genuine older record without the field. Command tests cover unrelated-field preservation and
@@ -301,99 +304,53 @@ student list and its displayed-index contract remain unchanged. An empty directo
 and changes caused by adding, deleting, and moving students. `GroupsCommandParserTest` covers argument validation.
 `GroupsCommandIntegrationTest` covers the complete parsing, filtering, command, and storage path.
 
-### \[Proposed\] Undo/redo feature
+### Editing optional contact details
 
-#### Proposed Implementation
+`EditCommandParser` distinguishes three states for each contact prefix: absent (keep the old value), present with
+non-empty text (validate and replace), and present with empty text (clear to `null`). The descriptor stores a
+`phoneEdited`, `emailEdited`, or `addressEdited` flag alongside each nullable value. A plain `Optional` cannot
+distinguish an omitted field from an explicitly cleared field. Descriptor copies and equality retain these flags.
 
-The proposed undo/redo mechanism is facilitated by `VersionedStudentDirectory`. It extends `StudentDirectory` with an undo/redo history, stored internally as a `studentDirectoryStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+<puml src="diagrams/ClearContactsSequenceDiagram.puml" alt="Clearing a contact while preserving omitted fields" />
 
-* `VersionedStudentDirectory#commit()` -- Saves the current student directory state in its history.
-* `VersionedStudentDirectory#undo()` -- Restores the previous student directory state from its history.
-* `VersionedStudentDirectory#redo()` -- Restores a previously undone student directory state from its history.
+All supplied values are parsed before execution. Invalid input therefore cannot partially clear other fields.
+`EditCommand` resolves the index from the displayed sorted/filtered list and constructs a new immutable `Student`.
+Required fields and tags use the existing descriptor rules; contact flags choose between the new nullable value
+and the original value. The old remark and follow-up status are passed through unchanged. Replacing the student
+re-evaluates the active filter and sort order. Storage serializes the full directory, including hidden students.
 
-These operations are exposed in the `Model` interface as `Model#commitStudentDirectory()`, `Model#undoStudentDirectory()` and `Model#redoStudentDirectory()` respectively.
+`Email#isValidEmail` is shared by command parsing and JSON loading. A bounded domain-label expression and explicit
+length checks enforce 64 characters for the local part, 63 for each domain label, and 254 for the complete address.
+Adjacent supported special characters are accepted except consecutive periods. This is the application's documented
+email subset; it is not an email-delivery or full RFC-compliance check.
 
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
+`ContactDetailsIntegrationTest` checks displayed-index clearing, all-or-nothing invalid edits, omitted-field
+preservation, remark/status preservation, and saving/reloading. Value-object tests cover each email boundary.
 
-Step 1. The user launches the application for the first time. The `VersionedStudentDirectory` will be initialized with the initial student directory state, and the `currentStatePointer` pointing to that single student directory state.
+### Deletion preview and confirmation
 
-<puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
+`delete INDEX` and `delete INDEX confirm` resolve the current displayed index independently. The preview returns a
+`CommandResult` containing the target `Student`. `MainWindow` uses the same selection path as `view INDEX` to highlight
+and scroll to that record and populate its details. `LogicManager` returns this view-only result without saving data.
+The preview changes no record and holds no pending deletion state. Confirmation validates and removes the student at
+the index in the list at that moment; if the list changes, the user should preview again. `MainWindowTest` verifies
+that preview selection matches the target under sorting and filtering, and that invalid indices retain selection.
 
-Step 2. The user executes `delete 5 confirm` command to delete the 5th student in the student directory. The `delete` command calls `Model#commitStudentDirectory()`, causing the modified state of the student directory after the `delete 5 confirm` command executes to be saved in the `studentDirectoryStateList`, and the `currentStatePointer` is shifted to the newly inserted student directory state.
+### Saving and protecting invalid data
 
-<puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
+`JsonStudentDirectoryStorage` reads JSON through `JsonUtil`, then `JsonSerializableStudentDirectory` converts each
+adapted record to the model. The root must be an object with a non-null `students` array; an empty array is valid,
+but null entries, missing required fields, invalid values, and duplicate matriculation numbers are rejected.
+Missing optional contact details remain `null`. Older records without follow-up status default to false.
 
-Step 3. The user executes `add n/David …​` to add a new student. The `add` command also calls `Model#commitStudentDirectory()`, causing another modified student directory state to be saved into the `studentDirectoryStateList`.
+Conversion failures become `DataLoadingException`. `MainApp` shows an explanatory startup alert and stops before
+opening the roster UI. This prevents later saves from replacing an unreadable file with sample or empty data.
+A missing file is different: it is a first launch and loads sample students. The original invalid bytes are preserved;
+the user must correct a backed-up copy or restore a valid backup before retrying.
 
-<puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
-
-<box type="info" seamless>
-
-**Note:** If a command fails its execution, it will not call `Model#commitStudentDirectory()`, so the student directory state will not be saved into the `studentDirectoryStateList`.
-</box>
-
-Step 4. The user now decides that adding the student was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoStudentDirectory()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous student directory state, and restores the student directory to that state.
-
-<puml src="diagrams/UndoRedoState3.puml" alt="UndoRedoState3" />
-
-
-<box type="info" seamless>
-
-**Note:** If the `currentStatePointer` is at index 0, pointing to the initial StudentDirectory state, then there are no previous StudentDirectory states to restore. The `undo` command uses `Model#canUndoStudentDirectory()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-</box>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
-
-<puml src="diagrams/UndoSequenceDiagram-Logic.puml" alt="UndoSequenceDiagram-Logic" />
-
-<box type="info" seamless>
-
-**Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-</box>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
-
-<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="UndoSequenceDiagram-Model" />
-
-The `redo` command does the opposite — it calls `Model#redoStudentDirectory()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the student directory to that state.
-
-<box type="info" seamless>
-
-**Note:** If the `currentStatePointer` is at index `studentDirectoryStateList.size() - 1`, pointing to the latest student directory state, then there are no undone StudentDirectory states to restore. The `redo` command uses `Model#canRedoStudentDirectory()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-</box>
-
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the student directory, such as `list`, will usually not call `Model#commitStudentDirectory()`, `Model#undoStudentDirectory()` or `Model#redoStudentDirectory()`. Thus, the `studentDirectoryStateList` remains unchanged.
-
-<puml src="diagrams/UndoRedoState4.puml" alt="UndoRedoState4" />
-
-Step 6. The user executes `clear`, which calls `Model#commitStudentDirectory()`. Since the `currentStatePointer` is not pointing at the end of the `studentDirectoryStateList`, all student directory states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …` command. This is the behavior that most modern desktop applications follow.
-
-<puml src="diagrams/UndoRedoState5.puml" alt="UndoRedoState5" />
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<puml src="diagrams/CommitActivityDiagram.puml" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire student directory.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the student being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
-
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
+The storage tests cover malformed structures and data preservation. `.github/smoke-test.py` also launches the real
+release JAR with corrupt JSON, a null root, missing/null arrays, a null student entry, and a record missing required
+fields. Each case must display the protective alert, avoid opening the roster, and leave the file byte-for-byte intact.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -435,7 +392,7 @@ The following decisions define the current behaviour for the model, commands, st
 | Follow-up | Track one current `requiresFollowUp` boolean | Default to false for new students and older JSON without the field; retain through replacements |
 | Remark | Store one current remark that can be set, replaced, or cleared with `remark INDEX r/TEXT`; retain it through other edits | Use `null` when absent or cleared |
 
-An `add` command must accept a name, matriculation number, and tutorial group without requiring phone, email, or address. Existing `p/`, `e/`, `a/`, and `t/` inputs remain supported as optional details. Commands and UI components must handle absent optional values without dereferencing `null`. An `edit` command leaves omitted fields unchanged; it must not interpret omission as a request to clear a field.
+An `add` command must accept a name, matriculation number, and tutorial group without requiring phone, email, or address. Existing `p/`, `e/`, `a/`, and `t/` inputs remain supported as optional details. Commands and UI components must handle absent optional values without dereferencing `null`. An `edit` command leaves omitted fields unchanged. An explicitly empty `p/`, `e/`, or `a/` clears that optional field to `null`; omission is never treated as clearing.
 
 The middle list shows student summaries. Selecting one or executing `view INDEX` displays its name, matriculation
 number, tutorial group, optional contact fields, tags, current remark, and follow-up status in the details panel.
@@ -497,7 +454,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-For all use cases below, the **System** is `TutorLink` and the **Actor** is a `university tutor`. These use cases describe the planned MVP behaviour.
+For all use cases below, the **System** is `TutorLink` and the **Actor** is a `university tutor`. These use cases describe the current student-management behaviour.
 
 **Common precondition**: TutorLink is running.
 
@@ -664,21 +621,13 @@ testers are expected to do more *exploratory* testing.
 
 ### Launch and shutdown
 
-1. Initial launch
+Use a separate empty test folder and the architecture-appropriate released JAR with Java 25. All examples below
+use synthetic data and may clear the test roster. Never run them against a real roster you need to keep.
 
-   1. Download the JAR file and copy it into an empty folder.
-
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample students. The window size may not be optimal.
-
-1. Saving window preferences
-
-   1. Resize the window to an optimal size. Move the window to a different location. Close the window.
-
-   1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
-
-1. _{ more test cases … }_
+1. Start with `java -ea -jar TutorLink.jar` (or `TutorLink-mac-aarch64.jar` for ARM64 Java on macOS).
+   Expect the three-column workspace with sample students, group counts, and no selected student.
+1. Resize and move the window, run `exit`, and launch again from the same folder. Expect the saved window position
+   and size, along with the previous roster. `help` should link to the published TutorLink User Guide.
 
 ### Searching across tutorial groups and editing search results
 
@@ -714,30 +663,36 @@ them in a folder containing records you want to keep. Start with `java -jar Tuto
 These checks complement the parser/model/storage regression tests in `FindCommandIntegrationTest`. They also check
 the visible student cards and packaged application, which those automated tests do not exercise.
 
-### Deleting a student
+### Optional contacts, remarks, follow-ups, and deletion
 
-1. Deleting a student while all students are being shown
+1. Enter `clear`, then add `add n/Zoe Test m/A1111111A g/T01 p/91234567 e/student+_tutorial@example.com a/College Road`.
+   Expect a successful addition, including the adjacent email special characters.
+1. Run `remark 1 r/Discuss recursion`, `followup 1 on`, then
+   `add n/Alpha Test m/A2222222B g/T01`. Run `list g/T01`, `sort name`, and `view 1`.
+   Expect Alpha's details and Alpha/Zoe at displayed indices 1/2.
+1. Run `delete 2`. Expect Zoe highlighted and Zoe's details on the right, a preview naming Zoe, and both students
+   still present. `delete 0` and `delete 99 confirm` must report errors and keep the roster unchanged.
+1. Run `edit 2 p/ e/ a/`, then `view 2`. Expect all three contact fields to read `Not provided`, with Zoe's remark
+   and required follow-up intact. Repeat the clear; it should succeed without affecting other values.
+1. Run `edit 2 p/123 e/invalid`. Expect an email error and no partial phone update. `edit 2 n/` must also fail.
+   A 64-character local part followed by `@example.com` should be accepted; 65 characters should be rejected.
+   `a..b@example.com` and a 64-character domain label must be rejected. Check the existing value remains intact.
+1. Run `followups`, then `view 1`. Expect only Zoe at index 1 with the original remark. `followup 2 done` and
+   `followup 1 off` must fail without changing status. Run `exit` and restart; `followups` must still find Zoe.
+1. Run `followup 1 done`. Expect an empty follow-up list, with Zoe's record retained. Run `list`, `sort name`,
+   `delete 2`, then `delete 2 confirm`. Expect Zoe removed, Alpha retained, and group T01's count reduced to one.
+1. Restart and run `list`. Expect only Alpha. `groups` should report `T01: 1 student`.
 
-   1. Prerequisites: List all students using the `list` command, with multiple students in the list.
+### Saving data and malformed-file protection
 
-   1. Test case: `delete 1`<br>
-      Expected: No student is deleted. The status message previews the first student and shows `delete 1 confirm`.
+1. Close TutorLink. Back up the synthetic test `data/tutorlink.json` outside the test folder.
+1. Replace its contents with `{"students":[null]}` and launch the JAR.
+   Expect an `Unable to load student data` alert explaining that the original file was not changed; no roster opens.
+   Close the alert and confirm the file still contains exactly the input bytes.
+1. Repeat independently with `{}`, `{"students":null}`, `null`, malformed JSON, and
+   `{"students":[{"name":"Protected Student","tags":[]}]}`. Expect the same protective outcome for each.
+1. Restore the valid backup and relaunch. Expect the previous records to load correctly.
+1. In a new empty folder, launch without a data file. Expect sample students rather than the invalid-data alert.
 
-   1. Test case: `delete 1 confirm`<br>
-      Expected: The first student is deleted from the list. The status message shows the deleted student's details.
-
-   1. Test case: `delete 0`<br>
-      Expected: No student is deleted. The status message shows error details.
-
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
-
-1. _{ more test cases … }_
-
-### Saving data
-
-1. Dealing with missing/corrupted data files
-
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
-
-1. _{ more test cases … }_
+The packaged smoke harness automates these workflows using the release JAR's actual entry point and controls,
+and retains screenshots and logs in `build/packaged-smoke/`. See [DevOps](DevOps.md#making-a-release) for instructions.
