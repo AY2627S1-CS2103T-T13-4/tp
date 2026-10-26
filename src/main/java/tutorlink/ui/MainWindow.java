@@ -64,6 +64,9 @@ public class MainWindow extends UiPart<Stage> {
     private Label studentCount;
 
     @FXML
+    private Label activeFilter;
+
+    @FXML
     private SplitPane workspace;
 
     @FXML
@@ -204,6 +207,8 @@ public class MainWindow extends UiPart<Stage> {
 
     private void updateStudentCount() {
         studentCount.setText(logic.getFilteredStudentList().size() + " displayed");
+        activeFilter.setText(logic.getFilterDescription());
+        activeFilter.setTooltip(new javafx.scene.control.Tooltip(logic.getFilterDescription()));
     }
 
     private void updateDetails() {
@@ -269,6 +274,7 @@ public class MainWindow extends UiPart<Stage> {
             resultDisplay.setFeedbackToUser(e.getMessage());
             throw e;
         } finally {
+            updateStudentCount();
             if (requestedSelection != null) {
                 studentListPanel.showStudent(requestedSelection);
             } else {

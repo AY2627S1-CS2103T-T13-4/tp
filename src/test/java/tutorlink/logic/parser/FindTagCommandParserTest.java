@@ -41,9 +41,14 @@ public class FindTagCommandParserTest {
 
     @Test
     public void parse_invalidTag_throwsParseException() {
-        for (String args : List.of("t/friends", "friends family", "friends\tfamily", "friends\nfamily",
+        for (String args : List.of("friends family", "friends\tfamily", "friends\nfamily",
                 "needs-help", "needs_help", "friends!", "\"friends\"", "学生")) {
             assertParseFailure(parser, args, Tag.MESSAGE_CONSTRAINTS);
         }
+    }
+
+    @Test
+    public void parse_tagPrefix_showsCorrectSyntax() {
+        assertParseFailure(parser, "t/friends", "Use the tag without t/.\n" + FindTagCommand.MESSAGE_USAGE);
     }
 }

@@ -34,7 +34,7 @@ public class FindTagCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredStudentList(predicate);
+        model.updateFilteredStudentList(predicate, predicate.getDescription());
         List<Student> matchingStudents = model.getFilteredStudentList();
         assert matchingStudents.stream().allMatch(predicate) : "Tag search results must match the requested tag";
         int matchCount = matchingStudents.size();

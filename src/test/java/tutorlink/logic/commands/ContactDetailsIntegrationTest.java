@@ -80,6 +80,20 @@ public class ContactDetailsIntegrationTest {
     }
 
     @Test
+    public void execute_escapedAddressPrefixes_areStoredLiterallyAndRetainOtherFields() throws Exception {
+        logic.execute("edit 1 a/Block 10 \\p/Lane \\e/learning centre \\t/Lobby p/98765432");
+        Student updated = model.getFilteredStudentList().getFirst();
+        assertEquals("Block 10 p/Lane e/learning centre t/Lobby", updated.getAddress().value);
+        assertEquals("98765432", updated.getPhone().value);
+        assertEquals(ZOE.getEmail(), updated.getEmail());
+        assertEquals(ZOE.getRemark(), updated.getRemark());
+        assertEquals(updated, storage.readStudentDirectory().orElseThrow().getStudentList().get(1));
+        logic.execute("add n/Address Test m/A0000003C g/T02 a/\\p/Lane \\n/Name \\m/Matric \\g/Group \\a/Block");
+        assertEquals("p/Lane n/Name m/Matric g/Group a/Block",
+                model.getStudentDirectory().getStudentList().get(2).getAddress().value);
+    }
+
+    @Test
     public void execute_addEmailBoundary_rejectsOversizedInputWithoutAddingStudent() throws Exception {
         logic.execute("add n/Valid Boundary m/A0000003C g/T02 e/" + "a".repeat(64) + "@example.com");
         List<Student> before = List.copyOf(model.getStudentDirectory().getStudentList());

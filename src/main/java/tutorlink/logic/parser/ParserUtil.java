@@ -99,13 +99,13 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String address} into an {@code Address}.
-     * Leading and trailing whitespaces will be trimmed.
+     * Trims outer whitespace and removes the escape before literal address prefixes, such as {@code \p/}.
      *
      * @throws ParseException if the given {@code address} is invalid.
      */
     public static Address parseAddress(String address) throws ParseException {
         requireNonNull(address);
-        String trimmedAddress = address.trim();
+        String trimmedAddress = address.trim().replaceAll("(^|\\s)\\\\([nmgpeat]/)", "$1$2");
         if (!Address.isValidAddress(trimmedAddress)) {
             throw new ParseException(Address.MESSAGE_CONSTRAINTS);
         }

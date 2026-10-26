@@ -18,7 +18,7 @@ public class FollowUpsCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredStudentList(Student::requiresFollowUp);
+        model.updateFilteredStudentList(Student::requiresFollowUp, "Follow-up required");
         int count = model.getFilteredStudentList().size();
         return new CommandResult(count == 0 ? MESSAGE_EMPTY : String.format(MESSAGE_SUCCESS, count));
     }

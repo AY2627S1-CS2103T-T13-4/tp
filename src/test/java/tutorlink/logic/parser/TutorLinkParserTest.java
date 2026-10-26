@@ -103,7 +103,8 @@ public class TutorLinkParserTest {
         assertThrows(ParseException.class,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindTagCommand.MESSAGE_USAGE), () ->
                 parser.parseCommand("findtag"));
-        assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> parser.parseCommand("findtag t/friends"));
+        String prefixError = "Use the tag without t/.\n" + FindTagCommand.MESSAGE_USAGE;
+        assertThrows(ParseException.class, prefixError, () -> parser.parseCommand("findtag t/friends"));
     }
 
     @Test

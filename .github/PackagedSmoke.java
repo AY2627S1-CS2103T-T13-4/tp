@@ -44,7 +44,9 @@ public class PackagedSmoke {
                     Stage stage = (Stage) Window.getWindows().stream().filter(w -> w instanceof Stage
                             && ((Stage) w).getTitle().equals("TutorLink")).findFirst().orElseThrow();
                     scene = stage.getScene();
-                    if (phase.startsWith("alpha-")) {
+                    if (phase.equals("peer-alpha")) {
+                        peerAlphaWorkflow();
+                    } else if (phase.startsWith("alpha-")) {
                         alphaFixWorkflow(phase);
                     } else if (phase.startsWith("followup-")) {
                         followUpWorkflow(phase);
@@ -205,6 +207,33 @@ public class PackagedSmoke {
             check(feedback().equals("No students require follow-up."), "completion survives process restart");
             command("list", 2, false);
         }
+    }
+
+    private static void peerAlphaWorkflow() throws Exception {
+        command("clear", 0, false);
+        command("add n/Address Test m/A1000002B g/T01 a/Block 10 \\p/Lane \\e/learning centre t/friends", 1, false);
+        check(student().getAddress().value.equals("Block 10 p/Lane e/learning centre"), "literal address prefixes");
+        command("add n/Punycode Test m/A1000007G g/T02 e/user@xn--bcher-kva.de", 2, false);
+        String saved = data();
+        command("add n/Domain Test m/A1000006F g/T01 e/user@" + "a".repeat(64) + ".com", 2, true);
+        check(data().equals(saved), "oversized domain label does not add a student");
+        command("findtag friends", 1, false);
+        command("remark 1 r/Needs consultation", 1, false);
+        command("sort name desc", 1, false);
+        check(((Label) scene.lookup("#activeFilter")).getText().equals("Tag: friends"), "persistent tag condition");
+        command("view 1", 1, false);
+        snapshot(scene, "activeSearchCondition.png");
+        command("findtag t/friends", 1, true);
+        check(feedback().contains("without t/") && feedback().contains("findtag needsHelp"), "corrective tag guidance");
+        check(((Label) scene.lookup("#activeFilter")).getText().equals("Tag: friends"), "invalid search keeps condition");
+        command("edit 1 a/NUS \\e/learning centre p/12345678", 1, false);
+        check(student().getAddress().value.equals("NUS e/learning centre"), "escaped edit with real phone prefix");
+        command("find Nobody", 0, false);
+        command("find Absent", 0, false);
+        check(((Label) scene.lookup("#activeFilter")).getText().equals("Name or matriculation: Absent"),
+                "empty-to-empty query changes condition");
+        command("list", 2, false);
+        check(((Label) scene.lookup("#activeFilter")).getText().equals("All students"), "list clears condition");
     }
 
     private static void alphaFixWorkflow(String phase) throws Exception {

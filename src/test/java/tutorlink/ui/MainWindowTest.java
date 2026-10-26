@@ -83,6 +83,44 @@ public class MainWindowTest {
         JavaFxTestUtil.initialize();
     }
 
+    @Test
+    public void execute_searchCondition_remainsVisibleThroughUpdatesAndEmptyResults() throws Exception {
+        runOnFxThread(() -> {
+            Label filter = (Label) stage.getScene().lookup("#activeFilter");
+            window.executeCommand("findtag needsHelp");
+            window.executeCommand("remark 1 r/Consultation");
+            window.executeCommand("sort name desc");
+            window.executeCommand("delete 1");
+            assertEquals("Tag: needsHelp", filter.getText());
+            assertThrows(ParseException.class, () -> window.executeCommand("findtag t/friends"));
+            assertEquals("Tag: needsHelp", filter.getText());
+            window.executeCommand("edit 1 t/");
+            assertTrue(model.getFilteredStudentList().isEmpty());
+            assertEquals("Tag: needsHelp", filter.getText());
+            window.executeCommand("find Nobody"); // empty-to-empty filter change still updates the label
+            assertEquals("Name or matriculation: Nobody", filter.getText());
+            window.executeCommand("list g/T01");
+            assertEquals("Tutorial group: T01", filter.getText());
+            window.executeCommand("followups");
+            window.executeCommand("followup 1 done");
+            assertEquals("Follow-up required", filter.getText());
+            window.executeCommand("add n/Dana Test m/A0000004D g/T03");
+            assertEquals("All students", filter.getText());
+            assertEquals(filter.getText(), filter.getTooltip().getText());
+        });
+    }
+
+    @Test
+    public void execute_filterSaveFailure_showsTheActualChangedView() throws Exception {
+        runOnFxThread(() -> {
+            isSaveBlocked = true;
+            assertThrows(CommandException.class, () -> window.executeCommand("find Nobody"));
+            assertTrue(model.getFilteredStudentList().isEmpty());
+            Label filter = (Label) stage.getScene().lookup("#activeFilter");
+            assertEquals("Name or matriculation: Nobody", filter.getText());
+        });
+    }
+
     @BeforeEach
     public void setUp() throws Exception {
         runOnFxThread(() -> {

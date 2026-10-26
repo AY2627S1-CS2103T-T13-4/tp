@@ -55,6 +55,7 @@
           <VBox fx:id="studentList" styleClass="workspace-column" minWidth="270">
             <Label text="Students" styleClass="panel-heading" />
             <Label fx:id="studentCount" styleClass="panel-subheading" />
+            <Label fx:id="activeFilter" styleClass="panel-subheading" maxWidth="Infinity" />
             <StackPane fx:id="studentListPanelPlaceholder" VBox.vgrow="ALWAYS" />
           </VBox>
           <VBox styleClass="workspace-column" minWidth="320">
