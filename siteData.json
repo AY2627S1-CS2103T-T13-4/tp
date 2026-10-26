@@ -40,7 +40,7 @@
       "src": "DeveloperGuide.md",
       "title": "Developer Guide",
       "headings": {
-        "ab-3-developer-guide": "AB-3 Developer Guide",
+        "tutorlink-developer-guide": "TutorLink Developer Guide",
         "acknowledgements": "Acknowledgements",
         "setting-up-getting-started": "Setting up, getting started",
         "design": "Design",
@@ -55,8 +55,9 @@
         "student-remarks": "Student remarks",
         "tutorial-group-filtering": "Tutorial group filtering",
         "tutorial-group-overview": "Tutorial-group overview",
-        "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
-        "proposed-data-archiving": "[Proposed] Data archiving",
+        "editing-optional-contact-details": "Editing optional contact details",
+        "deletion-preview-and-confirmation": "Deletion preview and confirmation",
+        "saving-and-protecting-invalid-data": "Saving and protecting invalid data",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
         "appendix-requirements": "Appendix: Requirements",
         "product-scope": "Product scope",
@@ -68,8 +69,8 @@
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
         "searching-across-tutorial-groups-and-editing-search-results": "Searching across tutorial groups and editing search results",
-        "deleting-a-student": "Deleting a student",
-        "saving-data": "Saving data"
+        "optional-contacts-remarks-follow-ups-and-deletion": "Optional contacts, remarks, follow-ups, and deletion",
+        "saving-data-and-malformed-file-protection": "Saving data and malformed-file protection"
       },
       "headingKeywords": {}
     },
@@ -134,7 +135,7 @@
         "exiting-the-program-exit": "Exiting the program: exit",
         "saving-the-data": "Saving the data",
         "editing-the-data-file": "Editing the data file",
-        "archiving-data-files-coming-in-v2-0": "Archiving data files [coming in v2.0]",
+        "upgrading-to-v1-5": "Upgrading to v1.5",
         "faq": "FAQ",
         "known-issues": "Known issues",
         "command-summary": "Command summary"
@@ -165,6 +166,7 @@
         "project-tutorlink": "Project: TutorLink",
         "code-and-testing": "Code and testing",
         "v1-4-contributions": "v1.4 contributions",
+        "v1-5-contributions": "v1.5 contributions",
         "peer-review": "Peer review",
         "documentation": "Documentation",
         "project-management-and-release-checks": "Project management and release checks",
@@ -193,6 +195,17 @@
         "results-on-azul-25-0-3-fx": "Results on Azul 25.0.3 FX",
         "bugs-and-remaining-coverage": "Bugs and remaining coverage",
         "post-fix-verification": "Post-fix verification"
+      },
+      "headingKeywords": {}
+    },
+    {
+      "src": "testing/v1.5-verification.md",
+      "title": "v1.5 verification",
+      "headings": {
+        "v1-5-verification": "v1.5 verification",
+        "alpha-testing-and-fixes": "Alpha testing and fixes",
+        "authorship-audit": "Authorship audit",
+        "release-integrity": "Release integrity"
       },
       "headingKeywords": {}
     }

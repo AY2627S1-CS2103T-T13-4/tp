@@ -1,0 +1,45 @@
+@startuml
+!include style.puml
+hide footbox
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":EditCommandParser" as Parser LOGIC_COLOR
+participant "descriptor:EditStudentDescriptor" as Descriptor LOGIC_COLOR
+participant "command:EditCommand" as Command LOGIC_COLOR
+participant ":ModelManager" as Model MODEL_COLOR
+participant ":StorageManager" as Storage STORAGE_COLOR
+
+[-> Logic : execute("edit 2 p/")
+activate Logic
+ref over Logic, Parser
+  TutorLinkParser selects EditCommandParser.
+end ref
+Logic -> Parser : parse(" 2 p/")
+activate Parser
+Parser -> Descriptor : setPhone(null)
+note over Descriptor
+  phoneEdited = true
+  emailEdited = false
+  addressEdited = false
+end note
+Parser --> Logic : EditCommand(index, descriptor)
+deactivate Parser
+Logic -> Command : execute(model)
+activate Command
+Command -> Model : getFilteredStudentList()
+Model --> Command : displayed students
+note over Command
+  Validate index; create replacement with
+  null phone, original email/address,
+  and unchanged remark/follow-up.
+end note
+Command -> Model : setStudent(original, replacement)
+Model --> Command
+Command --> Logic : CommandResult
+deactivate Command
+Logic -> Model : getStudentDirectory()
+Model --> Logic : complete roster
+Logic -> Storage : saveStudentDirectory(complete roster)
+Storage --> Logic
+[<-- Logic : CommandResult
+deactivate Logic
+@enduml
