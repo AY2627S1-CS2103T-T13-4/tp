@@ -90,7 +90,8 @@ public class DeleteCommandTest {
         String expectedMessage = String.format(DeleteCommand.MESSAGE_CONFIRM_DELETE,
                 Messages.format(student), INDEX_FIRST_STUDENT.getOneBased());
 
-        assertCommandSuccess(new DeleteCommand(INDEX_FIRST_STUDENT), model, expectedMessage, expectedModel);
+        assertCommandSuccess(new DeleteCommand(INDEX_FIRST_STUDENT), model,
+                new CommandResult(expectedMessage, student), expectedModel);
     }
 
     @Test
@@ -102,7 +103,8 @@ public class DeleteCommandTest {
         String expectedMessage = String.format(DeleteCommand.MESSAGE_CONFIRM_DELETE,
                 Messages.format(student), INDEX_FIRST_STUDENT.getOneBased());
 
-        assertCommandSuccess(new DeleteCommand(INDEX_FIRST_STUDENT), model, expectedMessage, expectedModel);
+        assertCommandSuccess(new DeleteCommand(INDEX_FIRST_STUDENT), model,
+                new CommandResult(expectedMessage, student), expectedModel);
     }
 
     @Test
@@ -120,7 +122,8 @@ public class DeleteCommandTest {
         Model expectedPreviewModel = new ModelManager(model.getStudentDirectory(), new UserPrefs());
         String previewMessage = String.format(DeleteCommand.MESSAGE_CONFIRM_DELETE,
                 Messages.format(student), INDEX_FIRST_STUDENT.getOneBased());
-        assertCommandSuccess(new DeleteCommand(INDEX_FIRST_STUDENT), model, previewMessage, expectedPreviewModel);
+        assertCommandSuccess(new DeleteCommand(INDEX_FIRST_STUDENT), model,
+                new CommandResult(previewMessage, student), expectedPreviewModel);
 
         Model expectedDeletedModel = new ModelManager(model.getStudentDirectory(), new UserPrefs());
         expectedDeletedModel.deleteStudent(student);

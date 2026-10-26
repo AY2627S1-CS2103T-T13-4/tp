@@ -20,15 +20,17 @@ import tutorlink.model.student.Student;
 class JsonSerializableStudentDirectory {
 
     public static final String MESSAGE_DUPLICATE_STUDENTS = "Student list contains duplicate students.";
+    public static final String MESSAGE_MISSING_STUDENTS = "Student data must contain a students array.";
+    public static final String MESSAGE_NULL_STUDENT = "Student list must not contain null entries.";
 
-    private final List<JsonAdaptedStudent> students = new ArrayList<>();
+    private final List<JsonAdaptedStudent> students;
 
     /**
      * Constructs a {@code JsonSerializableStudentDirectory} with the given students.
      */
     @JsonCreator
     public JsonSerializableStudentDirectory(@JsonProperty("students") List<JsonAdaptedStudent> students) {
-        this.students.addAll(students);
+        this.students = students == null ? null : new ArrayList<>(students);
     }
 
     /**
@@ -37,7 +39,7 @@ class JsonSerializableStudentDirectory {
      * @param source future changes to this will not affect the created {@code JsonSerializableStudentDirectory}.
      */
     public JsonSerializableStudentDirectory(ReadOnlyStudentDirectory source) {
-        students.addAll(source.getStudentList().stream().map(JsonAdaptedStudent::new).collect(Collectors.toList()));
+        students = source.getStudentList().stream().map(JsonAdaptedStudent::new).collect(Collectors.toList());
     }
 
     /**
@@ -46,8 +48,14 @@ class JsonSerializableStudentDirectory {
      * @throws IllegalValueException if there were any data constraints violated.
      */
     public StudentDirectory toModelType() throws IllegalValueException {
+        if (students == null) {
+            throw new IllegalValueException(MESSAGE_MISSING_STUDENTS);
+        }
         StudentDirectory studentDirectory = new StudentDirectory();
         for (JsonAdaptedStudent jsonAdaptedStudent : students) {
+            if (jsonAdaptedStudent == null) {
+                throw new IllegalValueException(MESSAGE_NULL_STUDENT);
+            }
             Student student = jsonAdaptedStudent.toModelType();
             if (studentDirectory.hasStudent(student)) {
                 throw new IllegalValueException(MESSAGE_DUPLICATE_STUDENTS);

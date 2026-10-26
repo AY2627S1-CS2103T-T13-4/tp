@@ -117,6 +117,26 @@ public class MainWindowTest {
     }
 
     @Test
+    public void deletePreview_selectsTargetWithoutRemovingOrChangingRecords() throws Exception {
+        runOnFxThread(() -> {
+            window.executeCommand("sort name");
+            window.executeCommand("view 1");
+            assertEquals("Alice Lee", label("name").getText());
+            window.executeCommand("delete 2");
+            assertEquals(BOB, window.getStudentListPanel().getSelectedStudent());
+            assertEquals("Bob Tan", label("name").getText());
+            assertEquals("2. ", label("id").getText());
+            window.executeCommand("list g/T01");
+            window.executeCommand("delete 2");
+            assertEquals(CARA, window.getStudentListPanel().getSelectedStudent());
+            assertEquals("Cara Lim", label("name").getText());
+            assertEquals(List.of(BOB, ALICE, CARA), logic.getStudentList());
+            assertThrows(CommandException.class, () -> window.executeCommand("delete 99"));
+            assertEquals(CARA, window.getStudentListPanel().getSelectedStudent());
+        });
+    }
+
+    @Test
     public void initialView_showsAllStudentsAndAllGroupsWithoutSelectedDetails() throws Exception {
         runOnFxThread(() -> {
             assertEquals(List.of(BOB, ALICE, CARA), studentList().getItems());

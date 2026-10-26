@@ -49,6 +49,7 @@ public class EditCommand extends Command {
             + "[" + PREFIX_EMAIL + "EMAIL] "
             + "[" + PREFIX_ADDRESS + "ADDRESS] "
             + "[" + PREFIX_TAG + "TAG]...\n"
+            + "Use p/, e/, or a/ without a value to clear that optional contact detail.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567 "
             + PREFIX_EMAIL + "johndoe@example.com";
@@ -104,9 +105,12 @@ public class EditCommand extends Command {
                 .orElse(studentToEdit.getMatricNumber());
         TutorialGroup updatedTutorialGroup = editStudentDescriptor.getTutorialGroup()
                 .orElse(studentToEdit.getTutorialGroup());
-        Phone updatedPhone = editStudentDescriptor.getPhone().orElse(studentToEdit.getPhone());
-        Email updatedEmail = editStudentDescriptor.getEmail().orElse(studentToEdit.getEmail());
-        Address updatedAddress = editStudentDescriptor.getAddress().orElse(studentToEdit.getAddress());
+        Phone updatedPhone = editStudentDescriptor.phoneEdited
+                ? editStudentDescriptor.phone : studentToEdit.getPhone();
+        Email updatedEmail = editStudentDescriptor.emailEdited
+                ? editStudentDescriptor.email : studentToEdit.getEmail();
+        Address updatedAddress = editStudentDescriptor.addressEdited
+                ? editStudentDescriptor.address : studentToEdit.getAddress();
         Set<Tag> updatedTags = editStudentDescriptor.getTags().orElse(studentToEdit.getTags());
 
         return new Student(updatedName, updatedMatricNumber, updatedTutorialGroup,
@@ -138,8 +142,8 @@ public class EditCommand extends Command {
     }
 
     /**
-     * Stores the details to edit the student with. Each non-empty field value will replace the
-     * corresponding field value of the student.
+     * Stores requested edits. Contact fields distinguish omission (keep the old value) from
+     * an explicit null (clear the value).
      */
     public static class EditStudentDescriptor {
         private Name name;
@@ -148,6 +152,9 @@ public class EditCommand extends Command {
         private Phone phone;
         private Email email;
         private Address address;
+        private boolean phoneEdited;
+        private boolean emailEdited;
+        private boolean addressEdited;
         private Set<Tag> tags;
 
         public EditStudentDescriptor() {}
@@ -164,13 +171,17 @@ public class EditCommand extends Command {
             setEmail(toCopy.email);
             setAddress(toCopy.address);
             setTags(toCopy.tags);
+            phoneEdited = toCopy.phoneEdited;
+            emailEdited = toCopy.emailEdited;
+            addressEdited = toCopy.addressEdited;
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, matricNumber, tutorialGroup, phone, email, address, tags);
+            return CollectionUtil.isAnyNonNull(name, matricNumber, tutorialGroup, tags)
+                    || phoneEdited || emailEdited || addressEdited;
         }
 
         public void setName(Name name) {
@@ -197,24 +208,30 @@ public class EditCommand extends Command {
             return Optional.ofNullable(tutorialGroup);
         }
 
+        /** Requests replacement of the phone, or clearing it when {@code phone} is null. */
         public void setPhone(Phone phone) {
             this.phone = phone;
+            phoneEdited = true;
         }
 
         public Optional<Phone> getPhone() {
             return Optional.ofNullable(phone);
         }
 
+        /** Requests replacement of the email, or clearing it when {@code email} is null. */
         public void setEmail(Email email) {
             this.email = email;
+            emailEdited = true;
         }
 
         public Optional<Email> getEmail() {
             return Optional.ofNullable(email);
         }
 
+        /** Requests replacement of the address, or clearing it when {@code address} is null. */
         public void setAddress(Address address) {
             this.address = address;
+            addressEdited = true;
         }
 
         public Optional<Address> getAddress() {
@@ -255,6 +272,9 @@ public class EditCommand extends Command {
                     && Objects.equals(phone, otherEditStudentDescriptor.phone)
                     && Objects.equals(email, otherEditStudentDescriptor.email)
                     && Objects.equals(address, otherEditStudentDescriptor.address)
+                    && phoneEdited == otherEditStudentDescriptor.phoneEdited
+                    && emailEdited == otherEditStudentDescriptor.emailEdited
+                    && addressEdited == otherEditStudentDescriptor.addressEdited
                     && Objects.equals(tags, otherEditStudentDescriptor.tags);
         }
 
