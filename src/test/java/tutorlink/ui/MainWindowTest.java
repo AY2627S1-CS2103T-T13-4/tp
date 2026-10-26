@@ -393,9 +393,11 @@ public class MainWindowTest {
             window.executeCommand("view 42");
         });
         assertVisibleStudentAfterPulse(41);
+        runOnFxThread(() -> window.executeCommand("view 21"));
+        assertVisibleStudentAfterPulse(20);
         runOnFxThread(() -> {
             window.executeCommand("view 42");
-            window.executeCommand("view 1"); // supersede the pending scroll before the next pulse
+            window.executeCommand("view 1"); // replace the earlier target before the next pulse
         });
         assertVisibleStudentAfterPulse(0);
     }
