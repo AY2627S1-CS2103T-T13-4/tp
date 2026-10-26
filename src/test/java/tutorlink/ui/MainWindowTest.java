@@ -560,16 +560,28 @@ public class MainWindowTest {
     }
 
     private void assertVisibleStudentAfterPulse(int index) throws Exception {
-        // VirtualFlow creates visible cells during a pulse after scroll/layout changes.
-        // Yield the FX thread rather than asserting against cells from the previous viewport.
+        // VirtualFlow can need multiple pulses to measure wrapped rows after a filter change.
+        // Wait for the observable viewport state, with a deadline, rather than a fixed delay.
         CountDownLatch laidOut = new CountDownLatch(1);
-        Runnable listener = laidOut::countDown;
+        Runnable listener = () -> {
+            boolean visible = studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
+                    .map(ListCell.class::cast).filter(cell -> cell.getIndex() == index && !cell.isEmpty())
+                    .anyMatch(cell -> {
+                        var bounds = studentList().sceneToLocal(cell.localToScene(cell.getBoundsInLocal()));
+                        return bounds.getMaxY() > 0 && bounds.getMinY() < studentList().getHeight();
+                    });
+            if (visible) {
+                laidOut.countDown();
+            } else {
+                Platform.requestNextPulse();
+            }
+        };
         runOnFxThread(() -> {
             stage.getScene().addPostLayoutPulseListener(listener);
             Platform.requestNextPulse();
         });
         try {
-            assertTrue(laidOut.await(5, TimeUnit.SECONDS), "The scene should complete its layout pulse");
+            laidOut.await(5, TimeUnit.SECONDS);
             runOnFxThread(() -> assertVisibleStudent(index));
         } finally {
             runOnFxThread(() -> stage.getScene().removePostLayoutPulseListener(listener));

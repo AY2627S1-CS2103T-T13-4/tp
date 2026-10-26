@@ -40,11 +40,6 @@ public class StudentListPanel extends UiPart<Region> {
     public void showStudent(Student student) {
         studentListView.getSelectionModel().clearSelection();
         restoreSelection(student);
-        // Filtering/reordering can leave cached heights associated with the old rows.
-        // Rebuild and lay out the cells before scrolling to the requested displayed index.
-        studentListView.refresh();
-        studentListView.applyCss();
-        studentListView.layout();
         studentListView.scrollTo(studentListView.getSelectionModel().getSelectedIndex());
     }
 
