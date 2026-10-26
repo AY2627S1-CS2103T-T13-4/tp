@@ -538,9 +538,15 @@ public class MainWindowTest {
     }
 
     private ListCell<?> studentCell(int index) {
+        String visibleIndices = studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
+                .map(ListCell.class::cast).filter(cell -> !cell.isEmpty())
+                .map(cell -> Integer.toString(cell.getIndex())).collect(Collectors.joining(", "));
         return studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
                 .map(ListCell.class::cast).filter(cell -> cell.getIndex() == index && !cell.isEmpty())
-                .findFirst().orElseThrow();
+                .findFirst().orElseThrow(() -> new AssertionError("Missing rendered row " + index
+                        + "; rendered rows=" + visibleIndices + "; list height=" + studentList().getHeight()
+                        + "; selected=" + studentList().getSelectionModel().getSelectedIndex()
+                        + "; filter=" + logic.getFilterDescription()));
     }
 
     private void assertVisibleStudent(int index) {
