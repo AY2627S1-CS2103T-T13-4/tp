@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
@@ -23,6 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.geometry.Point3D;
@@ -378,22 +381,20 @@ public class MainWindowTest {
                         .withTutorialGroup("T01").build());
             }
             window.executeCommand("view 43");
-            layout();
-            assertVisibleStudent(42);
         });
+        assertVisibleStudentAfterPulse(42);
         runOnFxThread(() -> {
             window.executeCommand("sort name desc");
             window.executeCommand("view 43");
-            layout();
-            assertVisibleStudent(42);
+        });
+        assertVisibleStudentAfterPulse(42);
+        runOnFxThread(() -> {
             window.executeCommand("list g/T01");
             window.executeCommand("view 42");
-            layout();
-            assertVisibleStudent(41);
-            window.executeCommand("view 1");
-            layout();
-            assertVisibleStudent(0);
         });
+        assertVisibleStudentAfterPulse(41);
+        runOnFxThread(() -> window.executeCommand("view 1"));
+        assertVisibleStudentAfterPulse(0);
     }
 
     @Test
@@ -550,6 +551,23 @@ public class MainWindowTest {
         Student expected = logic.getFilteredStudentList().get(index);
         assertEquals(expected.getName().fullName, ((Label) cell.getGraphic().lookup("#name")).getText());
         assertEquals(expected.getName().fullName, label("name").getText());
+    }
+
+    private void assertVisibleStudentAfterPulse(int index) throws Exception {
+        // VirtualFlow creates visible cells during a pulse after scroll/layout changes.
+        // Yield the FX thread rather than asserting against cells from the previous viewport.
+        CountDownLatch laidOut = new CountDownLatch(1);
+        Runnable listener = laidOut::countDown;
+        runOnFxThread(() -> {
+            stage.getScene().addPostLayoutPulseListener(listener);
+            Platform.requestNextPulse();
+        });
+        try {
+            assertTrue(laidOut.await(5, TimeUnit.SECONDS), "The scene should complete its layout pulse");
+            runOnFxThread(() -> assertVisibleStudent(index));
+        } finally {
+            runOnFxThread(() -> stage.getScene().removePostLayoutPulseListener(listener));
+        }
     }
 
     private Set<String> groupLabels() {
