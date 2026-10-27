@@ -18,6 +18,8 @@ public class StudentCard extends UiPart<Region> {
 
     private static final String FXML = "StudentListCard.fxml";
     private static final String NOT_PROVIDED = "Not provided";
+    private static final int MAX_DISPLAYED_REMARK_LENGTH = 160;
+    private static final String REMARK_ELLIPSIS = "...";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -64,7 +66,7 @@ public class StudentCard extends UiPart<Region> {
         tutorialGroup.setText("Group: " + student.getTutorialGroup().value);
         followUp.setText("Follow-up: " + (student.requiresFollowUp() ? "Required" : "Not required"));
         String remarkText = student.getRemark() == null ? NOT_PROVIDED : student.getRemark();
-        remark.setText("Remark: " + remarkText);
+        remark.setText("Remark: " + truncateRemark(remarkText));
         remark.setWrapText(true);
         remark.setMaxWidth(Double.MAX_VALUE);
         if (student.getRemark() != null) {
@@ -85,6 +87,16 @@ public class StudentCard extends UiPart<Region> {
                     tagLabel.setTooltip(new Tooltip(tag.tagName));
                     tags.getChildren().add(tagLabel);
                 });
+    }
+
+    /**
+     * Returns a bounded preview for a remark while keeping the complete value available in the tooltip.
+     */
+    private String truncateRemark(String remarkText) {
+        if (remarkText.length() <= MAX_DISPLAYED_REMARK_LENGTH) {
+            return remarkText;
+        }
+        return remarkText.substring(0, MAX_DISPLAYED_REMARK_LENGTH - REMARK_ELLIPSIS.length()) + REMARK_ELLIPSIS;
     }
 
 }

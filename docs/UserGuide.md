@@ -336,6 +336,7 @@ Format: `remark INDEX r/REMARK`
 * Use `r/` without text to clear the student's current remark.
 * TutorLink stores one current remark. It does not keep a history of previous remarks.
 * Existing remarks, tags, and follow-up status are preserved when other student fields are edited.
+* Very long remarks are shown as a bounded preview in the student card. Hover over the preview to see the full remark.
 
 Examples:
 * `remark 1 r/Needs help with recursion` sets the 1st student's remark.

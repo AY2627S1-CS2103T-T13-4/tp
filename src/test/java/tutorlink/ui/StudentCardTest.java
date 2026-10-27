@@ -73,6 +73,21 @@ public class StudentCardTest {
     }
 
     @Test
+    public void constructor_withVeryLongRemark_truncatesPreviewAndKeepsFullTooltip() throws Exception {
+        String longRemark = "x".repeat(200);
+
+        runOnFxThread(() -> {
+            StudentCard studentCard = new StudentCard(new StudentBuilder().withRemark(longRemark).build(), 1);
+            Label remark = (Label) studentCard.getRoot().lookup("#remark");
+            assertNotNull(remark);
+            assertEquals("Remark: " + "x".repeat(157) + "...", remark.getText());
+            assertEquals("Remark: ".length() + 160, remark.getText().length());
+            assertNotNull(remark.getTooltip());
+            assertEquals(longRemark, remark.getTooltip().getText());
+        });
+    }
+
+    @Test
     public void runOnFxThread_assertionFails_reportsOriginalFailure() {
         AssertionError failure = new AssertionError("Original JavaFX assertion failure");
         assertSame(failure, assertThrows(AssertionError.class, () -> runOnFxThread(() -> {

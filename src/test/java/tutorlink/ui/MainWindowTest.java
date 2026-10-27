@@ -483,7 +483,7 @@ public class MainWindowTest {
             window.executeCommand("remark 1 r/" + "Discuss recursion before the next tutorial. ".repeat(100));
             window.executeCommand("remark 2 r/" + "Prepare an example for the next meeting. ".repeat(100));
             window.executeCommand("edit 2 a/" + "A long address ".repeat(100) + " t/" + "LongTag".repeat(60));
-            studentList().getSelectionModel().select(0);
+            studentList().getSelectionModel().select(1);
             stage.setWidth(960);
             SplitPane workspace = (SplitPane) lookup("workspace");
             workspace.setDividerPositions(0.2, 0.65);
@@ -491,13 +491,17 @@ public class MainWindowTest {
             assertTrue(detailsScroll().getContent().getBoundsInLocal().getHeight()
                     > detailsScroll().getViewportBounds().getHeight());
             detailsScroll().setVvalue(1);
-            studentList().getSelectionModel().select(1);
+            studentList().getSelectionModel().select(0);
             layout();
             assertEquals(0, detailsScroll().getVvalue());
+            studentList().getSelectionModel().select(1);
+            layout();
             Label remark = label("remark");
             Label address = label("address");
             Label tag = (Label) detailsScroll().getContent().lookup("#tags").lookup(".label");
-            assertTrue(remark.getHeight() > 100);
+            assertTrue(remark.getText().endsWith("..."));
+            assertEquals("Prepare an example for the next meeting. ".repeat(100).trim(),
+                    remark.getTooltip().getText());
             assertTrue(address.getHeight() > 100);
             assertTrue(tag.getHeight() > 20, "Long tag height=" + tag.getHeight()
                     + ", width=" + tag.getWidth() + ", prefHeight=" + tag.prefHeight(tag.getWidth())

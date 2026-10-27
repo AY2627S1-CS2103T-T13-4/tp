@@ -86,6 +86,10 @@ This view-only result does not write roster data. After each command, `MainWindo
 selection across record replacements if that student remains visible, and otherwise clears the details. Three resizable
 columns separate group navigation, student summaries, and full details.
 
+`StudentCard` displays a bounded preview for remarks longer than 160 characters and attaches the complete remark as a
+tooltip. This keeps long free-text notes from making the details card unreasonably tall while preserving access to the
+stored value.
+
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/ui/MainWindow.java).
 
 The `UI` component,
