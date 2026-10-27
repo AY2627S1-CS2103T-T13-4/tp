@@ -11,6 +11,8 @@ import tutorlink.model.StudentDirectory;
 public class ClearCommand extends Command {
 
     public static final String COMMAND_WORD = "clear";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Deletes all student records.\n"
+            + "Example: " + COMMAND_WORD;
     public static final String MESSAGE_SUCCESS = "All student records have been cleared!";
 
 

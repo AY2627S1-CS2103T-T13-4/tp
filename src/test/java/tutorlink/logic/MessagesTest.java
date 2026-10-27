@@ -10,6 +10,7 @@ import tutorlink.model.student.MatricNumber;
 import tutorlink.model.student.Name;
 import tutorlink.model.student.Student;
 import tutorlink.model.student.TutorialGroup;
+import tutorlink.model.tag.Tag;
 
 public class MessagesTest {
 
@@ -24,5 +25,16 @@ public class MessagesTest {
         assertTrue(result.contains("Phone: Not provided"));
         assertTrue(result.contains("Email: Not provided"));
         assertTrue(result.contains("Address: Not provided"));
+        assertTrue(result.contains("Tags: Not provided"));
+    }
+
+    @Test
+    public void format_multipleTags_separatesAndSortsTags() {
+        Student student = new Student(new Name("Alice Tan"), new MatricNumber("A0123456X"),
+                new TutorialGroup("T04"), null, null, null, Set.of(new Tag("urgent"), new Tag("needsHelp")));
+
+        String result = Messages.format(student);
+
+        assertTrue(result.contains("Tags: needsHelp, urgent"));
     }
 }

@@ -89,8 +89,7 @@ Attendance tracking and participation records are future enhancements and are no
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
   Positional arguments in `sort name [asc|desc]` and `sort group [asc|desc]` must follow the order shown.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Commands that take no parameters, such as `help`, `exit`, and `clear`, reject extraneous arguments.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -402,11 +401,15 @@ Clears all student records from TutorLink.
 
 Format: `clear`
 
+Extra arguments are rejected.
+
 ### Exiting the program: `exit`
 
 Exits the program.
 
 Format: `exit`
+
+Extra arguments are rejected.
 
 ### Saving the data
 
