@@ -1,5 +1,6 @@
 package tutorlink.logic.commands;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static tutorlink.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static tutorlink.testutil.TypicalStudents.getTypicalStudentDirectory;
 
@@ -23,10 +24,12 @@ public class ClearCommandTest {
     @Test
     public void execute_nonEmptyStudentDirectory_success() {
         Model model = new ModelManager(getTypicalStudentDirectory(), new UserPrefs());
+        model.updateFilteredStudentList(student -> false, "Tutorial group: T99");
         Model expectedModel = new ModelManager(getTypicalStudentDirectory(), new UserPrefs());
         expectedModel.setStudentDirectory(new StudentDirectory());
 
         assertCommandSuccess(new ClearCommand(), model, ClearCommand.MESSAGE_SUCCESS, expectedModel);
+        assertEquals("All students", model.getFilterDescription());
     }
 
 }
