@@ -73,6 +73,21 @@ public class MainAppTest {
     }
 
     @Test
+    public void initModelManager_nullTag_stopsStartupAndPreservesOriginal() throws Exception {
+        Path dataFile = temporaryFolder.resolve("tutorlink.json");
+        String originalData = """
+                {"students":[{"name":"Protected Student","matricNumber":"A2000005E",
+                  "tutorialGroup":"T01","tags":[null]}]}
+                """;
+        Files.writeString(dataFile, originalData);
+        StorageManager storage = new StorageManager(new JsonStudentDirectoryStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("preferences.json")));
+
+        assertThrows(IllegalStateException.class, () -> MainApp.initModelManager(storage, new UserPrefs()));
+        assertEquals(originalData, Files.readString(dataFile));
+    }
+
+    @Test
     public void initModelManager_incompatibleOldFile_preservesOriginal() throws Exception {
         Path dataFile = temporaryFolder.resolve("tutorlink.json");
         String oldData = "{\"students\":[{\"name\":\"Alice Tan\",\"phone\":\"98765432\","

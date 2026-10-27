@@ -11,6 +11,7 @@ import static tutorlink.testutil.TypicalStudents.DANIEL;
 import static tutorlink.testutil.TypicalStudents.getTypicalStudentDirectory;
 import static tutorlink.testutil.TypicalStudents.getTypicalStudents;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -46,9 +47,10 @@ public class FindTagCommandIntegrationTest {
     private JsonStudentDirectoryStorage studentDirectoryStorage;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws IOException {
         model = new ModelManager(getTypicalStudentDirectory(), new UserPrefs());
         studentDirectoryStorage = new JsonStudentDirectoryStorage(temporaryFolder.resolve("studentDirectory.json"));
+        studentDirectoryStorage.saveStudentDirectory(model.getStudentDirectory());
         logic = createLogic();
     }
 

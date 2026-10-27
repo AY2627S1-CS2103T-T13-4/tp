@@ -3,6 +3,7 @@ package tutorlink.ui;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.Region;
 import tutorlink.logic.commands.CommandResult;
 import tutorlink.logic.commands.exceptions.CommandException;
@@ -27,6 +28,11 @@ public class CommandBox extends UiPart<Region> {
     public CommandBox(CommandExecutor commandExecutor) {
         super(FXML);
         this.commandExecutor = commandExecutor;
+        // TextField otherwise removes tabs, merging pasted parameters before the parser sees them.
+        commandTextField.setTextFormatter(new TextFormatter<>(change -> {
+            change.setText(change.getText().replace('\t', ' '));
+            return change;
+        }));
         // calls #setStyleToDefault() whenever there is a change to the text of the command box.
         commandTextField.textProperty().addListener((unused1, unused2, unused3) -> setStyleToDefault());
     }

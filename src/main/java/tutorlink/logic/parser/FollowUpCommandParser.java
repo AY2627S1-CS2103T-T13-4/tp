@@ -14,15 +14,24 @@ public class FollowUpCommandParser implements Parser<FollowUpCommand> {
     @Override
     public FollowUpCommand parse(String args) throws ParseException {
         requireNonNull(args);
-        String[] parts = args.trim().split("\\s+");
-        if (parts.length != 2 || !("on".equals(parts[1]) || "done".equals(parts[1]))) {
+        String[] arguments = args.trim().split("\\s+");
+        if (arguments.length != 2) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FollowUpCommand.MESSAGE_USAGE));
         }
         try {
-            Index index = ParserUtil.parseIndex(parts[0]);
-            return new FollowUpCommand(index, "on".equals(parts[1]));
+            Index index = ParserUtil.parseIndex(arguments[0]);
+            boolean requiresFollowUp = parseAction(arguments[1]);
+            return new FollowUpCommand(index, requiresFollowUp);
         } catch (ParseException pe) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FollowUpCommand.MESSAGE_USAGE), pe);
         }
+    }
+
+    private boolean parseAction(String action) throws ParseException {
+        return switch (action) {
+            case "on" -> true;
+            case "done" -> false;
+            default -> throw new ParseException("The follow-up action must be on or done.");
+        };
     }
 }

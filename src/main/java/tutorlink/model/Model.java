@@ -36,6 +36,12 @@ public interface Model {
     /** Returns the StudentDirectory */
     ReadOnlyStudentDirectory getStudentDirectory();
 
+    /** Returns a snapshot of the roster, filter and sorting before a command. */
+    ModelSnapshot createSnapshot();
+
+    /** Restores the roster and view after a command could not be saved. */
+    void restoreSnapshot(ModelSnapshot snapshot);
+
     /**
      * Returns true if a student with the same identity as {@code student} exists in the student directory.
      */

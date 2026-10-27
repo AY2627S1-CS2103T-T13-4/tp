@@ -18,6 +18,7 @@ import tutorlink.commons.core.GuiSettings;
 import tutorlink.logic.Messages;
 import tutorlink.logic.commands.exceptions.CommandException;
 import tutorlink.model.Model;
+import tutorlink.model.ModelSnapshot;
 import tutorlink.model.ReadOnlyStudentDirectory;
 import tutorlink.model.ReadOnlyUserPrefs;
 import tutorlink.model.StudentDirectory;
@@ -88,6 +89,16 @@ public class AddCommandTest {
      * A default model stub that has all of the methods failing.
      */
     private class ModelStub implements Model {
+        @Override
+        public ModelSnapshot createSnapshot() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void restoreSnapshot(ModelSnapshot snapshot) {
+            throw new AssertionError("This method should not be called.");
+        }
+
         @Override
         public ReadOnlyUserPrefs getUserPrefs() {
             throw new AssertionError("This method should not be called.");

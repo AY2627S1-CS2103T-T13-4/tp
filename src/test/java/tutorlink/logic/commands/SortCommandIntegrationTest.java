@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static tutorlink.logic.Messages.MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX;
 import static tutorlink.testutil.Assert.assertThrows;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -50,11 +51,12 @@ public class SortCommandIntegrationTest {
     private JsonStudentDirectoryStorage studentDirectoryStorage;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws IOException {
         StudentDirectory directory = new StudentDirectory();
         directory.setStudents(ORIGINAL_ORDER);
         model = new ModelManager(directory, new UserPrefs());
         studentDirectoryStorage = new JsonStudentDirectoryStorage(temporaryFolder.resolve("students.json"));
+        studentDirectoryStorage.saveStudentDirectory(model.getStudentDirectory());
         logic = new LogicManager(model, new StorageManager(studentDirectoryStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
     }

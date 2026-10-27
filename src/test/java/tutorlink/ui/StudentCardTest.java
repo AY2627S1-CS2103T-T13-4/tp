@@ -5,23 +5,21 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static tutorlink.testutil.JavaFxTestUtil.runOnFxThread;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import javafx.application.Platform;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import tutorlink.model.student.Student;
+import tutorlink.testutil.JavaFxTestUtil;
 import tutorlink.testutil.StudentBuilder;
 
 /**
@@ -30,27 +28,20 @@ import tutorlink.testutil.StudentBuilder;
 public class StudentCardTest {
     @BeforeAll
     public static void initializeJavaFx() throws Exception {
-        FutureTask<Void> initialized = new FutureTask<>(() -> null);
-        try {
-            Platform.startup(initialized);
-        } catch (IllegalStateException e) {
-            // Another UI test has initialized the toolkit; wait on its application thread instead.
-            Platform.runLater(initialized);
-        }
-        initialized.get(10, TimeUnit.SECONDS);
+        JavaFxTestUtil.initialize();
     }
 
     @Test
     public void initializeJavaFx_toolkitAlreadyStarted_reusesToolkit() throws Exception {
         initializeJavaFx();
-        onJavaFxThread(() -> assertEquals("Ready", new Label("Ready").getText()));
+        runOnFxThread(() -> assertEquals("Ready", new Label("Ready").getText()));
     }
 
     @Test
     public void constructor_withRemark_displaysRemark() throws Exception {
         Student student = new StudentBuilder().withRemark("Needs help with recursion").build();
 
-        onJavaFxThread(() -> {
+        runOnFxThread(() -> {
             StudentCard studentCard = new StudentCard(student, 1);
             assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Needs help with recursion"));
         });
@@ -60,7 +51,7 @@ public class StudentCardTest {
     public void constructor_withoutRemark_displaysNotProvided() throws Exception {
         Student student = new StudentBuilder().build();
 
-        onJavaFxThread(() -> {
+        runOnFxThread(() -> {
             StudentCard studentCard = new StudentCard(student, 1);
             assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Not provided"));
         });
@@ -71,7 +62,7 @@ public class StudentCardTest {
         String longRemark = "Discuss recursion and file access modes with the student";
         Student student = new StudentBuilder().withRemark(longRemark).build();
 
-        onJavaFxThread(() -> {
+        runOnFxThread(() -> {
             StudentCard studentCard = new StudentCard(student, 1);
             Label remark = (Label) studentCard.getRoot().lookup("#remark");
             assertNotNull(remark);
@@ -82,9 +73,9 @@ public class StudentCardTest {
     }
 
     @Test
-    public void onJavaFxThread_assertionFails_reportsOriginalFailure() {
+    public void runOnFxThread_assertionFails_reportsOriginalFailure() {
         AssertionError failure = new AssertionError("Original JavaFX assertion failure");
-        assertSame(failure, assertThrows(AssertionError.class, () -> onJavaFxThread(() -> {
+        assertSame(failure, assertThrows(AssertionError.class, () -> runOnFxThread(() -> {
             throw failure;
         })));
     }
@@ -92,7 +83,7 @@ public class StudentCardTest {
     @Test
     public void constructor_markedStudent_showsRequiredStatusAndRetainsProfile() throws Exception {
         Student student = new StudentBuilder(ALICE).withFollowUp(true).withTags("zebra", "alpha").build();
-        onJavaFxThread(() -> {
+        runOnFxThread(() -> {
             StudentCard card = new StudentCard(student, 2);
             assertSame(student, card.student);
             assertLabel(card, "id", "2. ");
@@ -114,7 +105,7 @@ public class StudentCardTest {
         Student marked = new Student(ALICE.getName(), ALICE.getMatricNumber(), ALICE.getTutorialGroup(),
                 null, null, null, Set.of(), "Retain context", true);
         Student completed = marked.withFollowUp(false);
-        onJavaFxThread(() -> {
+        runOnFxThread(() -> {
             StudentCard card = new StudentCard(completed, 1);
             assertSame(completed, card.student);
             assertLabel(card, "followUp", "Follow-up: Not required");
@@ -130,23 +121,6 @@ public class StudentCardTest {
         Label label = (Label) card.getRoot().lookup("#" + id);
         assertNotNull(label);
         assertEquals(text, label.getText());
-    }
-
-    private void onJavaFxThread(Runnable assertions) throws Exception {
-        FutureTask<Void> task = new FutureTask<>(assertions, null);
-        Platform.runLater(task);
-        try {
-            task.get(10, TimeUnit.SECONDS);
-        } catch (ExecutionException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof Error error) {
-                throw error;
-            }
-            if (cause instanceof Exception exception) {
-                throw exception;
-            }
-            throw new AssertionError(cause);
-        }
     }
 
     private boolean containsLabelWithText(Node node, String expectedText) {

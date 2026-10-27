@@ -36,7 +36,7 @@ public class ModelManager implements Model {
 
         this.studentDirectory = new StudentDirectory(studentDirectory);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredStudents = new FilteredList<>(this.studentDirectory.getStudentList());
+        filteredStudents = new FilteredList<>(this.studentDirectory.getStudentList(), PREDICATE_SHOW_ALL_STUDENTS);
         sortedStudents = new SortedList<>(filteredStudents);
     }
 
@@ -73,6 +73,21 @@ public class ModelManager implements Model {
     @Override
     public ReadOnlyStudentDirectory getStudentDirectory() {
         return studentDirectory;
+    }
+
+    @Override
+    public ModelSnapshot createSnapshot() {
+        return new ModelSnapshot(studentDirectory.getStudentList(), filteredStudents.getPredicate(),
+                sortOrder, filterDescription);
+    }
+
+    @Override
+    public void restoreSnapshot(ModelSnapshot snapshot) {
+        requireNonNull(snapshot);
+        filterDescription = snapshot.filterDescription();
+        filteredStudents.setPredicate(snapshot.predicate());
+        studentDirectory.setStudents(snapshot.students());
+        sortStudents(snapshot.sortOrder());
     }
 
     @Override

@@ -43,8 +43,8 @@ public class JsonAdaptedStudentTest {
 
     @Test
     public void toModelType_followUpStatus_roundTripsBothStatesWithRemarkAndTags() throws Exception {
-        for (boolean status : new boolean[]{true, false}) {
-            Student original = BENSON.withRemark("Retain context").withFollowUp(status);
+        for (boolean requiresFollowUp : new boolean[]{true, false}) {
+            Student original = BENSON.withRemark("Retain context").withFollowUp(requiresFollowUp);
             assertEquals(original, new JsonAdaptedStudent(original).toModelType());
         }
     }
@@ -176,6 +176,16 @@ public class JsonAdaptedStudentTest {
                 new JsonAdaptedStudent(VALID_NAME, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
                         VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, invalidTags);
         assertThrows(IllegalValueException.class, student::toModelType);
+    }
+
+    @Test
+    public void toModelType_nullTagEntry_throwsIllegalValueException() {
+        List<JsonAdaptedTag> tagsWithNull = new ArrayList<>(VALID_TAGS);
+        tagsWithNull.add(null);
+        JsonAdaptedStudent student = new JsonAdaptedStudent(VALID_NAME, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
+                VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, tagsWithNull);
+
+        assertThrows(IllegalValueException.class, JsonAdaptedStudent.MESSAGE_NULL_TAG, student::toModelType);
     }
 
 }

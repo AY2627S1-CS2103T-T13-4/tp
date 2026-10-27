@@ -25,6 +25,7 @@ import tutorlink.model.tag.Tag;
 class JsonAdaptedStudent {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Student's %s field is missing!";
+    public static final String MESSAGE_NULL_TAG = "Student tags must not contain null entries.";
     private static final String LEGACY_TUTORIAL_GROUP_REGEX = "[TLtl][0-9]";
 
     private final String name;
@@ -102,6 +103,9 @@ class JsonAdaptedStudent {
     public Student toModelType() throws IllegalValueException {
         final List<Tag> studentTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
+            if (tag == null) {
+                throw new IllegalValueException(MESSAGE_NULL_TAG);
+            }
             studentTags.add(tag.toModelType());
         }
 
