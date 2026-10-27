@@ -77,7 +77,8 @@ public class ModelManager implements Model {
 
     @Override
     public ModelSnapshot createSnapshot() {
-        return new ModelSnapshot(studentDirectory, filteredStudents.getPredicate(), sortOrder, filterDescription);
+        return new ModelSnapshot(studentDirectory.getStudentList(), filteredStudents.getPredicate(),
+                sortOrder, filterDescription);
     }
 
     @Override
@@ -85,7 +86,7 @@ public class ModelManager implements Model {
         requireNonNull(snapshot);
         filterDescription = snapshot.filterDescription();
         filteredStudents.setPredicate(snapshot.predicate());
-        studentDirectory.resetData(snapshot.studentDirectory());
+        studentDirectory.setStudents(snapshot.students());
         sortStudents(snapshot.sortOrder());
     }
 

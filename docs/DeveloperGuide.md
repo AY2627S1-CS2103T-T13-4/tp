@@ -365,7 +365,7 @@ predicate, filter description, and sorting rule. It saves only if the command ch
 sorting, help, exit, selection changes, and repeated status updates therefore work without rewriting the roster.
 If saving throws an `IOException`, the model restores the snapshot before reporting the error. `MainWindow` restores
 the previous group highlight and student selection, so a rejected edit cannot be committed by a later `list` command.
-The snapshot reuses immutable students and predicates while copying the directory; rollback retains the observable
+The snapshot reuses immutable students and predicates while copying the roster list; rollback retains the observable
 lists already used by the UI. `LogicManagerTest` covers every mutating command, filter/sort preservation, and a failed
 edit followed by a read-only command. UI and packaged tests verify the selected profile and contact values.
 

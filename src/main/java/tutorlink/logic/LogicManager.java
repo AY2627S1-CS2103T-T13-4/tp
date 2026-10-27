@@ -49,7 +49,7 @@ public class LogicManager implements Logic {
         ModelSnapshot snapshot = model.createSnapshot();
         CommandResult commandResult = command.execute(model);
 
-        if (snapshot.studentDirectory().getStudentList().equals(model.getStudentDirectory().getStudentList())) {
+        if (snapshot.students().equals(model.getStudentDirectory().getStudentList())) {
             return commandResult;
         }
 

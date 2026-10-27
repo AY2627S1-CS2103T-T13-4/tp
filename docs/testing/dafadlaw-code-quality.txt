@@ -1,0 +1,113 @@
+Deron (dafadlaw): code-quality review
+Reviewed: 27 October 2026 (Asia/Singapore)
+
+Scope and method
+----------------
+Baseline: b736d35bb7c646ceb55218ae9dae45e1d1c60d55 (team master before PR #122).
+Reviewed the 925 currently attributed lines in 27 tracked production, test, FXML,
+and verification-script files listed below, with their surrounding methods.
+Ownership was identified using Git blame and the dafadlaw author email, then
+cross-checked against the author's commit history, including renamed delete files.
+These counts describe surviving authored lines, not total historical contribution.
+This is a review of the current code, not a claim that every historical revision
+or every teammate's code satisfies every subjective quality guideline.
+
+Guidance used
+-------------
+SE-EDU Java coding standard:
+https://se-education.org/guides/conventions/java/basic.html
+Course code-quality guidance, including Single Level of Abstraction (SLAP):
+https://nus-cs2103-ay2627-s1.github.io/website/se-book-adapted/chapters/codeQuality.html
+The repository's Checkstyle configuration and existing JavaFX/test conventions
+were applied in addition to manual review of naming, method length, nesting,
+duplication, cohesive responsibilities, guard clauses, comments and error handling.
+
+Findings and changes
+--------------------
+1. PackagedSmoke mixed application startup, phase dispatch and long inline
+   acceptance workflows. Its follow-up workflow combined three process phases.
+   Extracted named workflows and verification steps; dispatch now describes the
+   test phases while helpers contain their commands and assertions. Existing
+   acceptance checks remain in place. This addresses SLAP and method length.
+
+2. StudentCardTest duplicated JavaFX initialization and exception-unwrapping code
+   already available in JavaFxTestUtil. Reused the shared helpers while retaining
+   coverage that checks original failures and reuse of an initialized toolkit.
+   This removes duplication and keeps the tests focused on student-card behavior.
+
+3. FollowUpCommandParser combined the argument-count check with a nested negative
+   action expression. Separated action parsing into a small switch, gave parsed
+   arguments descriptive names and retained the existing usage-error contract.
+   The storage round-trip test's boolean is now named requiresFollowUp.
+
+4. The shared persistence layer left mutations in memory after a failed save and
+   wrote records for help/exit and other commands that did not change them.
+   Introduced a small immutable ModelSnapshot of the roster list and view state.
+   LogicManager orchestrates execution, change detection and saving; the model
+   restores state on IO errors. The UI restores the original selection/highlight.
+   List.copyOf avoids duplicate roster validation on every command. Snapshot
+   creation and restoration preserve the existing observable lists used by the UI.
+
+5. Null tag entries in saved data bypassed checked validation with an NPE.
+   Added explicit tag-entry validation so the existing protective startup path
+   handles this input. Added storage/startup and packaged regressions.
+
+6. JavaFX removed tab separators before parsing commands. A TextFormatter now
+   normalizes them to spaces before they can concatenate adjacent field values.
+   UI and packaged checks verify the actual address/email values and saved data.
+
+Other authored code reviewed
+----------------------------
+- Delete commands/parsing: current displayed indices, validation before mutation,
+  explicit confirmation and side-effect-free preview remain clear and compact.
+- Follow-up commands: status changes preserve other fields; no-op actions explain
+  the current status. Filters and displayed indices are respected.
+- Student transformations: immutable copies retain remark/status/contact/tag data;
+  identity remains separate from full data equality and hashCode.
+- JSON adaptation: older missing/null follow-up flags retain the documented false
+  default. New nested-tag validation uses the normal data-loading error contract.
+- Remaining parsers, builder methods, tests and FXML: reviewed naming, contracts,
+  assertions, field preservation and consistency with existing project structure.
+  No additional blocking finding was identified in this reviewed scope.
+
+Integration and validation
+--------------------------
+Issue #119 is resolved by teammate PR #122, merged at 082d2506. The fix branch
+includes that change and adds a packaged check that clearing a group filter leaves
+both the active-condition label and sidebar on All Students.
+Regression tests cover every mutating command on save failure, original filter and
+sort restoration, selected profile recovery, help/exit without writes, tab input,
+null-tag startup protection and failed-edit-then-list persistence.
+Fixtures that previously depended on list/sort writing data now save explicitly.
+The uncommitted assert false in the original checkout's Main.java was removed at
+the user's request; it was not present in the PR's base or added to this branch.
+
+Authored-file inventory at baseline (current attributed lines)
+-------------------------------------------------------------
+  61  .github/PackagedSmoke.java
+  19  .github/smoke-test.py
+  25  src/main/java/tutorlink/logic/commands/DeleteCommand.java
+   2  src/main/java/tutorlink/logic/commands/EditCommand.java
+  78  src/main/java/tutorlink/logic/commands/FollowUpCommand.java
+  34  src/main/java/tutorlink/logic/commands/FollowUpsCommand.java
+  10  src/main/java/tutorlink/logic/parser/DeleteCommandParser.java
+  28  src/main/java/tutorlink/logic/parser/FollowUpCommandParser.java
+  21  src/main/java/tutorlink/logic/parser/FollowUpsCommandParser.java
+   4  src/main/java/tutorlink/logic/parser/TutorLinkParser.java
+  31  src/main/java/tutorlink/model/student/Student.java
+  14  src/main/java/tutorlink/storage/JsonAdaptedStudent.java
+   3  src/main/java/tutorlink/ui/StudentCard.java
+   1  src/main/resources/view/StudentListCard.fxml
+  26  src/test/java/tutorlink/logic/commands/DeleteCommandTest.java
+   2  src/test/java/tutorlink/logic/commands/FindCommandIntegrationTest.java
+ 178  src/test/java/tutorlink/logic/commands/FollowUpCommandIntegrationTest.java
+ 112  src/test/java/tutorlink/logic/commands/FollowUpCommandTest.java
+  79  src/test/java/tutorlink/logic/commands/FollowUpsCommandTest.java
+  11  src/test/java/tutorlink/logic/parser/DeleteCommandParserTest.java
+  38  src/test/java/tutorlink/logic/parser/FollowUpCommandParserTest.java
+  32  src/test/java/tutorlink/logic/parser/FollowUpsCommandParserTest.java
+   5  src/test/java/tutorlink/logic/parser/TutorLinkParserTest.java
+  26  src/test/java/tutorlink/model/student/StudentTest.java
+  18  src/test/java/tutorlink/storage/JsonAdaptedStudentTest.java
+  11  src/test/java/tutorlink/testutil/StudentBuilder.java
+  56  src/test/java/tutorlink/ui/StudentCardTest.java

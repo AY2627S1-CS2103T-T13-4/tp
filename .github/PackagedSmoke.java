@@ -259,6 +259,12 @@ public class PackagedSmoke {
 
     private static void reportedAlphaWorkflow() throws Exception {
         command("clear", 0, false);
+        command("add n/Temporary Student m/A2000000A g/T01", 1, false);
+        command("list g/T01", 1, false);
+        command("clear", 0, false);
+        check(((Label) scene.lookup("#activeFilter")).getText().equals("All students"), "clear resets the filter");
+        check(((ListView<?>) scene.lookup("#groupListView")).getSelectionModel().getSelectedIndex() == 0,
+                "clear selects All Students consistently");
         command("add n/Alpha Student m/A2000001A g/T01 p/91234567", 1, false);
         command("add n/Beta Student m/A2000002B g/T02", 2, false);
         command("add n/Tab Student m/A2000003C g/T02 a/10 College Road\te/tab@example.com", 3, false);
