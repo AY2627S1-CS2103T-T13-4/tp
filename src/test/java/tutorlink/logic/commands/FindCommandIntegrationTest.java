@@ -10,6 +10,7 @@ import static tutorlink.testutil.TypicalStudents.CARL;
 import static tutorlink.testutil.TypicalStudents.getTypicalStudentDirectory;
 import static tutorlink.testutil.TypicalStudents.getTypicalStudents;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -47,9 +48,10 @@ public class FindCommandIntegrationTest {
     private JsonStudentDirectoryStorage studentDirectoryStorage;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws IOException {
         model = new ModelManager(getTypicalStudentDirectory(), new UserPrefs());
         studentDirectoryStorage = new JsonStudentDirectoryStorage(temporaryFolder.resolve("studentDirectory.json"));
+        studentDirectoryStorage.saveStudentDirectory(model.getStudentDirectory());
         StorageManager storage = new StorageManager(studentDirectoryStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
         logic = new LogicManager(model, storage);

@@ -5,6 +5,7 @@ import static tutorlink.testutil.TypicalStudents.ALICE;
 import static tutorlink.testutil.TypicalStudents.BENSON;
 import static tutorlink.testutil.TypicalStudents.getTypicalStudentDirectory;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -45,13 +46,14 @@ public class GroupsCommandIntegrationTest {
     private JsonStudentDirectoryStorage studentDirectoryStorage;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws IOException {
         setUpLogic(getTypicalStudentDirectory());
     }
 
-    private void setUpLogic(ReadOnlyStudentDirectory studentDirectory) {
+    private void setUpLogic(ReadOnlyStudentDirectory studentDirectory) throws IOException {
         model = new ModelManager(studentDirectory, new UserPrefs());
         studentDirectoryStorage = new JsonStudentDirectoryStorage(temporaryFolder.resolve("studentDirectory.json"));
+        studentDirectoryStorage.saveStudentDirectory(model.getStudentDirectory());
         logic = new LogicManager(model, new StorageManager(studentDirectoryStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
     }

@@ -13,6 +13,7 @@ import tutorlink.logic.commands.exceptions.CommandException;
 import tutorlink.logic.parser.TutorLinkParser;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.Model;
+import tutorlink.model.ModelSnapshot;
 import tutorlink.model.student.Student;
 import tutorlink.storage.Storage;
 
@@ -44,23 +45,29 @@ public class LogicManager implements Logic {
     public CommandResult execute(String commandText) throws CommandException, ParseException {
         logger.info("----------------[USER COMMAND][" + commandText + "]");
 
-        CommandResult commandResult;
         Command command = tutorLinkParser.parseCommand(commandText);
-        commandResult = command.execute(model);
+        ModelSnapshot snapshot = model.createSnapshot();
+        CommandResult commandResult = command.execute(model);
 
-        if (commandResult.getStudentToView().isPresent()) {
+        if (snapshot.studentDirectory().getStudentList().equals(model.getStudentDirectory().getStudentList())) {
             return commandResult;
         }
 
+        saveChanges(snapshot);
+        return commandResult;
+    }
+
+    /** Saves changed records, restoring the complete previous view if persistence fails. */
+    private void saveChanges(ModelSnapshot snapshot) throws CommandException {
         try {
             storage.saveStudentDirectory(model.getStudentDirectory());
         } catch (AccessDeniedException e) {
+            model.restoreSnapshot(snapshot);
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
+            model.restoreSnapshot(snapshot);
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
         }
-
-        return commandResult;
     }
 
     @Override

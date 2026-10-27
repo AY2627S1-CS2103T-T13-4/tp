@@ -43,6 +43,7 @@ public class ContactDetailsIntegrationTest {
         model.addStudent(ALICE);
         model.addStudent(ZOE);
         storage = new JsonStudentDirectoryStorage(temporaryFolder.resolve("students.json"));
+        storage.saveStudentDirectory(model.getStudentDirectory());
         logic = new LogicManager(model, new StorageManager(storage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));
         logic.execute("list g/T01");

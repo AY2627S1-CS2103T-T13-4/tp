@@ -47,6 +47,7 @@ import javafx.scene.input.PickResult;
 import javafx.stage.Stage;
 import tutorlink.logic.Logic;
 import tutorlink.logic.LogicManager;
+import tutorlink.logic.commands.CommandResult;
 import tutorlink.logic.commands.exceptions.CommandException;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.ModelManager;
@@ -79,6 +80,7 @@ public class MainWindowTest {
     private Stage stage;
     private boolean isSaveBlocked;
     private int saveCount;
+    private int commandCount;
     private ModelManager model;
 
     @BeforeAll
@@ -114,13 +116,53 @@ public class MainWindowTest {
     }
 
     @Test
-    public void execute_filterSaveFailure_showsTheActualChangedView() throws Exception {
+    public void execute_filterWithUnavailableStorage_updatesViewWithoutSaving() throws Exception {
         runOnFxThread(() -> {
             isSaveBlocked = true;
-            assertThrows(CommandException.class, () -> window.executeCommand("find Nobody"));
+            window.executeCommand("find Nobody");
             assertTrue(model.getFilteredStudentList().isEmpty());
             Label filter = (Label) stage.getScene().lookup("#activeFilter");
             assertEquals("Name or matriculation: Nobody", filter.getText());
+            assertEquals(0, saveCount);
+        });
+    }
+
+    @Test
+    public void execute_failedMutation_restoresProfileSelectionAndGroup() throws Exception {
+        runOnFxThread(() -> {
+            window.executeCommand("list g/T01");
+            window.executeCommand("sort name desc");
+            window.executeCommand("view 1");
+            isSaveBlocked = true;
+
+            for (String command : List.of("edit 1 n/Unexpected", "edit 1 g/T99", "clear")) {
+                assertThrows(CommandException.class, () -> window.executeCommand(command));
+                assertEquals(List.of(CARA, BOB), model.getFilteredStudentList());
+                assertEquals(CARA, window.getStudentListPanel().getSelectedStudent());
+                assertEquals("Cara Lim", label("name").getText());
+                assertEquals("Tutorial group: T01", ((Label) stage.getScene().lookup("#activeFilter")).getText());
+                ListView<?> groups = (ListView<?>) stage.getScene().lookup("#groupListView");
+                assertEquals(1, groups.getSelectionModel().getSelectedIndex());
+            }
+        });
+    }
+
+    @Test
+    public void commandBox_tabSeparatedInput_savesDistinctAddressAndEmail() throws Exception {
+        runOnFxThread(() -> {
+            TextField input = (TextField) stage.getScene().lookup("#commandTextField");
+            input.replaceText(0, input.getLength(),
+                    "add n/Tab Student m/A2000003C g/T02 a/10 College Road\te/tab@example.com");
+            assertTrue(input.getText().contains("Road e/"));
+            input.fireEvent(new ActionEvent());
+
+            Student added = model.getStudentDirectory().getStudentList().getLast();
+            assertEquals("10 College Road", added.getAddress().value);
+            assertEquals("tab@example.com", added.getEmail().value);
+            assertFalse(input.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            ReadOnlyStudentDirectory saved = new JsonStudentDirectoryStorage(temporaryFolder.resolve("students.json"))
+                    .readStudentDirectory().orElseThrow();
+            assertEquals(added, saved.getStudentList().getLast());
         });
     }
 
@@ -143,7 +185,13 @@ public class MainWindowTest {
                     super.saveStudentDirectory(directory);
                 }
             };
-            logic = new LogicManager(model, storage);
+            logic = new LogicManager(model, storage) {
+                @Override
+                public CommandResult execute(String commandText) throws CommandException, ParseException {
+                    commandCount++;
+                    return super.execute(commandText);
+                }
+            };
             stage = new Stage();
             window = new MainWindow(stage, logic, Path.of("data", "tutorlink.json"));
             window.show();
@@ -304,24 +352,24 @@ public class MainWindowTest {
     public void groupActivation_selectedOrNewGroup_resetsSortingExactlyOnce() throws Exception {
         runOnFxThread(() -> {
             window.executeCommand("sort name");
-            int previousSaves = saveCount;
+            int previousCommands = commandCount;
             clickGroup(0);
-            assertEquals(previousSaves + 1, saveCount);
+            assertEquals(previousCommands + 1, commandCount);
             assertEquals(List.of(BOB, ALICE, CARA), studentList().getItems());
-            previousSaves = saveCount;
+            previousCommands = commandCount;
             clickGroup(1);
-            assertEquals(previousSaves + 1, saveCount);
+            assertEquals(previousCommands + 1, commandCount);
             assertEquals(List.of(BOB, CARA), studentList().getItems());
             window.executeCommand("sort name desc");
-            previousSaves = saveCount;
+            previousCommands = commandCount;
             groupList().fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.ENTER,
                     false, false, false, false));
-            assertEquals(previousSaves + 1, saveCount);
+            assertEquals(previousCommands + 1, commandCount);
             assertEquals(List.of(BOB, CARA), studentList().getItems());
             window.executeCommand("sort name desc");
-            previousSaves = saveCount;
+            previousCommands = commandCount;
             clickGroup(1);
-            assertEquals(previousSaves + 1, saveCount);
+            assertEquals(previousCommands + 1, commandCount);
             assertEquals(List.of(BOB, CARA), studentList().getItems());
         });
     }
@@ -417,14 +465,14 @@ public class MainWindowTest {
     }
 
     @Test
-    public void storageFailure_afterFilterChanges_keepsHighlightConsistentWithResults() throws Exception {
+    public void unavailableStorage_filterChanges_keepHighlightConsistentWithResults() throws Exception {
         runOnFxThread(() -> {
             window.executeCommand("list g/T01");
             isSaveBlocked = true;
-            assertThrows(CommandException.class, () -> window.executeCommand("find Alice"));
+            window.executeCommand("find Alice");
             assertEquals(List.of(ALICE), studentList().getItems());
             assertEquals(-1, groupList().getSelectionModel().getSelectedIndex());
-            assertThrows(CommandException.class, () -> window.executeCommand("list g/T02"));
+            window.executeCommand("list g/T02");
             assertEquals(2, groupList().getSelectionModel().getSelectedIndex());
         });
     }

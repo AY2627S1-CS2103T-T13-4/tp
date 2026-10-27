@@ -107,6 +107,8 @@ Attendance tracking and participation records are future enhancements and are no
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
   Positional arguments in `sort name [asc|desc]` and `sort group [asc|desc]` must follow the order shown.
 
+* Tabs pasted into the command box are converted to spaces, so adjacent parameters remain separate.
+
 * Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
@@ -493,7 +495,10 @@ Format: `exit`
 ### Saving the data
 
 TutorLink automatically saves changes to student records. You do not need to save manually.
-The `view` command and an unconfirmed `delete INDEX` only change the selection and do not write the data file.
+Commands that leave student records unchanged, such as `help`, `exit`, `list`, searches, sorting, `view`, and an
+unconfirmed `delete INDEX`, do not write the data file. Repeating an already completed follow-up action also does
+not save again. If saving a change fails, TutorLink reports the error and restores the previous roster, filter,
+sorting, and selection. Resolve the reported file-permission or storage problem before retrying the change.
 
 ### Editing the data file
 

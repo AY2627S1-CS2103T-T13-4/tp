@@ -345,8 +345,8 @@ is not saved in JSON.
 
 `Logic` exposes the current description to `MainWindow`, which refreshes the label above the student list after
 every command, including failures. Refreshing cannot depend only on list-change events: one empty search can be
-replaced by a different empty search without any student-list change. Reading model state also handles a save error
-that occurs after a successful filter change. Long conditions are truncated in the label and shown in a tooltip.
+replaced by a different empty search without any student-list change. Filter changes do not require a data-file write.
+Long conditions are truncated in the label and shown in a tooltip.
 UI regressions cover these cases and verify that invalid searches retain the previous condition.
 
 ### Deletion preview and confirmation
@@ -360,9 +360,21 @@ that preview selection matches the target under sorting and filtering, and that 
 
 ### Saving and protecting invalid data
 
+Before executing a command, `LogicManager` captures a `ModelSnapshot` containing a copy of the roster and the current
+predicate, filter description, and sorting rule. It saves only if the command changes student records. Searches,
+sorting, help, exit, selection changes, and repeated status updates therefore work without rewriting the roster.
+If saving throws an `IOException`, the model restores the snapshot before reporting the error. `MainWindow` restores
+the previous group highlight and student selection, so a rejected edit cannot be committed by a later `list` command.
+The snapshot reuses immutable students and predicates while copying the directory; rollback retains the observable
+lists already used by the UI. `LogicManagerTest` covers every mutating command, filter/sort preservation, and a failed
+edit followed by a read-only command. UI and packaged tests verify the selected profile and contact values.
+
+The command box normalizes tabs to spaces with a `TextFormatter` before JavaFX removes them. This preserves field
+boundaries in pasted commands, including the address/email case covered by `MainWindowTest` and the packaged smoke test.
+
 `JsonStudentDirectoryStorage` reads JSON through `JsonUtil`, then `JsonSerializableStudentDirectory` converts each
 adapted record to the model. The root must be an object with a non-null `students` array; an empty array is valid,
-but null entries, missing required fields, invalid values, and duplicate matriculation numbers are rejected.
+but null student or tag entries, missing required fields, invalid values, and duplicate matriculation numbers are rejected.
 Missing optional contact details remain `null`. Older records without follow-up status default to false.
 
 Conversion failures become `DataLoadingException`. `MainApp` shows an explanatory startup alert and stops before
@@ -371,7 +383,7 @@ A missing file is different: it is a first launch and loads sample students. The
 the user must correct a backed-up copy or restore a valid backup before retrying.
 
 The storage tests cover malformed structures and data preservation. `.github/smoke-test.py` also launches the real
-release JAR with corrupt JSON, a null root, missing/null arrays, a null student entry, and a record missing required
+release JAR with corrupt JSON, a null root, missing/null arrays, null student/tag entries, and a record missing required
 fields. Each case must display the protective alert, avoid opening the roster, and leave the file byte-for-byte intact.
 
 --------------------------------------------------------------------------------------------------------------------

@@ -1,6 +1,5 @@
 package tutorlink.ui;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.logging.Logger;
@@ -246,6 +245,7 @@ public class MainWindow extends UiPart<Stage> {
      */
     CommandResult executeCommand(String commandText) throws CommandException, ParseException {
         Student previousSelection = studentListPanel.getSelectedStudent();
+        String previousGroup = groupListPanel.getSelectedGroup();
         int selectedDirectoryIndex = logic.getStudentList().indexOf(previousSelection);
         int previousRosterSize = logic.getStudentList().size();
         Student requestedSelection = null;
@@ -266,10 +266,7 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
-            if (e.getCause() instanceof IOException) {
-                // Storage errors occur after command execution, so the displayed view has already changed.
-                updateGroupHighlight(commandText);
-            }
+            groupListPanel.showGroup(previousGroup);
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage());
             throw e;

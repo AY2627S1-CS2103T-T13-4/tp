@@ -2,7 +2,6 @@ package tutorlink.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tutorlink.testutil.Assert.assertThrows;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 import static tutorlink.testutil.TypicalStudents.BENSON;
@@ -77,7 +76,8 @@ public class FollowUpCommandIntegrationTest {
         assertFalse(original.requiresFollowUp());
         assertEquals("Retain this remark", original.getRemark());
         assertEquals(FollowUpsCommand.MESSAGE_EMPTY, logic.execute("followups").getFeedbackToUser());
-        assertTrue(Files.readString(storage.getStudentDirectoryFilePath()).contains("\"requiresFollowUp\" : false"));
+        Student restored = storage.readStudentDirectory().orElseThrow().getStudentList().getFirst();
+        assertFalse(restored.requiresFollowUp());
 
         logic.execute("list");
         logic.execute("followup 1 on");

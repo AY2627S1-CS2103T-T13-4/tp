@@ -1,6 +1,7 @@
 package tutorlink.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static tutorlink.logic.Messages.MESSAGE_INVALID_STUDENT_DISPLAYED_INDEX;
 import static tutorlink.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static tutorlink.logic.commands.CommandTestUtil.ADDRESS_DESC_AMY;
@@ -14,6 +15,7 @@ import static tutorlink.testutil.TypicalStudents.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +34,7 @@ import tutorlink.model.Model;
 import tutorlink.model.ModelManager;
 import tutorlink.model.ReadOnlyStudentDirectory;
 import tutorlink.model.StudentDirectory;
+import tutorlink.model.StudentSortOrder;
 import tutorlink.model.UserPrefs;
 import tutorlink.model.student.Student;
 import tutorlink.model.student.TutorialGroup;
@@ -132,6 +135,62 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_unchangedRecords_doesNotWriteOrRequireWritableStorage() throws Exception {
+        model.addStudent(AMY);
+        logic = new LogicManager(model, storageThrowing(DUMMY_AD_EXCEPTION));
+
+        for (String command : List.of("help", "exit", "list", "find Amy", "list", "view 1", "delete 1",
+                "groups", "sort name", "sort reset", "followup 1 done", "edit 1 n/Amy Bee", "followups")) {
+            logic.execute(command);
+        }
+
+        assertEquals(List.of(AMY), logic.getStudentList());
+        assertFalse(Files.exists(temporaryFolder.resolve("studentDirectory.json")));
+    }
+
+    @Test
+    public void execute_saveFails_restoresRosterFilterAndSortingForEveryMutation() throws Exception {
+        Student zoe = new StudentBuilder(AMY).withName("Zoe Test").withMatricNumber("A9999999Z").build();
+        for (String command : List.of("edit 1 g/T02", "add n/Other Student m/A2000001A g/T02",
+                "remark 1 r/Unexpected", "followup 1 on", "delete 1 confirm", "clear")) {
+            ModelManager originalModel = new ModelManager();
+            originalModel.addStudent(zoe);
+            originalModel.addStudent(AMY);
+            originalModel.updateFilteredStudentList(
+                    student -> student.getTutorialGroup().equals(AMY.getTutorialGroup()),
+                    "Original group filter");
+            originalModel.sortStudents(StudentSortOrder.NAME_ASC);
+            Logic failingLogic = new LogicManager(originalModel, storageThrowing(DUMMY_IO_EXCEPTION));
+
+            assertThrows(CommandException.class, () -> failingLogic.execute(command));
+
+            assertEquals(List.of(zoe, AMY), failingLogic.getStudentList());
+            assertEquals(List.of(AMY, zoe), failingLogic.getFilteredStudentList());
+            assertEquals("Original group filter", failingLogic.getFilterDescription());
+            Student renamed = new StudentBuilder(zoe).withName("Aaron Test").build();
+            originalModel.setStudent(zoe, renamed);
+            assertEquals(List.of(renamed, AMY), failingLogic.getFilteredStudentList());
+        }
+    }
+
+    @Test
+    public void execute_failedEditThenList_doesNotPersistTheRejectedChange() throws Exception {
+        model.addStudent(AMY);
+        Path dataPath = temporaryFolder.resolve("studentDirectory.json");
+        JsonStudentDirectoryStorage fileStorage = new JsonStudentDirectoryStorage(dataPath);
+        fileStorage.saveStudentDirectory(model.getStudentDirectory());
+        String saved = Files.readString(dataPath);
+        Logic failingLogic = new LogicManager(model, storageThrowing(DUMMY_AD_EXCEPTION));
+
+        assertThrows(CommandException.class, () -> failingLogic.execute("edit 1 p/98765432"));
+        logic.execute("list");
+
+        assertEquals(AMY, logic.getStudentList().getFirst());
+        assertEquals(saved, Files.readString(dataPath));
+        assertEquals(AMY, fileStorage.readStudentDirectory().orElseThrow().getStudentList().getFirst());
+    }
+
+    @Test
     public void getFilteredStudentList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredStudentList().remove(0));
     }
@@ -208,29 +267,25 @@ public class LogicManagerTest {
      * @param expectedMessage the message expected inside exception thrown by the Logic component
      */
     private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
-        Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
+        logic = new LogicManager(model, storageThrowing(e));
 
-        // Inject LogicManager with a JsonStudentDirectoryStorage that throws the IOException e when saving
-        JsonStudentDirectoryStorage studentDirectoryStorage = new JsonStudentDirectoryStorage(prefPath) {
+        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + MATRIC_NUMBER_DESC_AMY
+                + TUTORIAL_GROUP_DESC_AMY + PHONE_DESC_AMY
+                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
+        assertCommandFailure(addCommand, CommandException.class, expectedMessage, new ModelManager());
+    }
+
+    private StorageManager storageThrowing(IOException exception) {
+        JsonStudentDirectoryStorage studentDirectoryStorage = new JsonStudentDirectoryStorage(
+                temporaryFolder.resolve("ExceptionStudents.json")) {
             @Override
             public void saveStudentDirectory(ReadOnlyStudentDirectory studentDirectory) throws IOException {
-                throw e;
+                throw exception;
             }
         };
 
         JsonUserPrefsStorage userPrefsStorage =
                 new JsonUserPrefsStorage(temporaryFolder.resolve("ExceptionUserPrefs.json"));
-        StorageManager storage = new StorageManager(studentDirectoryStorage, userPrefsStorage);
-
-        logic = new LogicManager(model, storage);
-
-        // Triggers the saveStudentDirectory method by executing an add command
-        String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + MATRIC_NUMBER_DESC_AMY
-                + TUTORIAL_GROUP_DESC_AMY + PHONE_DESC_AMY
-                + EMAIL_DESC_AMY + ADDRESS_DESC_AMY;
-        Student expectedStudent = new StudentBuilder(AMY).withTags().build();
-        ModelManager expectedModel = new ModelManager();
-        expectedModel.addStudent(expectedStudent);
-        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+        return new StorageManager(studentDirectoryStorage, userPrefsStorage);
     }
 }
