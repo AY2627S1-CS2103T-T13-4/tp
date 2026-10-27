@@ -67,7 +67,7 @@ public class ModelManager implements Model {
     @Override
     public void setStudentDirectory(ReadOnlyStudentDirectory studentDirectory) {
         this.studentDirectory.resetData(studentDirectory);
-        sortStudents(StudentSortOrder.DIRECTORY);
+        updateFilteredStudentList(PREDICATE_SHOW_ALL_STUDENTS);
     }
 
     @Override

@@ -473,7 +473,10 @@ public class MainWindowTest {
             layout();
             assertTrue(studentList().getItems().isEmpty());
             assertEquals(Set.of("All Students  (0)"), groupLabels());
+            assertEquals("All students", ((Label) lookup("activeFilter")).getText());
             assertFalse(detailsScroll().isVisible());
+            window.executeCommand("groups");
+            assertEquals("All students", ((Label) lookup("activeFilter")).getText());
             window.executeCommand("add n/New Student m/A9999999Z g/L03");
             layout();
             assertEquals(Set.of("All Students  (1)", "L03  (1)"), groupLabels());
