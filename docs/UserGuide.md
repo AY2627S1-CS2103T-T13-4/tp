@@ -109,8 +109,7 @@ Attendance tracking and participation records are future enhancements and are no
 
 * Tabs pasted into the command box are converted to spaces, so adjacent parameters remain separate.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `exit`, and `clear`, are ignored.<br>
-  For example, `help 123` is interpreted as `help`.
+* Commands that take no parameters, such as `help`, `exit`, and `clear`, reject extraneous arguments.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -486,11 +485,15 @@ if you may need to recover the roster. Use `delete INDEX` to preview removal of 
 
 Format: `clear`
 
+Extra arguments are rejected.
+
 ### Exiting the program: `exit`
 
 Exits the program.
 
 Format: `exit`
+
+Extra arguments are rejected.
 
 ### Saving the data
 

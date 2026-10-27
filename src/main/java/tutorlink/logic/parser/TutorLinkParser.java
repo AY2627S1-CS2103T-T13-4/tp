@@ -62,7 +62,8 @@ public class TutorLinkParser {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
-            case ClearCommand.COMMAND_WORD -> new ClearCommand();
+            case ClearCommand.COMMAND_WORD -> parseNoArguments(arguments, ClearCommand.MESSAGE_USAGE,
+                    new ClearCommand());
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case FindTagCommand.COMMAND_WORD -> new FindTagCommandParser().parse(arguments);
             case FollowUpCommand.COMMAND_WORD -> new FollowUpCommandParser().parse(arguments);
@@ -71,14 +72,26 @@ public class TutorLinkParser {
             case ListCommand.COMMAND_WORD -> new ListCommandParser().parse(arguments);
             case RemarkCommand.COMMAND_WORD -> new RemarkCommandParser().parse(arguments);
             case SortCommand.COMMAND_WORD -> new SortCommandParser().parse(arguments);
+            case ExitCommand.COMMAND_WORD -> parseNoArguments(arguments, ExitCommand.MESSAGE_USAGE,
+                    new ExitCommand());
+            case HelpCommand.COMMAND_WORD -> parseNoArguments(arguments, HelpCommand.MESSAGE_USAGE,
+                    new HelpCommand());
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
-            case ExitCommand.COMMAND_WORD -> new ExitCommand();
-            case HelpCommand.COMMAND_WORD -> new HelpCommand();
             default -> {
                 logger.finer("This user input caused a ParseException: " + userInput);
                 throw new ParseException(MESSAGE_UNKNOWN_COMMAND);
             }
         };
+    }
+
+    /**
+     * Returns a command that accepts no arguments, or throws a usage error when arguments are supplied.
+     */
+    private Command parseNoArguments(String arguments, String usage, Command command) throws ParseException {
+        if (!arguments.trim().isEmpty()) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage));
+        }
+        return command;
     }
 
 }

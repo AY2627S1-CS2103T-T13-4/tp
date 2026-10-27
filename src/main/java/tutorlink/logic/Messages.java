@@ -51,8 +51,13 @@ public class Messages {
                 .append(student.getAddress() == null ? NOT_PROVIDED : student.getAddress())
                 .append("; Remark: ")
                 .append(student.getRemark() == null ? NOT_PROVIDED : student.getRemark())
-                .append("; Tags: ");
-        student.getTags().forEach(builder::append);
+                .append("; Tags: ")
+                .append(student.getTags().isEmpty()
+                        ? NOT_PROVIDED
+                        : student.getTags().stream()
+                                .map(tag -> tag.tagName)
+                                .sorted()
+                                .collect(Collectors.joining(", ")));
         return builder.toString();
     }
 
