@@ -11,6 +11,7 @@ import static tutorlink.testutil.TypicalStudents.DANIEL;
 import static tutorlink.testutil.TypicalStudents.getTypicalStudentDirectory;
 import static tutorlink.testutil.TypicalStudents.getTypicalStudents;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -46,9 +47,10 @@ public class FindTagCommandIntegrationTest {
     private JsonStudentDirectoryStorage studentDirectoryStorage;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws IOException {
         model = new ModelManager(getTypicalStudentDirectory(), new UserPrefs());
         studentDirectoryStorage = new JsonStudentDirectoryStorage(temporaryFolder.resolve("studentDirectory.json"));
+        studentDirectoryStorage.saveStudentDirectory(model.getStudentDirectory());
         logic = createLogic();
     }
 
@@ -102,7 +104,9 @@ public class FindTagCommandIntegrationTest {
     @Test
     public void execute_invalidTag_preservesPreviousResultsAndSavedDirectory() throws Exception {
         assertSearch("findtag owesMoney", List.of(BENSON));
-        for (String command : List.of("findtag t/friends", "findtag friends family", "findtag needs-help")) {
+        String prefixError = "Use the tag without t/.\n" + FindTagCommand.MESSAGE_USAGE;
+        assertThrows(ParseException.class, prefixError, () -> logic.execute("findtag t/friends"));
+        for (String command : List.of("findtag friends family", "findtag needs-help")) {
             assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> logic.execute(command));
         }
         assertThrows(ParseException.class,

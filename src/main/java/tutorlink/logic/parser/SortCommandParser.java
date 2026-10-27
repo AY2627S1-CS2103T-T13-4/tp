@@ -6,10 +6,11 @@ import static tutorlink.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import tutorlink.logic.commands.Command;
 import tutorlink.logic.commands.SortCommand;
 import tutorlink.logic.commands.SortGroupCommand;
+import tutorlink.logic.commands.SortResetCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
 
 /**
- * Parses the shared sort syntax and selects a name or tutorial-group sorting command.
+ * Parses the shared sort syntax and selects a sorting or reset command.
  */
 public class SortCommandParser implements Parser<Command> {
 
@@ -22,6 +23,9 @@ public class SortCommandParser implements Parser<Command> {
     @Override
     public Command parse(String args) throws ParseException {
         requireNonNull(args, "Sort arguments must not be null.");
+        if (args.trim().equals("reset")) {
+            return new SortResetCommand();
+        }
         String[] arguments = args.trim().split("\\s+");
         if (arguments.length > 2 || !(arguments[0].equals("name") || arguments[0].equals("group"))) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));

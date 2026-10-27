@@ -1,112 +1,117 @@
 package tutorlink.ui;
 
-import java.util.logging.Logger;
-
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.skin.ListViewSkin;
 import javafx.scene.layout.Region;
-import tutorlink.commons.core.LogsCenter;
 import tutorlink.model.student.Student;
 
 /**
- * Panel containing the list of students.
+ * Displays student summaries in the same order used by indexed commands.
  */
 public class StudentListPanel extends UiPart<Region> {
     private static final String FXML = "StudentListPanel.fxml";
-    private final Logger logger = LogsCenter.getLogger(StudentListPanel.class);
+    private final StudentListViewSkin studentListSkin;
 
     @FXML
     private ListView<Student> studentListView;
 
     /**
-     * Creates a {@code StudentListPanel} with the given {@code ObservableList}.
+     * Creates a panel backed by the command layer's displayed student list.
      */
-    public StudentListPanel(ObservableList<Student> studentList) {
+    public StudentListPanel(ObservableList<Student> students) {
         super(FXML);
-        studentListView.setItems(studentList);
-        studentListView.setCellFactory(listView -> new StudentListViewCell());
+        studentListView.setItems(students);
+        studentListView.setCellFactory(list -> new StudentListViewCell());
+        studentListSkin = new StudentListViewSkin(studentListView);
+        studentListView.setSkin(studentListSkin);
+    }
+
+    public ReadOnlyObjectProperty<Student> selectedStudentProperty() {
+        return studentListView.getSelectionModel().selectedItemProperty();
+    }
+
+    public Student getSelectedStudent() {
+        return studentListView.getSelectionModel().getSelectedItem();
     }
 
     /**
-     * Custom {@code ListCell} that displays the graphics of a {@code Student} using a {@code StudentCard}.
+     * Selects a student requested by a view command and scrolls their summary into view.
      */
-    class StudentListViewCell extends ListCell<Student> {
-        private StudentCard studentCard;
-        private double lastAvailableWidth = -1;
+    public void showStudent(Student student) {
+        studentListView.getSelectionModel().clearSelection();
+        restoreSelection(student);
+        studentListView.applyCss();
+        studentListView.layout();
+        studentListSkin.showIndex(studentListView.getSelectionModel().getSelectedIndex());
+    }
 
-        StudentListViewCell() {
-            widthProperty().addListener((observable, oldWidth, newWidth) -> {
-                if (Double.compare(oldWidth.doubleValue(), newWidth.doubleValue()) != 0) {
-                    updateCardWidth();
+    /**
+     * Keeps the previously selected student after a command, or clears details if they left the results.
+     */
+    public void restoreSelection(Student previousSelection) {
+        if (previousSelection != null) {
+            for (int i = 0; i < studentListView.getItems().size(); i++) {
+                if (previousSelection.isSameStudent(studentListView.getItems().get(i))) {
+                    studentListView.getSelectionModel().clearAndSelect(i);
+                    return;
                 }
-            });
+            }
+        }
+        studentListView.getSelectionModel().clearSelection();
+    }
+
+    /**
+     * Scrolls boundary rows to the actual viewport ends instead of estimating their top offset.
+     */
+    private static class StudentListViewSkin extends ListViewSkin<Student> {
+        StudentListViewSkin(ListView<Student> listView) {
+            super(listView);
         }
 
-        /**
-         * Recomputes the card width when the list cell is resized. This is needed because a wrapped remark's
-         * preferred height depends on the width available to the card.
-         */
-        private void updateCardWidth() {
-            if (studentCard == null) {
+        void showIndex(int index) {
+            if (index < 0) {
                 return;
             }
-
-            double availableWidth = Math.max(0,
-                    getWidth() - snappedLeftInset() - snappedRightInset());
-
-            boolean widthChanged = Double.compare(lastAvailableWidth, availableWidth) != 0;
-            if (widthChanged) {
-                studentCard.layoutAtWidth(availableWidth);
+            if (index == 0) {
+                getVirtualFlow().setPosition(0);
+            } else if (index == getSkinnable().getItems().size() - 1) {
+                getVirtualFlow().setPosition(1);
+            } else {
+                getVirtualFlow().scrollTo(index);
             }
-            if (!widthChanged) {
-                return;
-            }
+        }
+    }
 
-            lastAvailableWidth = availableWidth;
-            setPrefHeight(USE_COMPUTED_SIZE);
-            requestLayout();
-            if (getListView() != null) {
-                getListView().requestLayout();
-            }
+    /**
+     * Displays a compact summary and keeps its number synchronized when the list is reordered.
+     */
+    class StudentListViewCell extends ListCell<Student> {
+        private StudentSummaryCard summary;
+
+        StudentListViewCell() {
+            indexProperty().addListener((observable, oldIndex, newIndex) -> {
+                if (summary != null) {
+                    summary.setDisplayedIndex(newIndex.intValue() + 1);
+                }
+            });
         }
 
         @Override
         protected void updateItem(Student student, boolean empty) {
             super.updateItem(student, empty);
-
+            setText(null);
             if (empty || student == null) {
-                studentCard = null;
-                lastAvailableWidth = -1;
+                summary = null;
                 setGraphic(null);
-                setText(null);
-                setPrefHeight(USE_COMPUTED_SIZE);
             } else {
-                studentCard = new StudentCard(student, getIndex() + 1);
-                lastAvailableWidth = -1;
-                setGraphic(studentCard.getRoot());
-                updateCardWidth();
+                summary = new StudentSummaryCard(student, getIndex() + 1);
+                summary.getRoot().prefWidthProperty().bind(widthProperty().subtract(20));
+                setGraphic(summary.getRoot());
             }
-        }
-
-        @Override
-        protected double computePrefHeight(double width) {
-            if (studentCard == null) {
-                return super.computePrefHeight(width);
-            }
-
-            double cellWidth = width > 0 ? width : getWidth();
-            double availableWidth = Math.max(0, cellWidth - snappedLeftInset() - snappedRightInset());
-            return snappedTopInset() + snappedBottomInset()
-                    + studentCard.layoutAtWidth(availableWidth);
-        }
-
-        @Override
-        protected void layoutChildren() {
-            updateCardWidth();
-            super.layoutChildren();
         }
     }
-
 }

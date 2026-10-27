@@ -1,11 +1,15 @@
 package tutorlink.ui;
 
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.logging.Logger;
 
+import javafx.collections.ListChangeListener;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextInputControl;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
@@ -17,6 +21,7 @@ import tutorlink.logic.Logic;
 import tutorlink.logic.commands.CommandResult;
 import tutorlink.logic.commands.exceptions.CommandException;
 import tutorlink.logic.parser.exceptions.ParseException;
+import tutorlink.model.student.Student;
 
 /**
  * The Main Window. Provides the basic application layout containing
@@ -34,6 +39,8 @@ public class MainWindow extends UiPart<Stage> {
 
     // Independent Ui parts residing in this Ui container
     private StudentListPanel studentListPanel;
+    private GroupListPanel groupListPanel;
+    private StudentDetailsPanel studentDetailsPanel;
     private ResultDisplay resultDisplay;
     private HelpWindow helpWindow;
 
@@ -45,6 +52,21 @@ public class MainWindow extends UiPart<Stage> {
 
     @FXML
     private StackPane studentListPanelPlaceholder;
+
+    @FXML
+    private StackPane groupListPanelPlaceholder;
+
+    @FXML
+    private StackPane studentDetailsPanelPlaceholder;
+
+    @FXML
+    private Label studentCount;
+
+    @FXML
+    private Label activeFilter;
+
+    @FXML
+    private SplitPane workspace;
 
     @FXML
     private StackPane resultDisplayPlaceholder;
@@ -114,11 +136,22 @@ public class MainWindow extends UiPart<Stage> {
      * Fills up all the placeholders of this window.
      */
     void fillInnerParts() {
+        resultDisplay = new ResultDisplay();
+        resultDisplay.setFeedbackToUser("Ready. Showing all students.");
+        resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+
+        studentDetailsPanel = new StudentDetailsPanel();
+        studentDetailsPanelPlaceholder.getChildren().add(studentDetailsPanel.getRoot());
+
         studentListPanel = new StudentListPanel(logic.getFilteredStudentList());
         studentListPanelPlaceholder.getChildren().add(studentListPanel.getRoot());
+        studentListPanel.selectedStudentProperty().addListener((observable, oldStudent, newStudent) -> updateDetails());
+        logic.getFilteredStudentList().addListener((ListChangeListener<Student>) change -> updateStudentCount());
+        updateStudentCount();
 
-        resultDisplay = new ResultDisplay();
-        resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+        groupListPanel = new GroupListPanel(logic.getStudentList(), this::selectGroup);
+        groupListPanelPlaceholder.getChildren().add(groupListPanel.getRoot());
+        workspace.setDividerPositions(0.19, 0.52);
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());
@@ -131,8 +164,8 @@ public class MainWindow extends UiPart<Stage> {
      * Sets the default size based on {@code guiSettings}.
      */
     private void setWindowDefaultSize(GuiSettings guiSettings) {
-        primaryStage.setHeight(guiSettings.getWindowHeight());
-        primaryStage.setWidth(guiSettings.getWindowWidth());
+        primaryStage.setHeight(Math.max(primaryStage.getMinHeight(), guiSettings.getWindowHeight()));
+        primaryStage.setWidth(Math.max(primaryStage.getMinWidth(), guiSettings.getWindowWidth()));
         if (guiSettings.getWindowCoordinates() != null) {
             primaryStage.setX(guiSettings.getWindowCoordinates().getX());
             primaryStage.setY(guiSettings.getWindowCoordinates().getY());
@@ -171,14 +204,55 @@ public class MainWindow extends UiPart<Stage> {
         return studentListPanel;
     }
 
+    private void updateStudentCount() {
+        studentCount.setText(logic.getFilteredStudentList().size() + " displayed");
+        activeFilter.setText(logic.getFilterDescription());
+        activeFilter.setTooltip(new javafx.scene.control.Tooltip(logic.getFilterDescription()));
+    }
+
+    private void updateDetails() {
+        Student selected = studentListPanel.getSelectedStudent();
+        int index = selected == null ? -1 : logic.getFilteredStudentList().indexOf(selected);
+        studentDetailsPanel.showStudent(index < 0 ? null : selected, index + 1);
+    }
+
+    private void selectGroup(String group) {
+        try {
+            executeCommand(group.isEmpty() ? "list" : "list g/" + group);
+        } catch (CommandException | ParseException e) {
+            // executeCommand already displays the failure in the shared feedback panel.
+            logger.warning("Could not select tutorial group: " + e.getMessage());
+        }
+    }
+
+    private void updateGroupHighlight(String commandText) {
+        String[] parts = commandText.trim().split("\\s+", 2);
+        switch (parts[0]) {
+            case "list" -> {
+                String group = parts.length == 1 ? "" : parts[1].trim().substring(2).trim();
+                groupListPanel.showGroup(group.toUpperCase(Locale.ROOT));
+            }
+            case "add", "clear" -> groupListPanel.showGroup("");
+            case "find", "findtag", "followups" -> groupListPanel.showGroup(null);
+            default -> { }
+        }
+    }
+
     /**
      * Executes the command and returns the result.
      *
      * @see tutorlink.logic.Logic#execute(String)
      */
-    private CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+    CommandResult executeCommand(String commandText) throws CommandException, ParseException {
+        Student previousSelection = studentListPanel.getSelectedStudent();
+        String previousGroup = groupListPanel.getSelectedGroup();
+        int selectedDirectoryIndex = logic.getStudentList().indexOf(previousSelection);
+        int previousRosterSize = logic.getStudentList().size();
+        Student requestedSelection = null;
         try {
             CommandResult commandResult = logic.execute(commandText);
+            requestedSelection = commandResult.getStudentToView().orElse(null);
+            updateGroupHighlight(commandText);
             logger.info("Result: " + commandResult.getFeedbackToUser());
             resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
 
@@ -192,9 +266,22 @@ public class MainWindow extends UiPart<Stage> {
 
             return commandResult;
         } catch (CommandException | ParseException e) {
+            groupListPanel.showGroup(previousGroup);
             logger.info("An error occurred while executing command: " + commandText);
             resultDisplay.setFeedbackToUser(e.getMessage());
             throw e;
+        } finally {
+            updateStudentCount();
+            if (requestedSelection != null) {
+                studentListPanel.showStudent(requestedSelection);
+            } else {
+                if (selectedDirectoryIndex >= 0 && previousRosterSize == logic.getStudentList().size()) {
+                    // Record replacements retain directory positions, including edits to a matriculation number.
+                    previousSelection = logic.getStudentList().get(selectedDirectoryIndex);
+                }
+                studentListPanel.restoreSelection(previousSelection);
+            }
+            updateDetails();
         }
     }
 }

@@ -5,21 +5,36 @@ skinparam arrowThickness 1.1
 skinparam arrowColor MODEL_COLOR
 skinparam classBackgroundColor MODEL_COLOR
 skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
 
 Package Model as ModelPackage <<Rectangle>>{
 Class "<<interface>>\nReadOnlyStudentDirectory" as ReadOnlyStudentDirectory
 Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
-Class "<<interface>>\nModel" as Model
+Class "<<interface>>\nModel" as Model {
+  +getFilteredStudentList() : ObservableList<Student>
+  +sortStudents(sortOrder : StudentSortOrder) : void
+}
+show Model methods
 Class StudentDirectory
 Class ModelManager
 Class UserPrefs
+
+enum StudentSortOrder <<enumeration>> {
+  DIRECTORY
+  NAME_ASC
+  NAME_DESC
+  GROUP_ASC
+  GROUP_DESC
+  ~getComparator() : Comparator<Student>
+}
+show StudentSortOrder members
 
 Class UniqueStudentList
 Class Student {
   -requiresFollowUp : boolean
   +requiresFollowUp() : boolean
-  +withFollowUp(boolean) : Student
-  +withRemark(String) : Student
+  +withFollowUp(requiresFollowUp : boolean) : Student
+  +withRemark(remark : String) : Student
 }
 show Student members
 Class Address
@@ -36,6 +51,12 @@ Class I #FFFFFF
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Model
 
+package "JavaFX collections" as JavaFxCollections <<Rectangle>> {
+Class "ObservableList" as ObservableStudentList <<interface>>
+Class "FilteredList" as FilteredStudents
+Class "SortedList" as SortedStudents
+}
+
 StudentDirectory .up.|> ReadOnlyStudentDirectory
 
 ModelManager .up.|> Model
@@ -43,10 +64,17 @@ Model .right.> ReadOnlyUserPrefs
 Model .left.> ReadOnlyStudentDirectory
 ModelManager -left-> "1" StudentDirectory
 ModelManager -right-> "1" UserPrefs
+ModelManager --> "1" StudentSortOrder : sortOrder
+Model ..> StudentSortOrder
 UserPrefs .up.|> ReadOnlyUserPrefs
 
 StudentDirectory *--> "1" UniqueStudentList
 UniqueStudentList --> "*" Student : all
+UniqueStudentList --> "1" ObservableStudentList : exposes unmodifiable view
+ModelManager *--> "1" FilteredStudents : filteredStudents
+ModelManager *--> "1" SortedStudents : sortedStudents
+FilteredStudents -left-> "1" ObservableStudentList : source
+SortedStudents -left-> "1" FilteredStudents : source
 Student *--> "1" Name
 Student *--> "1" MatricNumber
 Student *--> "1" TutorialGroup
@@ -63,5 +91,13 @@ MatricNumber -[hidden]right-> TutorialGroup
 Phone -[hidden]right-> Address
 Address -[hidden]right-> Email
 
-ModelManager --> "*" Student : filtered
+note as SortingNote
+  All collection elements are Student objects.
+  getFilteredStudentList() exposes this view.
+  Sorting preserves the filter and directory order.
+  DIRECTORY uses a null comparator to reset sorting.
+  Updating the filter also resets sorting.
+end note
+SortedStudents .. SortingNote
+ModelManager .. SortingNote
 @enduml

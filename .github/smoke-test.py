@@ -94,8 +94,36 @@ assert completed[1] == dict(marked[1], requiresFollowUp=False), "completion chan
 launch(followup, "followup-verify")
 assert json.loads((followup / "data/tutorlink.json").read_text())["students"] == completed
 
+alpha = work / "alpha"
+launch(alpha, "alpha-fixes")
+alpha_saved = json.loads((alpha / "data/tutorlink.json").read_text())["students"]
+assert len(alpha_saved) == 2 and alpha_saved[0]["requiresFollowUp"], alpha_saved
+assert all(alpha_saved[0].get(field) is None for field in ("phone", "email", "address")), alpha_saved
+launch(alpha, "alpha-restart")
+alpha_restarted = json.loads((alpha / "data/tutorlink.json").read_text())["students"]
+assert alpha_restarted == [dict(alpha_saved[0], requiresFollowUp=False), alpha_saved[1]], alpha_restarted
+
+peer = work / "peer-alpha"
+launch(peer, "peer-alpha")
+peer_saved = json.loads((peer / "data/tutorlink.json").read_text())["students"]
+assert len(peer_saved) == 2 and peer_saved[0]["address"] == "NUS e/learning centre", peer_saved
+assert peer_saved[0]["phone"] == "12345678", peer_saved
+assert peer_saved[1]["email"] == "user@xn--bcher-kva.de", peer_saved
+
+reported = work / "reported-alpha"
+launch(reported, "reported-alpha")
+reported_saved = json.loads((reported / "data/tutorlink.json").read_text())["students"]
+assert reported_saved[0]["phone"] == "91234567", reported_saved
+assert reported_saved[2]["address"] == "10 College Road", reported_saved
+assert reported_saved[2]["email"] == "tab@example.com", reported_saved
+
 for name, invalid in [("corrupt", b"{not valid JSON"),
                       ("json-null", b"null\n"),
+                      ("missing-students", b'{}'),
+                      ("null-students", b'{"students":null}'),
+                      ("null-student", b'{"students":[null]}'),
+                      ("null-tag", b'{"students":[{"name":"Protected Student","matricNumber":"A2000005E",'
+                                   b'"tutorialGroup":"T01","tags":[null]}]}'),
                       ("missing-required", b'{"students":[{"name":"Protected Student","tags":[]}]}')]:
     folder = work / name
     (folder / "data").mkdir(parents=True)

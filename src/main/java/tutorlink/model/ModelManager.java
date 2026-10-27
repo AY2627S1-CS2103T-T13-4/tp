@@ -24,6 +24,7 @@ public class ModelManager implements Model {
     private final FilteredList<Student> filteredStudents;
     private final SortedList<Student> sortedStudents;
     private StudentSortOrder sortOrder = StudentSortOrder.DIRECTORY;
+    private String filterDescription = "All students";
 
     /**
      * Initializes a ModelManager with the given studentDirectory and userPrefs.
@@ -35,7 +36,7 @@ public class ModelManager implements Model {
 
         this.studentDirectory = new StudentDirectory(studentDirectory);
         this.userPrefs = new UserPrefs(userPrefs);
-        filteredStudents = new FilteredList<>(this.studentDirectory.getStudentList());
+        filteredStudents = new FilteredList<>(this.studentDirectory.getStudentList(), PREDICATE_SHOW_ALL_STUDENTS);
         sortedStudents = new SortedList<>(filteredStudents);
     }
 
@@ -66,12 +67,27 @@ public class ModelManager implements Model {
     @Override
     public void setStudentDirectory(ReadOnlyStudentDirectory studentDirectory) {
         this.studentDirectory.resetData(studentDirectory);
-        sortStudents(StudentSortOrder.DIRECTORY);
+        updateFilteredStudentList(PREDICATE_SHOW_ALL_STUDENTS);
     }
 
     @Override
     public ReadOnlyStudentDirectory getStudentDirectory() {
         return studentDirectory;
+    }
+
+    @Override
+    public ModelSnapshot createSnapshot() {
+        return new ModelSnapshot(studentDirectory.getStudentList(), filteredStudents.getPredicate(),
+                sortOrder, filterDescription);
+    }
+
+    @Override
+    public void restoreSnapshot(ModelSnapshot snapshot) {
+        requireNonNull(snapshot);
+        filterDescription = snapshot.filterDescription();
+        filteredStudents.setPredicate(snapshot.predicate());
+        studentDirectory.setStudents(snapshot.students());
+        sortStudents(snapshot.sortOrder());
     }
 
     @Override
@@ -109,6 +125,11 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public String getFilterDescription() {
+        return filterDescription;
+    }
+
+    @Override
     public void sortStudents(StudentSortOrder sortOrder) {
         requireNonNull(sortOrder, "Student sort order must not be null.");
         int displayedStudentCount = sortedStudents.size();
@@ -120,11 +141,19 @@ public class ModelManager implements Model {
 
     @Override
     public void updateFilteredStudentList(Predicate<Student> predicate) {
+        updateFilteredStudentList(predicate,
+                predicate == PREDICATE_SHOW_ALL_STUDENTS ? "All students" : "Filtered students");
+    }
+
+    @Override
+    public void updateFilteredStudentList(Predicate<Student> predicate, String description) {
         requireNonNull(predicate);
+        requireNonNull(description);
         if (sortOrder != StudentSortOrder.DIRECTORY) {
             logger.fine("Resetting student sorting to directory order for a new filter.");
         }
         sortStudents(StudentSortOrder.DIRECTORY);
+        filterDescription = description;
         filteredStudents.setPredicate(predicate);
     }
 

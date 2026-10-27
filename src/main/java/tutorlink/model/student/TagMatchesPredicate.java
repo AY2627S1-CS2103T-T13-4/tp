@@ -23,6 +23,11 @@ public class TagMatchesPredicate implements Predicate<Student> {
                 .anyMatch(studentTag -> studentTag.tagName.equalsIgnoreCase(tag.tagName));
     }
 
+    /** Describes the search condition independently of transient command feedback. */
+    public String getDescription() {
+        return "Tag: " + tag.tagName;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (other == this) {

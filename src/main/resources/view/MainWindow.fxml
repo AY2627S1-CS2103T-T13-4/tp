@@ -6,13 +6,14 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <fx:root type="javafx.stage.Stage" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
-         title="TutorLink" minWidth="450" minHeight="600" onCloseRequest="#handleExit">
+         title="TutorLink" minWidth="960" minHeight="640" onCloseRequest="#handleExit">
   <icons>
     <Image url="@/images/tutorlink_32.png" />
   </icons>
@@ -40,18 +41,28 @@
         </StackPane>
 
         <StackPane VBox.vgrow="NEVER" fx:id="resultDisplayPlaceholder" styleClass="pane-with-border"
-                   minHeight="100" prefHeight="100" maxHeight="100">
+                   minHeight="75" prefHeight="90" maxHeight="110">
           <padding>
             <Insets top="5" right="10" bottom="5" left="10" />
           </padding>
         </StackPane>
 
-        <VBox fx:id="studentList" styleClass="pane-with-border" minWidth="340" prefWidth="340" VBox.vgrow="ALWAYS">
-          <padding>
-            <Insets top="10" right="10" bottom="10" left="10" />
-          </padding>
-          <StackPane fx:id="studentListPanelPlaceholder" VBox.vgrow="ALWAYS"/>
-        </VBox>
+        <SplitPane fx:id="workspace" dividerPositions="0.19, 0.52" VBox.vgrow="ALWAYS">
+          <VBox styleClass="workspace-column" minWidth="170">
+            <Label text="Groups" styleClass="panel-heading" />
+            <StackPane fx:id="groupListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+          </VBox>
+          <VBox fx:id="studentList" styleClass="workspace-column" minWidth="270">
+            <Label text="Students" styleClass="panel-heading" />
+            <Label fx:id="studentCount" styleClass="panel-subheading" />
+            <Label fx:id="activeFilter" styleClass="panel-subheading" maxWidth="Infinity" />
+            <StackPane fx:id="studentListPanelPlaceholder" VBox.vgrow="ALWAYS" />
+          </VBox>
+          <VBox styleClass="workspace-column" minWidth="320">
+            <Label text="Student Details" styleClass="panel-heading" />
+            <StackPane fx:id="studentDetailsPanelPlaceholder" VBox.vgrow="ALWAYS" />
+          </VBox>
+        </SplitPane>
 
         <StackPane fx:id="statusbarPlaceholder" VBox.vgrow="NEVER" />
       </VBox>

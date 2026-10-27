@@ -26,6 +26,8 @@ import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.commands.RemarkCommand;
 import tutorlink.logic.commands.SortCommand;
 import tutorlink.logic.commands.SortGroupCommand;
+import tutorlink.logic.commands.SortResetCommand;
+import tutorlink.logic.commands.ViewCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.student.Student;
 import tutorlink.model.student.StudentContainsKeywordsPredicate;
@@ -105,7 +107,8 @@ public class TutorLinkParserTest {
         assertThrows(ParseException.class,
                 String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindTagCommand.MESSAGE_USAGE), () ->
                 parser.parseCommand("findtag"));
-        assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> parser.parseCommand("findtag t/friends"));
+        String prefixError = "Use the tag without t/.\n" + FindTagCommand.MESSAGE_USAGE;
+        assertThrows(ParseException.class, prefixError, () -> parser.parseCommand("findtag t/friends"));
     }
 
     @Test
@@ -130,6 +133,11 @@ public class TutorLinkParserTest {
     }
 
     @Test
+    public void parseCommand_view() throws Exception {
+        assertEquals(new ViewCommand(INDEX_FIRST_STUDENT), parser.parseCommand("view 1"));
+    }
+
+    @Test
     public void parseCommand_sort() throws Exception {
         assertEquals(new SortCommand(false), parser.parseCommand("sort name"));
         assertEquals(new SortCommand(false), parser.parseCommand("sort name asc"));
@@ -137,6 +145,7 @@ public class TutorLinkParserTest {
         assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group"));
         assertEquals(new SortGroupCommand(false), parser.parseCommand("sort group asc"));
         assertEquals(new SortGroupCommand(true), parser.parseCommand("sort group desc"));
+        assertEquals(new SortResetCommand(), parser.parseCommand("sort reset"));
     }
 
     @Test

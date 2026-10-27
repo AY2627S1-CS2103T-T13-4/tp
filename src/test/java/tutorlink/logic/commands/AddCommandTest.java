@@ -18,6 +18,7 @@ import tutorlink.commons.core.GuiSettings;
 import tutorlink.logic.Messages;
 import tutorlink.logic.commands.exceptions.CommandException;
 import tutorlink.model.Model;
+import tutorlink.model.ModelSnapshot;
 import tutorlink.model.ReadOnlyStudentDirectory;
 import tutorlink.model.ReadOnlyUserPrefs;
 import tutorlink.model.StudentDirectory;
@@ -89,6 +90,16 @@ public class AddCommandTest {
      */
     private class ModelStub implements Model {
         @Override
+        public ModelSnapshot createSnapshot() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void restoreSnapshot(ModelSnapshot snapshot) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public ReadOnlyUserPrefs getUserPrefs() {
             throw new AssertionError("This method should not be called.");
         }
@@ -145,6 +156,16 @@ public class AddCommandTest {
 
         @Override
         public void updateFilteredStudentList(Predicate<Student> predicate) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void updateFilteredStudentList(Predicate<Student> predicate, String description) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public String getFilterDescription() {
             throw new AssertionError("This method should not be called.");
         }
     }

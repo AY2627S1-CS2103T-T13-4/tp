@@ -50,7 +50,8 @@ public class ListCommand extends Command {
             return new CommandResult(MESSAGE_SUCCESS);
         }
 
-        model.updateFilteredStudentList(new TutorialGroupMatchesPredicate(tutorialGroup.get()));
+        model.updateFilteredStudentList(new TutorialGroupMatchesPredicate(tutorialGroup.get()),
+                "Tutorial group: " + tutorialGroup.get().value);
         return new CommandResult(
                 String.format(Messages.MESSAGE_STUDENTS_LISTED_OVERVIEW, model.getFilteredStudentList().size()));
     }

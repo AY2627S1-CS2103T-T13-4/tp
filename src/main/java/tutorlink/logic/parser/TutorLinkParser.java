@@ -23,6 +23,7 @@ import tutorlink.logic.commands.HelpCommand;
 import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.commands.RemarkCommand;
 import tutorlink.logic.commands.SortCommand;
+import tutorlink.logic.commands.ViewCommand;
 import tutorlink.logic.parser.exceptions.ParseException;
 
 /**
@@ -75,6 +76,7 @@ public class TutorLinkParser {
                     new ExitCommand());
             case HelpCommand.COMMAND_WORD -> parseNoArguments(arguments, HelpCommand.MESSAGE_USAGE,
                     new HelpCommand());
+            case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
             default -> {
                 logger.finer("This user input caused a ParseException: " + userInput);
                 throw new ParseException(MESSAGE_UNKNOWN_COMMAND);

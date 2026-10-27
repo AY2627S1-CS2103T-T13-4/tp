@@ -80,7 +80,8 @@ Any warnings or errors will be printed out to the console.
 
 Here are the steps to create a new release.
 
-1. Update the version number in `src/main/java/tutorlink/MainApp.java`.
+1. Update the version number in `src/main/java/tutorlink/MainApp.java`, the guides, and the release scope in the README.
+   Merge the changes only after required checks pass. Record the final source commit with `git rev-parse HEAD`.
 1. Run `./gradlew check coverage shadowJar` with JDK 25, then
    `./gradlew -PmacJavafxPlatform=mac-aarch64 shadowJar` to build both packages from the same commit.
 1. Smoke-test each package on its matching Java architecture in a disposable folder. Verify saving and restarting,
@@ -89,6 +90,16 @@ Here are the steps to create a new release.
    `python3 .github/smoke-test.py`. Set `JAVA_HOME` to that JDK. The script selects the package for the Java
    architecture, launches its real entry point, exercises the UI, and checks the saved JSON after restart.
    Logs and screenshots are retained under `build/packaged-smoke/`. macOS CI runs the same check.
-1. Tag the verified commit with the version number, e.g. `v1.3`.
+1. Generate `SHA256SUMS.txt` from the **final** two JAR files, for example with
+   `shasum -a 256 TutorLink.jar TutorLink-mac-aarch64.jar` in the release staging folder.
+   Include a `BUILD-INFO.txt` recording the source commit, Java version, build commands, and platform coverage.
+   If any binary changes, regenerate and reverify the manifest before publishing.
+1. Tag the verified source commit with the version number, e.g. `v1.5`. Build artifacts, tag, and release notes must
+   describe the same source; do not rebuild a release from an untagged working tree.
 1. [Create a new release using GitHub](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
-   Attach both JARs and include platform instructions, changes, known limitations, and current screenshots in the release notes.
+   Attach both JARs, the checksum manifest, and build information. Include platform instructions, changes,
+   upgrade notes, known limitations, and links to the current User Guide and Developer Guide.
+1. Download the published JARs and manifest into a new folder. Verify `shasum -a 256 -c SHA256SUMS.txt` (or
+   `Get-FileHash -Algorithm SHA256` on Windows) against these downloaded bytes, then repeat the packaged smoke test
+   on a supported local architecture. Verify the public guide pages and release links. Record evidence in the
+   release tracker and close the milestone only after its work is complete.

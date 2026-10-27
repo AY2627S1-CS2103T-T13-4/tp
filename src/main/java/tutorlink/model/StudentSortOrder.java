@@ -21,7 +21,7 @@ public enum StudentSortOrder {
     }
 
     /**
-     * Returns the comparator for this rule, or null for the original directory order.
+     * Returns the comparator for this rule, or null for the current underlying directory order.
      */
     Comparator<Student> getComparator() {
         return comparator;

@@ -36,6 +36,12 @@ public interface Model {
     /** Returns the StudentDirectory */
     ReadOnlyStudentDirectory getStudentDirectory();
 
+    /** Returns a snapshot of the roster, filter and sorting before a command. */
+    ModelSnapshot createSnapshot();
+
+    /** Restores the roster and view after a command could not be saved. */
+    void restoreSnapshot(ModelSnapshot snapshot);
+
     /**
      * Returns true if a student with the same identity as {@code student} exists in the student directory.
      */
@@ -64,10 +70,13 @@ public interface Model {
     /** Returns an unmodifiable view of the filtered student list in displayed order. */
     ObservableList<Student> getFilteredStudentList();
 
+    /** Returns the human-readable condition for the current displayed list. */
+    String getFilterDescription();
+
     /**
      * Sorts the currently filtered students using {@code sortOrder}, without changing the filter or directory order.
      * The ordering remains active as students are edited or deleted.
-     * {@link StudentSortOrder#DIRECTORY} restores the original directory order for the current results.
+     * {@link StudentSortOrder#DIRECTORY} restores the current underlying directory order for the current results.
      * @throws NullPointerException if {@code sortOrder} is null.
      */
     void sortStudents(StudentSortOrder sortOrder);
@@ -77,4 +86,7 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredStudentList(Predicate<Student> predicate);
+
+    /** Updates the filter and its visible description, resetting sorting to directory order. */
+    void updateFilteredStudentList(Predicate<Student> predicate, String description);
 }

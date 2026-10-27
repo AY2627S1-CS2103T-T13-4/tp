@@ -28,10 +28,24 @@ TutorLink is a **desktop application for managing student records, optimized for
 
 1. Copy the file to the folder you want to use as the _home folder_ for TutorLink.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar TutorLink.jar`
-   (or `java -jar TutorLink-mac-aarch64.jar` for the ARM64 package).<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -ea -jar TutorLink.jar`
+   (or `java -ea -jar TutorLink-mac-aarch64.jar` for the ARM64 package).<br>
    A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
    ![Ui](images/Ui.png)
+
+1. The left column lists all tutorial groups and their student counts. The middle column initially shows all students.
+   Select a group to show its students, or select **All Students** to restore the full roster. These actions have the
+   same effect as `list g/GROUP` and `list`, including resetting sorting.
+
+1. Above the student list, the active condition remains visible after edits, remarks, sorting, and other commands.
+   It shows `All students`, a tutorial group, the name/matriculation keywords, a tag, or `Follow-up required`.
+   Hover over a truncated condition to read it in full. A new search replaces it; `list` or adding a student
+   restores `All students`. Restarting also starts with the full roster.
+
+1. Enter `view INDEX` or select a student in the middle column to see their full details on the right.
+   You can also focus a list with Tab
+   and move its selection with the arrow keys. The middle list shows the indices used by `edit`, `delete`, `remark`,
+   and `followup`. Drag the dividers to adjust column widths; long details can be scrolled.
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
@@ -46,11 +60,15 @@ TutorLink is a **desktop application for managing student records, optimized for
 
    * `sort group` : Sorts the displayed students by tutorial group in ascending order.
 
+   * `sort reset` : Restores directory order for the displayed students, keeping the current filter.
+
    * `add n/John Doe m/A0123456X g/T01 e/johnd@example.com` : Adds a student named `John Doe` to TutorLink.
 
    * `find John` : Finds students whose names contain the whole word `John`.
 
    * `findtag needsHelp` : Finds students with the tag `needsHelp`, ignoring case.
+
+   * `view 1` : Opens the full details of the 1st displayed student.
 
    * `followup 1 on`, then `followups` : Marks the 1st displayed student and lists outstanding follow-ups.
 
@@ -89,6 +107,8 @@ Attendance tracking and participation records are future enhancements and are no
   For example, if the command specifies `n/NAME p/PHONE_NUMBER`, `p/PHONE_NUMBER n/NAME` is also acceptable.
   Positional arguments in `sort name [asc|desc]` and `sort group [asc|desc]` must follow the order shown.
 
+* Tabs pasted into the command box are converted to spaces, so adjacent parameters remain separate.
+
 * Commands that take no parameters, such as `help`, `exit`, and `clear`, reject extraneous arguments.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -119,6 +139,22 @@ Names can contain letters, digits, and spaces, up to 70 characters after leading
 The matriculation number must be `A` followed by seven digits and a letter. Letter case is ignored on input, and the
 value is saved in uppercase. A tutorial group must be one letter followed by exactly two digits. Its letter is saved
 in uppercase, while leading zeros are kept, so `l03` is stored as `L03`.
+
+Contact details follow these rules:
+
+* Phone numbers contain at least three digits, with no spaces, punctuation, or country-code `+` sign.
+* Email addresses use `local-part@domain`. The local part contains 1–64 ASCII letters, digits, or `+_.-`,
+  starts and ends with a letter or digit, and has no consecutive periods. Adjacent supported special characters
+  such as `student+_tutorial@example.com` are accepted. Domain labels contain 1–63 letters, digits, or hyphens,
+  start and end with a letter or digit, and are separated by periods. The final label has at least two characters.
+  The complete address is at most 254 characters. These are TutorLink's supported formats; no email is sent or verified.
+* Addresses can contain free text but cannot be blank when supplied to `add`.
+  A space followed by a recognized prefix starts another parameter. To include a literal prefix in an address,
+  put a backslash immediately before it: `a/Block 10 \p/Lane` stores `Block 10 p/Lane`, and
+  `a/NUS \e/learning centre` stores `NUS e/learning centre`. This works in `add` and `edit` for
+  `\n/`, `\m/`, `\g/`, `\p/`, `\e/`, `\a/`, and `\t/` at the start of the address or after whitespace.
+  Other backslashes are retained. Unescaped prefixes keep their usual parameter meaning.
+* To add a student without a contact detail, omit that prefix. Empty `p/`, `e/`, or `a/` in `add` is invalid.
 
 <box type="tip" seamless>
 
@@ -181,18 +217,21 @@ displayed student to T02 updates the counts while retaining the T01 filter:
 
 ![Tutorial-group counts after moving a student](images/groupsAfterMove.png)
 
-### Sorting displayed students by name or tutorial group: `sort`
+### Sorting displayed students or restoring directory order: `sort`
 
 Orders the students currently displayed, keeping the current search, tutorial-group, tag, or follow-up filter.
 
-Format: `sort name [asc|desc]` or `sort group [asc|desc]`
+Format: `sort name [asc|desc]`, `sort group [asc|desc]`, or `sort reset`
 
 * `sort name` and `sort name asc` sort names in ascending order (A to Z).
 * `sort name desc` sorts names in descending order (Z to A).
 * `sort group` and `sort group asc` sort tutorial groups in ascending order, such as `T01`, `T02`, `T03`.
 * `sort group desc` sorts tutorial groups in descending order, such as `T03`, `T02`, `T01`.
 * The direction defaults to ascending for both fields.
-* The keywords `sort`, `name`, `group`, `asc`, and `desc` must be lowercase and in the order shown.
+* `sort reset` cancels name or tutorial-group sorting and restores directory order for the current results,
+  keeping the current search, tutorial-group, tag, or follow-up filter active.
+  It accepts no extra arguments: `sort reset asc` and `sort reset extra` are invalid and leave the display unchanged.
+* The keywords `sort`, `name`, `group`, `asc`, `desc`, and `reset` must be lowercase and in the order shown.
 * Names are compared as complete names, ignoring case. For example, `alice` comes before `Bob` in ascending order.
   Digits and spaces are compared character by character, rather than as numbers or separate words.
 * Equal names, including names differing only in case, are always ordered by matriculation number in ascending
@@ -212,7 +251,15 @@ Format: `sort name [asc|desc]` or `sort group [asc|desc]`
   cancels sorting. Invalid commands leave the current filter and sorting unchanged.
 * Sorting is not retained after restarting. Default directory order follows the saved student array; new students
   are appended, edits retain their directory position, and deletions preserve the remaining students' relative order.
-* Empty and single-student results can also be sorted. Repeating the same sort keeps the same order.
+  `sort reset` uses this current directory order; it does not restore a historical snapshot or undo edits or deletions.
+* After `sort reset`, indexed commands use the restored display order. Later edits retain their directory position
+  while they still match the filter; the previous name or group sorting rule no longer applies.
+* Empty and single-student results can also be sorted or reset. Resetting an already unsorted list succeeds.
+  Repeating the same sort or reset keeps the same order. Either sort field can be used again after a reset.
+
+Unlike `sort reset`, `list` replaces the current filter with the full roster, and `list g/GROUP` replaces it with
+the specified tutorial-group filter. For example, after `find Alice Bob` and `sort group desc`, `sort reset`
+keeps only those search matches in directory order; `list` shows all students in directory order.
 
 Example workflow:
 
@@ -220,7 +267,7 @@ Example workflow:
 2. `sort name` orders those students by name, still showing only `T01`.
 3. `edit 1 n/Wendy` edits the first student in the sorted display and moves them to their new sorted position.
 4. `delete 1` previews whoever is now first. Check the preview before using `delete 1 confirm`.
-5. `list g/T01` cancels sorting and shows the remaining `T01` students in directory order.
+5. `sort reset` cancels sorting and shows the remaining `T01` students in directory order, retaining the filter.
 
 To arrange search results by tutorial group:
 
@@ -239,6 +286,11 @@ Format: `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE] [e/E
 * Edits the student at the specified `INDEX`. The index refers to the index number shown in the displayed student list. The index **must be a positive integer** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Supplied fields replace their existing values; omitted fields keep their existing values.
+* To remove an optional contact detail, supply its prefix with no value: `edit 1 p/` clears the phone number.
+  `edit 1 p/ e/ a/` clears all three contact details. They display as `Not provided` and remain absent after restart.
+  Clearing an already absent value is harmless. Required fields (`n/`, `m/`, `g/`) cannot be cleared.
+* Contact details follow the same validation rules as `add`. If any supplied field is invalid, the entire edit is
+  rejected; no fields are partially changed. Edits preserve the student's remark and follow-up status.
 * Matriculation numbers and tutorial groups follow the same formats as in `add` and are saved in uppercase.
   A matriculation number already used by another student is rejected, regardless of letter case.
 * The current filtered view remains active after an edit. If the edited student no longer matches the active filter,
@@ -254,6 +306,24 @@ Examples:
 *  `edit 1 m/a1234567z` Changes only the 1st student's matriculation number to `A1234567Z`.
 *  `edit 1 g/l03` Moves the 1st student to tutorial group `L03`. If `list g/T01` is active, that student
    disappears from the displayed list while the `T01` filter remains active.
+
+Clearing optional contacts retains the student's remark and follow-up status:
+
+![Optional contacts cleared while other details remain](images/clearOptionalContacts.png)
+
+### Viewing a student's details: `view`
+
+Selects a student in the displayed list, scrolls their summary into view, and opens their full details on the right.
+
+Format: `view INDEX`
+
+* `INDEX` is the positive integer shown in the current student list, including filtered and sorted results.
+* The details panel shows the student's name, matriculation number, group, contact details, tags, remark,
+  and follow-up status. You can scroll to read long details.
+* Viewing does not change student records, the current filter, or the sort order, and does not write the data file.
+* A missing, invalid, or out-of-range index shows an error and keeps the previous selection.
+
+Example: `list g/T01`, then `sort name`, then `view 1` shows the first student in the sorted T01 results.
 
 ### Managing a student's remark: `remark`
 
@@ -308,6 +378,7 @@ Finds students with a particular tag added using `add` or `edit`.
 Format: `findtag TAG`
 
 * Supply exactly one tag without the `t/` prefix, for example `findtag needsHelp`.
+  If you accidentally use `findtag t/needsHelp`, the error shows the correct syntax; the current results stay unchanged.
 * Matching is **case-insensitive and exact**: `needsHelp`, `NEEDSHELP`, and `needshelp` match the same tag.
   `help` and `needsHelpSoon` do not match `needsHelp`. Only tags are searched.
 * Tags follow the same rules as `add` and `edit`: one or more letters `A`–`Z`, `a`–`z`, or digits `0`–`9`.
@@ -332,10 +403,15 @@ Example workflow (using unused matriculation numbers and a tag not yet in your r
 5. `findtag needsHelp` finds only Evan.
 6. `list` shows the full roster, including Dana without the tag.
 
+The active tag condition remains visible after setting a remark, even though the result message changes:
+
+![Active tag search retained after updating a remark](images/activeSearchCondition.png)
+
 ### Tracking student follow-ups: `followup` and `followups`
 
 Tracks whether a student currently requires follow-up. Newly added students start with no follow-up required.
-The student card shows `Follow-up: Required` or `Follow-up: Not required`.
+The selected student's details show `Follow-up: Required` or `Follow-up: Not required`.
+Student summaries also mark students who require follow-up.
 
 Formats:
 * `followup INDEX on` marks a student as requiring follow-up.
@@ -374,8 +450,8 @@ Example acceptance workflow (use an unused matriculation number):
 
 The packaged app retains Casey after restarting, then shows an empty follow-up list after completion:
 
-![Casey requiring follow-up after restarting](images/followUpAfterRestart.png)
-![No outstanding follow-ups after completing Casey](images/followUpCompleted.png)
+![Casey requiring follow-up after restarting](images/followUpAfterRestartWorkspace.png)
+![No outstanding follow-ups after completing Casey](images/followUpCompletedWorkspace.png)
 
 ### Deleting a student with confirmation: `delete`
 
@@ -383,7 +459,8 @@ Shows the selected student before deletion. Add `confirm` to explicitly authoris
 
 Format: `delete INDEX [confirm]`
 
-* `delete INDEX` displays the selected student's details and the command to confirm deletion. It does not remove them.
+* `delete INDEX` highlights that student in the list, shows their profile in the details panel, and displays the
+  command to confirm deletion. It does not remove them or change the saved data.
 * `delete INDEX confirm` deletes the student at the specified index in the currently displayed list.
 * The index **must be a positive integer** 1, 2, 3, ... and must refer to a student in that list.
 * The confirmation keyword is exactly `confirm` (lowercase).
@@ -395,9 +472,16 @@ Examples:
 * `list`, then `delete 2` previews the 2nd student. `delete 2 confirm` removes that student if the list is unchanged.
 * `find Betsy`, then `delete 1` previews the 1st student in the search results. `delete 1 confirm` removes that student if the results are unchanged.
 
+The preview selects the same student in the list and details panel, including when the list is filtered and sorted:
+
+![Deletion preview selects Zoe at displayed index 2](images/deletePreviewTarget.png)
+
 ### Clearing all students: `clear`
 
 Clears all student records from TutorLink.
+
+**This takes effect immediately, without confirmation or undo.** Back up `data/tutorlink.json` before using it
+if you may need to recover the roster. Use `delete INDEX` to preview removal of an individual student.
 
 Format: `clear`
 
@@ -413,7 +497,11 @@ Extra arguments are rejected.
 
 ### Saving the data
 
-TutorLink automatically saves data after every command. You do not need to save manually.
+TutorLink automatically saves changes to student records. You do not need to save manually.
+Commands that leave student records unchanged, such as `help`, `exit`, `list`, searches, sorting, `view`, and an
+unconfirmed `delete INDEX`, do not write the data file. Repeating an already completed follow-up action also does
+not save again. If saving a change fails, TutorLink reports the error and restores the previous roster, filter,
+sorting, and selection. Resolve the reported file-permission or storage problem before retrying the change.
 
 ### Editing the data file
 
@@ -428,9 +516,16 @@ If TutorLink cannot load the data file, it shows an error and stops starting. It
 Furthermore, certain edits can cause TutorLink to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
-### Archiving data files `[coming in v2.0]`
+### Upgrading to v1.5
 
-_Details coming soon ..._
+Close TutorLink and copy `data/tutorlink.json` to a safe backup location before replacing the JAR in the same home
+folder. Existing valid records, remarks, and follow-up statuses are retained. v1.5 enforces the email length limits
+above when loading saved records as well as when entering commands. If an earlier version saved an oversized email,
+startup stops with the protective error described above. Correct that email in a backed-up copy of the JSON file
+(or use `null` for an unavailable email), then relaunch. Do not delete the original roster to bypass an error.
+
+The v1.5.1 patch adds the persistent filter condition, address-prefix escapes, and corrective `findtag` guidance.
+It uses the same saved-data format as v1.5.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -457,6 +552,7 @@ Action     | Format, Examples
 **Delete** | `delete INDEX [confirm]`<br> e.g., `delete 3`, then `delete 3 confirm`
 **Edit**   | `edit INDEX [n/NAME] [m/MATRIC_NUMBER] [g/TUTORIAL_GROUP] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g., `edit 2 m/A1234567Z g/T02`
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Needs help with recursion`
+**View details** | `view INDEX`<br> e.g., `view 1`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James A0123456B`
 **Find by tag** | `findtag TAG`<br> e.g., `findtag needsHelp`
 **Follow-up status** | `followup INDEX on` or `followup INDEX done`<br> e.g., `followup 1 on`
@@ -465,5 +561,6 @@ Action     | Format, Examples
 **List tutorial-group counts** | `groups`
 **Sort by name** | `sort name [asc\|desc]`<br> e.g., `sort name`, `sort name desc`
 **Sort by tutorial group** | `sort group [asc\|desc]`<br> e.g., `sort group`, `sort group desc`
+**Reset sorting** | `sort reset` (keeps the current filter; `list` resets the filter)
 **Help**   | `help`
 **Exit**   | `exit`

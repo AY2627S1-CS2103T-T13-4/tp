@@ -26,6 +26,10 @@ public class FindTagCommandParser implements Parser<FindTagCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindTagCommand.MESSAGE_USAGE));
         }
 
+        if (trimmedArgs.startsWith("t/")) {
+            throw new ParseException("Use the tag without t/.\n" + FindTagCommand.MESSAGE_USAGE);
+        }
+
         Tag tag = ParserUtil.parseTag(trimmedArgs);
         return new FindTagCommand(new TagMatchesPredicate(tag));
     }
