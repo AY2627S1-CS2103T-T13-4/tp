@@ -3,6 +3,7 @@ package tutorlink.ui;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.scene.Scene;
 import javafx.scene.control.ListCell;
@@ -18,6 +19,8 @@ import tutorlink.model.student.Student;
  */
 public class StudentListView extends ListView<Student> {
     private static final int STABLE_LAYOUT_PULSES = 3;
+    // Bound the work even when a row cannot settle (about two seconds at 60 pulses per second).
+    private static final int MAX_LAYOUT_PULSES = 120;
     private final Runnable scrollAfterLayout = this::finishScroll;
     private final ListChangeListener<Student> itemsListener = change -> cancelPendingScroll();
     private final ChangeListener<Window> sceneWindowListener = (observable, oldWindow, newWindow) ->
@@ -30,7 +33,9 @@ public class StudentListView extends ListView<Student> {
     private Scene scrollScene;
     private Window scrollWindow;
     private Student scrollTarget;
+    private ObservableList<Student> observedItems;
     private int visiblePulses;
+    private int layoutPulses;
 
     /**
      * Creates a list whose skin is installed by CSS once rows can be measured in the scene.
@@ -38,16 +43,19 @@ public class StudentListView extends ListView<Student> {
     public StudentListView() {
         getSelectionModel().selectedItemProperty().addListener(observable -> cancelPendingScroll());
         sceneProperty().addListener(observable -> cancelPendingScroll());
-        itemsProperty().addListener((observable, oldItems, newItems) -> {
+        // Invalidation also detects replacement lists with equal contents; a change listener can skip them.
+        itemsProperty().addListener(observable -> {
             cancelPendingScroll();
-            if (oldItems != null) {
-                oldItems.removeListener(itemsListener);
+            if (observedItems != null) {
+                observedItems.removeListener(itemsListener);
             }
-            if (newItems != null) {
-                newItems.addListener(itemsListener);
+            observedItems = getItems();
+            if (observedItems != null) {
+                observedItems.addListener(itemsListener);
             }
         });
-        getItems().addListener(itemsListener);
+        observedItems = getItems();
+        observedItems.addListener(itemsListener);
     }
 
     @Override
@@ -93,6 +101,7 @@ public class StudentListView extends ListView<Student> {
         scrollScene = null;
         scrollWindow = null;
         visiblePulses = 0;
+        layoutPulses = 0;
     }
 
     private void finishScroll() {
@@ -103,15 +112,12 @@ public class StudentListView extends ListView<Student> {
             return;
         }
         boolean isVisible = skin.ensureVisible(index);
-        if (isVisible) {
-            visiblePulses++;
-            if (visiblePulses == STABLE_LAYOUT_PULSES) {
-                cancelPendingScroll();
-            } else {
-                Platform.requestNextPulse();
-            }
+        visiblePulses = isVisible ? visiblePulses + 1 : 0;
+        layoutPulses++;
+        if (visiblePulses == STABLE_LAYOUT_PULSES || layoutPulses >= MAX_LAYOUT_PULSES) {
+            cancelPendingScroll();
         } else {
-            visiblePulses = 0;
+            Platform.requestNextPulse();
         }
     }
 
@@ -141,7 +147,7 @@ public class StudentListView extends ListView<Student> {
             ListCell<Student> cell = getVisibleCell(index);
             double viewportHeight = getHeight() - (getHbar().isVisible() ? getHbar().getHeight() : 0);
             if (viewportHeight <= 0) {
-                return true;
+                return false;
             }
             if (cell != null && cell.isVisible()) {
                 Bounds bounds = cell.getBoundsInParent();
@@ -155,7 +161,6 @@ public class StudentListView extends ListView<Student> {
             } else {
                 scrollTo(index);
             }
-            Platform.requestNextPulse();
             return false;
         }
     }
