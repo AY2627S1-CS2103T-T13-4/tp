@@ -30,6 +30,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventType;
 import javafx.geometry.Point3D;
 import javafx.scene.Node;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -37,6 +38,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
@@ -44,6 +46,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import tutorlink.logic.Logic;
 import tutorlink.logic.LogicManager;
@@ -52,6 +55,7 @@ import tutorlink.logic.commands.exceptions.CommandException;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.ModelManager;
 import tutorlink.model.ReadOnlyStudentDirectory;
+import tutorlink.model.StudentDirectory;
 import tutorlink.model.student.Student;
 import tutorlink.storage.JsonStudentDirectoryStorage;
 import tutorlink.storage.JsonUserPrefsStorage;
@@ -421,6 +425,156 @@ public class MainWindowTest {
     }
 
     @Test
+    public void viewFirstStudent_afterScrollingMixedHeightRows_scrollsBackToFirstSummary() throws Exception {
+        setUpMixedHeightRoster(12);
+        viewStudentAndAssertVisible(11);
+        viewStudentAndAssertVisible(0);
+        viewStudentAndAssertVisible(5);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> {
+            Label name = (Label) studentCell(2).getGraphic().lookup("#name");
+            assertTrue(name.getHeight() > name.getFont().getSize() * 2, "Long names should wrap");
+        });
+    }
+
+    @Test
+    public void viewStudent_mixedHeightRowsAfterSortingAndFiltering_scrollsToDisplayedIndex() throws Exception {
+        setUpMixedHeightRoster(60);
+        viewStudentAndAssertVisible(59);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> window.executeCommand("sort name desc"));
+        viewStudentAndAssertVisible(59);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> window.executeCommand("findtag needsHelp"));
+        viewStudentAndAssertVisible(29);
+        viewStudentAndAssertVisible(14);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> window.executeCommand("sort group desc"));
+        viewStudentAndAssertVisible(29);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> window.executeCommand("find A8000001Z"));
+        viewStudentAndAssertVisible(0);
+    }
+
+    @Test
+    public void viewStudent_afterWindowResizesAndFilteredSorting_keepsWholeSummaryVisible() throws Exception {
+        setUpMixedHeightRoster(60);
+        List<String> commands = List.of("view 60", "view 1", "view 30", "view 1", "sort name desc", "view 60",
+                "view 1", "findtag needsHelp", "view 30", "view 15", "view 1", "sort group desc", "view 30",
+                "view 1", "list g/T01", "view 12", "view 1", "find A8000001Z", "view 1", "list", "view 60", "view 1");
+        for (double[] size : new double[][] {{1200, 780}, {960, 640}, {1600, 1000}}) {
+            runOnFxThread(() -> {
+                window.executeCommand("list");
+                stage.setWidth(size[0]);
+                stage.setHeight(size[1]);
+                SplitPane workspace = (SplitPane) lookup("workspace");
+                workspace.setDividerPositions(0.19, 0.52);
+            });
+            awaitLayoutPulses();
+            for (String command : commands) {
+                runOnFxThread(() -> window.executeCommand(command));
+                if (command.startsWith("view ")) {
+                    int index = Integer.parseInt(command.substring(5)) - 1;
+                    assertVisibleStudentAfterPulse(index);
+                } else {
+                    awaitLayoutPulses();
+                }
+            }
+        }
+    }
+
+    @Test
+    public void viewStudent_followedByFilterOrRestoredSelection_cancelsEarlierScroll() throws Exception {
+        setUpMixedHeightRoster(60);
+        runOnFxThread(() -> {
+            window.executeCommand("view 60");
+            window.executeCommand("find A8000001Z");
+        });
+        awaitLayoutPulses();
+        runOnFxThread(() -> {
+            assertNull(window.getStudentListPanel().getSelectedStudent());
+            assertEquals(1, studentList().getItems().size());
+            window.executeCommand("list");
+            window.executeCommand("view 60");
+            window.getStudentListPanel().restoreSelection(model.getFilteredStudentList().getFirst());
+            studentList().scrollTo(0);
+        });
+        assertVisibleStudentAfterPulse(0);
+    }
+
+    @Test
+    public void viewStudent_windowHiddenOrSceneDetached_cancelsEarlierScroll() throws Exception {
+        setUpMixedHeightRoster(60);
+        runOnFxThread(() -> {
+            window.executeCommand("view 60");
+            stage.hide();
+            studentList().scrollTo(0);
+            stage.show();
+        });
+        awaitLayoutPulses();
+        runOnFxThread(() -> {
+            assertEquals(59, studentList().getSelectionModel().getSelectedIndex());
+            assertTrue(isStudentFullyVisible(studentCell(0)));
+            window.executeCommand("view 60");
+            Scene original = stage.getScene();
+            stage.setScene(new Scene(new StackPane(), 1200, 780));
+            ListView<?> list = (ListView<?>) original.lookup("#studentListView");
+            list.scrollTo(0);
+            stage.setScene(original);
+        });
+        awaitLayoutPulses();
+        runOnFxThread(() -> {
+            assertEquals(59, studentList().getSelectionModel().getSelectedIndex());
+            assertTrue(isStudentFullyVisible(studentCell(0)));
+        });
+    }
+
+    private void awaitLayoutPulses() throws Exception {
+        CountDownLatch pulses = new CountDownLatch(5);
+        Runnable listener = () -> {
+            pulses.countDown();
+            Platform.requestNextPulse();
+        };
+        runOnFxThread(() -> {
+            stage.getScene().addPostLayoutPulseListener(listener);
+            Platform.requestNextPulse();
+        });
+        try {
+            assertTrue(pulses.await(5, TimeUnit.SECONDS), "Window layout did not complete");
+        } finally {
+            runOnFxThread(() -> stage.getScene().removePostLayoutPulseListener(listener));
+        }
+    }
+
+    private void setUpMixedHeightRoster(int count) throws Exception {
+        runOnFxThread(() -> {
+            model.setStudentDirectory(new StudentDirectory());
+            for (int i = 1; i <= count; i++) {
+                String name = String.format("Student %02d", i);
+                if (i % 3 == 0) {
+                    name += " LongName".repeat(6) + " LongN";
+                }
+                model.addStudent(new StudentBuilder().withName(name)
+                        .withMatricNumber(String.format("A%07dZ", 8000000 + i))
+                        .withTutorialGroup(String.format("T%02d", (i - 1) % 5 + 1))
+                        .withTags(i % 2 == 0 ? "paid" : "needsHelp")
+                        .withFollowUp(i % 4 == 0).build());
+            }
+            stage.hide();
+            stage = new Stage();
+            window = new MainWindow(stage, logic, temporaryFolder.resolve("students.json"));
+            window.show();
+            window.fillInnerParts();
+            layout();
+        });
+    }
+
+    private void viewStudentAndAssertVisible(int index) throws Exception {
+        runOnFxThread(() -> window.executeCommand("view " + (index + 1)));
+        assertVisibleStudentAfterPulse(index);
+    }
+
+    @Test
     public void viewOffscreenStudent_scrollsToCorrectSummaryAfterReorderingAndFiltering() throws Exception {
         runOnFxThread(() -> {
             for (int i = 0; i < 40; i++) {
@@ -601,36 +755,46 @@ public class MainWindowTest {
         String visibleIndices = studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
                 .map(ListCell.class::cast).filter(cell -> !cell.isEmpty())
                 .map(cell -> Integer.toString(cell.getIndex())).collect(Collectors.joining(", "));
-        return studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
-                .map(ListCell.class::cast).filter(cell -> cell.getIndex() == index && !cell.isEmpty())
-                .findFirst().orElseThrow(() -> new AssertionError("Missing rendered row " + index
-                        + "; rendered rows=" + visibleIndices + "; list height=" + studentList().getHeight()
-                        + "; selected=" + studentList().getSelectionModel().getSelectedIndex()
-                        + "; filter=" + logic.getFilterDescription()));
+        ListCell<?> cell = (ListCell<?>) ((VirtualFlow<?>) studentList().lookup(".virtual-flow")).getVisibleCell(index);
+        if (cell == null || cell.isEmpty() || !cell.isVisible()) {
+            throw new AssertionError("Missing rendered row " + index
+                    + "; rendered rows=" + visibleIndices + "; list height=" + studentList().getHeight()
+                    + "; selected=" + studentList().getSelectionModel().getSelectedIndex()
+                    + "; filter=" + logic.getFilterDescription());
+        }
+        return cell;
     }
 
     private void assertVisibleStudent(int index) {
         ListCell<?> cell = studentCell(index);
-        var bounds = studentList().sceneToLocal(cell.localToScene(cell.getBoundsInLocal()));
-        assertTrue(bounds.getMaxY() > 0 && bounds.getMinY() < studentList().getHeight());
+        Node viewport = studentList().lookup(".clipped-container");
+        assertTrue(isStudentFullyVisible(cell), "Student " + (index + 1) + " should be fully inside the viewport; "
+                + "bounds=" + viewport.sceneToLocal(cell.localToScene(cell.getBoundsInLocal()))
+                + "; viewport=" + viewport.getBoundsInLocal() + "; layout=" + viewport.getLayoutBounds());
+        assertEquals(index, studentList().getSelectionModel().getSelectedIndex());
         assertEquals((index + 1) + ".", ((Label) cell.getGraphic().lookup("#id")).getText());
         Student expected = logic.getFilteredStudentList().get(index);
         assertEquals(expected.getName().fullName, ((Label) cell.getGraphic().lookup("#name")).getText());
         assertEquals(expected.getName().fullName, label("name").getText());
     }
 
+    private boolean isStudentFullyVisible(ListCell<?> cell) {
+        Node viewport = studentList().lookup(".clipped-container");
+        var bounds = viewport.sceneToLocal(cell.localToScene(cell.getBoundsInLocal()));
+        return bounds.getMinY() >= -1 && bounds.getMaxY() <= viewport.getBoundsInLocal().getHeight() + 1;
+    }
+
     private void assertVisibleStudentAfterPulse(int index) throws Exception {
         // VirtualFlow can need multiple pulses to measure wrapped rows after a filter change.
         // Wait for the observable viewport state, with a deadline, rather than a fixed delay.
         CountDownLatch laidOut = new CountDownLatch(1);
+        int[] visiblePulses = {0};
         Runnable listener = () -> {
-            boolean visible = studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
-                    .map(ListCell.class::cast).filter(cell -> cell.getIndex() == index && !cell.isEmpty())
-                    .anyMatch(cell -> {
-                        var bounds = studentList().sceneToLocal(cell.localToScene(cell.getBoundsInLocal()));
-                        return bounds.getMaxY() > 0 && bounds.getMinY() < studentList().getHeight();
-                    });
-            if (visible) {
+            ListCell<?> cell = (ListCell<?>) ((VirtualFlow<?>) studentList().lookup(".virtual-flow"))
+                    .getVisibleCell(index);
+            boolean visible = cell != null && !cell.isEmpty() && cell.isVisible() && isStudentFullyVisible(cell);
+            visiblePulses[0] = visible ? visiblePulses[0] + 1 : 0;
+            if (visiblePulses[0] >= 3) {
                 laidOut.countDown();
             } else {
                 Platform.requestNextPulse();
@@ -641,7 +805,8 @@ public class MainWindowTest {
             Platform.requestNextPulse();
         });
         try {
-            laidOut.await(5, TimeUnit.SECONDS);
+            assertTrue(laidOut.await(5, TimeUnit.SECONDS),
+                    "Student " + (index + 1) + " did not remain fully visible for three layout pulses");
             runOnFxThread(() -> assertVisibleStudent(index));
         } finally {
             runOnFxThread(() -> stage.getScene().removePostLayoutPulseListener(listener));
