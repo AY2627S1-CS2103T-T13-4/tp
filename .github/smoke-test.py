@@ -75,6 +75,13 @@ assert students[0]["tutorialGroup"] == "L03", students
 launch(workflow, "restart")
 assert (workflow / "data/tutorlink.json").read_bytes() == saved, "restart changed saved data"
 
+whitespace = work / "trailing-whitespace"
+(whitespace / "data").mkdir(parents=True)
+whitespace_data = saved + b" \t\r\n"
+(whitespace / "data/tutorlink.json").write_bytes(whitespace_data)
+launch(whitespace, "restart")
+assert (whitespace / "data/tutorlink.json").read_bytes() == whitespace_data, "trailing whitespace was changed"
+
 followup = work / "followup"
 (followup / "data").mkdir(parents=True)
 (followup / "data/tutorlink.json").write_text(json.dumps({"students": [
@@ -118,6 +125,9 @@ assert reported_saved[2]["address"] == "10 College Road", reported_saved
 assert reported_saved[2]["email"] == "tab@example.com", reported_saved
 
 for name, invalid in [("corrupt", b"{not valid JSON"),
+                      ("trailing-object", saved + b"\n" + saved),
+                      ("trailing-scalar", saved + b"\n42"),
+                      ("trailing-junk", saved + b"\nTHIS IS NOT JSON"),
                       ("json-null", b"null\n"),
                       ("missing-students", b'{}'),
                       ("null-students", b'{"students":null}'),

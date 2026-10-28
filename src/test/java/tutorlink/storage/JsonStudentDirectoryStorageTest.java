@@ -1,5 +1,6 @@
 package tutorlink.storage;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import tutorlink.commons.exceptions.DataLoadingException;
+import tutorlink.commons.util.JsonUtil;
 import tutorlink.model.ReadOnlyStudentDirectory;
 import tutorlink.model.StudentDirectory;
 import tutorlink.model.student.MatricNumber;
@@ -78,6 +80,32 @@ public class JsonStudentDirectoryStorageTest {
             assertThrows(DataLoadingException.class, storage::readStudentDirectory);
             assertEquals(content, Files.readString(filePath));
         }
+    }
+
+    @Test
+    public void readStudentDirectory_trailingContent_rejectsAndPreservesFile() throws Exception {
+        Path filePath = testFolder.resolve("trailing-content.json");
+        JsonStudentDirectoryStorage storage = new JsonStudentDirectoryStorage(filePath);
+        String validJson = JsonUtil.toJsonString(new JsonSerializableStudentDirectory(getTypicalStudentDirectory()));
+        for (String suffix : List.of(validJson, "null", "42", "NOT JSON")) {
+            Files.writeString(filePath, validJson + "\n" + suffix);
+            byte[] originalBytes = Files.readAllBytes(filePath);
+
+            assertThrows(DataLoadingException.class, storage::readStudentDirectory);
+            assertArrayEquals(originalBytes, Files.readAllBytes(filePath));
+        }
+    }
+
+    @Test
+    public void readStudentDirectory_trailingWhitespace_readsAndPreservesFile() throws Exception {
+        Path filePath = testFolder.resolve("trailing-whitespace.json");
+        StudentDirectory original = getTypicalStudentDirectory();
+        JsonStudentDirectoryStorage storage = new JsonStudentDirectoryStorage(filePath);
+        Files.writeString(filePath, JsonUtil.toJsonString(new JsonSerializableStudentDirectory(original)) + " \t\r\n");
+        byte[] originalBytes = Files.readAllBytes(filePath);
+
+        assertEquals(original, new StudentDirectory(storage.readStudentDirectory().orElseThrow()));
+        assertArrayEquals(originalBytes, Files.readAllBytes(filePath));
     }
 
     @Test

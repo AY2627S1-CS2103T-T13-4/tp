@@ -10,8 +10,10 @@ import java.util.logging.Logger;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -91,9 +93,17 @@ public class JsonUtil {
      * Converts a given string representation of JSON data to an instance of a class
      * @param <T> The generic type to create an instance of
      * @return The instance of T with the specified values in the JSON string
+     * @throws IOException if the string cannot be read as a single JSON value of the given class
      */
     public static <T> T fromJsonString(String json, Class<T> instanceClass) throws IOException {
-        return objectMapper.readValue(json, instanceClass);
+        try (JsonParser parser = objectMapper.getFactory().createParser(json)) {
+            T value = objectMapper.readValue(parser, instanceClass);
+            // A JSON document must contain exactly one root value, followed only by whitespace.
+            if (parser.nextToken() != null) {
+                throw JsonMappingException.from(parser, "Unexpected content after the root JSON value");
+            }
+            return value;
+        }
     }
 
     /**
