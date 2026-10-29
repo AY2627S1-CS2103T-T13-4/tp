@@ -51,6 +51,7 @@ class CommandCompletionSkin extends TextFieldSkin {
     @Override
     public void dispose() {
         ghost.fontProperty().unbind();
+        getChildren().remove(ghost);
         super.dispose();
     }
 }

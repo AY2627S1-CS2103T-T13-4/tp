@@ -2,6 +2,7 @@ package tutorlink.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tutorlink.testutil.JavaFxTestUtil.runOnFxThread;
 
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.geometry.Bounds;
 import javafx.scene.Scene;
@@ -151,6 +153,129 @@ public class CommandBoxTest {
     }
 
     @Test
+    public void tab_controlAltOrMetaModifier_doesNotAcceptCompletion() throws Exception {
+        runOnFxThread(() -> {
+            for (KeyEvent event : List.of(
+                    new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, true, false, false),
+                    new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, false, true, false),
+                    new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.TAB, false, false, false, true))) {
+                field.requestFocus();
+                enter("ad");
+                field.fireEvent(event);
+                layout();
+                assertEquals("ad", field.getText());
+                assertTrue(executed.isEmpty());
+            }
+        });
+    }
+
+    @Test
+    public void tab_selectedTextEndingAtCaret_keepsInputAndTraverses() throws Exception {
+        runOnFxThread(() -> {
+            enter("ad");
+            field.selectRange(0, field.getLength());
+            layout();
+            assertEquals(field.getLength(), field.getCaretPosition());
+            assertEquals("ad", field.getSelectedText());
+            assertEquals("", ghost().getText());
+            tab(false);
+            assertEquals("ad", field.getText());
+            assertTrue(next.isFocused());
+        });
+    }
+
+    @Test
+    public void editing_navigationUndoAndRedo_affectsOnlyActualInput() throws Exception {
+        runOnFxThread(() -> {
+            for (String text : List.of("ad", "add n/Alice Tan")) {
+                field.requestFocus();
+                enter(text);
+                tab(false);
+                String completed = field.getText();
+                assertFalse(completed.equals(text));
+                assertTrue(field.isUndoable());
+                field.undo();
+                layout();
+                assertEquals(text, field.getText());
+                assertFalse(ghost().getText().isEmpty());
+                assertTrue(field.isRedoable());
+                field.redo();
+                layout();
+                assertEquals(completed, field.getText());
+                field.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.LEFT,
+                        false, false, false, false));
+                layout();
+                assertEquals(completed, field.getText());
+                assertEquals(completed.length() - 1, field.getCaretPosition());
+                assertEquals("", ghost().getText());
+            }
+            assertTrue(executed.isEmpty());
+        });
+    }
+
+    @Test
+    public void enter_emptyInputAndRepeatedFailure_doesNotExecuteEmptyOrDuplicateErrorStyle() throws Exception {
+        runOnFxThread(() -> {
+            field.fireEvent(new ActionEvent());
+            assertTrue(executed.isEmpty());
+            enter("unknown");
+            field.fireEvent(new ActionEvent());
+            field.fireEvent(new ActionEvent());
+            assertEquals(List.of("unknown", "unknown"), executed);
+            assertEquals(1, field.getStyleClass().stream().filter(CommandBox.ERROR_STYLE_CLASS::equals).count());
+            assertEquals("unknown", field.getText());
+        });
+    }
+
+    @Test
+    public void skin_replaced_disposesOldBindingsAndRestoresCompletion() throws Exception {
+        runOnFxThread(() -> {
+            enter("ad");
+            Text oldGhost = ghost();
+            Font oldFont = oldGhost.getFont();
+            assertTrue(oldGhost.fontProperty().isBound());
+            field.setSkin(new TextFieldSkin(field));
+            layout();
+            assertFalse(oldGhost.fontProperty().isBound());
+            assertNull(field.lookup("#commandGhostText"));
+            assertNull(oldGhost.getParent());
+            field.setFont(Font.font("System", oldFont.getSize() + 10));
+            assertEquals(oldFont, oldGhost.getFont());
+            assertEquals("ad", field.getText());
+
+            field.setSkin(new CommandCompletionSkin(field));
+            // Native skin installation resets the caret; resume editing at the end.
+            field.end();
+        });
+        awaitLayoutPulse();
+        runOnFxThread(() -> {
+            assertTrue(field.isFocused());
+            assertEquals(field.getLength(), field.getCaretPosition());
+            assertEquals(1, field.lookupAll("#commandGhostText").size());
+            assertEquals(field.getFont(), ghost().getFont());
+            assertTrue(ghost().getText().startsWith("d n/NAME"));
+            tab(false);
+            assertEquals("add", field.getText());
+            assertTrue(field.isFocused());
+        });
+    }
+
+    @Test
+    public void tab_escapedAddressWithFollowingParameter_keepsHintAndLiteralInput() throws Exception {
+        runOnFxThread(() -> {
+            for (String command : List.of("add", "edit 1")) {
+                String input = command + " a/Block 10 \\p/Lane \\e/centre n/Alice";
+                enter(input);
+                assertTrue(ghost().getText().contains("m/MATRIC_NUMBER"));
+                tab(false);
+                assertEquals(input + " m/", field.getText());
+                assertTrue(ghost().getText().startsWith("MATRIC_NUMBER"));
+                assertTrue(field.isFocused());
+            }
+        });
+    }
+
+    @Test
     public void ghost_middleCaretSelectionAndBlur_hidesWithoutChangingInput() throws Exception {
         runOnFxThread(() -> {
             enter("add n/Alice Tan");
@@ -160,6 +285,7 @@ public class CommandBoxTest {
             assertEquals("", ghost().getText());
             tab(false);
             assertEquals("add n/Alice Tan", field.getText());
+            assertTrue(next.isFocused());
             field.requestFocus();
             field.selectRange(0, field.getLength());
             layout();
@@ -245,6 +371,20 @@ public class CommandBoxTest {
     private void layout() {
         root.applyCss();
         root.layout();
+    }
+
+    private void awaitLayoutPulse() throws Exception {
+        CountDownLatch laidOut = new CountDownLatch(1);
+        Runnable listener = laidOut::countDown;
+        runOnFxThread(() -> {
+            stage.getScene().addPostLayoutPulseListener(listener);
+            Platform.requestNextPulse();
+        });
+        try {
+            assertTrue(laidOut.await(5, TimeUnit.SECONDS), "The replacement skin must receive a layout pulse");
+        } finally {
+            runOnFxThread(() -> stage.getScene().removePostLayoutPulseListener(listener));
+        }
     }
 
     private Text ghost() {

@@ -30,7 +30,7 @@ import tutorlink.logic.commands.ViewCommand;
 public class CommandCompletion {
     private static final Suggestion NONE = new Suggestion("", "");
     private static final Pattern COMMAND = Pattern.compile("^(\\s*)(\\S+)(.*)$");
-    // Match the tokenizer's literal-space boundary, including unknown prefixes so they suppress suggestions.
+    // Match literal-space boundaries; unrecognized slash words are handled according to their current field.
     private static final Pattern PREFIX = Pattern.compile(" ([^\\s/]+/)");
     private static final List<String> COMMANDS = List.of(AddCommand.COMMAND_WORD, ClearCommand.COMMAND_WORD,
             DeleteCommand.COMMAND_WORD, EditCommand.COMMAND_WORD, ExitCommand.COMMAND_WORD, FindCommand.COMMAND_WORD,
@@ -92,9 +92,15 @@ public class CommandCompletion {
         List<Integer> ends = new ArrayList<>();
         Set<Parameter> seen = new HashSet<>();
         while (matcher.find()) {
+            String prefix = matcher.group(1);
             Parameter parameter = parameters.stream()
-                    .filter(candidate -> candidate.prefix().getPrefix().equals(matcher.group(1)))
+                    .filter(candidate -> candidate.prefix().getPrefix().equals(prefix))
                     .findFirst().orElse(null);
+            // Like the parser, keep unrecognized slash words and escapes inside free-text addresses.
+            if (parameter == null && !supplied.isEmpty()
+                    && supplied.getLast().prefix().equals(CliSyntax.PREFIX_ADDRESS)) {
+                continue;
+            }
             if (parameter == null || (!seen.add(parameter) && !parameter.prefix().equals(CliSyntax.PREFIX_TAG))) {
                 return NONE;
             }

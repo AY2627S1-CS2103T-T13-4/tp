@@ -191,8 +191,10 @@ current parser and usage-message syntax. Exact command names take precedence ove
 only a unique name prefix is suggested. Name acceptance only appends the command suffix. Subsequent
 acceptance appends one missing parameter prefix, skipping supplied parameters while preserving every value
 and its order. Empty required values block advancement. Positional arguments are hints only, and no
-placeholder values or optional brackets are inserted. Unknown prefixes, duplicate non-tag prefixes, and
-invalid preambles suppress suggestions. Completion does not validate or execute commands.
+placeholder values or optional brackets are inserted. Within addresses, only recognized parameter prefixes
+form boundaries; escaped prefixes and other slash words remain address text. Unknown prefixes outside
+addresses, duplicate non-tag prefixes, and invalid preambles suppress suggestions.
+Completion does not validate or execute commands.
 
 `CommandBox` filters only an unmodified Tab at the end of an unselected input when an append is available.
 Other keys and focus traversal continue through JavaFX. Its text formatter still normalizes pasted tabs.
@@ -205,7 +207,8 @@ or changes the field's text. Focus, selection, caret, text, font and size change
 
 `CommandCompletionTest` covers command syntax and incremental acceptance. `CommandBoxTest` uses a real
 JavaFX stage and skin to cover event dispatch, focus traversal, actual-input execution, paste normalization,
-selection, font changes and horizontal scrolling. Tests use synthetic commands without accessing user data.
+selection, native undo/redo, skin replacement, font changes and horizontal scrolling.
+Tests use synthetic commands without accessing user data.
 
 ### Tag search
 
