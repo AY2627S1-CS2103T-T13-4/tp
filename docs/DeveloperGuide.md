@@ -246,7 +246,8 @@ all unrelated fields, including the existing remark. Repeating either action lea
 <puml src="diagrams/FollowUpSequenceDiagram.puml" alt="Completing a follow-up using the current displayed index" />
 
 `followups` accepts no arguments. `FollowUpsCommand` replaces the active predicate using
-`Model#updateFilteredStudentList(Student::requiresFollowUp)`. The filtered list is backed by the entire roster,
+`Model#updateFilteredStudentList(Student::requiresFollowUp, "Follow-up required")`.
+The filtered list is backed by the entire roster,
 so results are independent of the previous name search, tag search, or group filter. The command neither copies nor
 mutates the source roster. Results follow roster order and an empty result has an explicit message.
 After `setStudent`, JavaFX re-evaluates the active predicate; completing a follow-up therefore immediately removes
@@ -255,7 +256,8 @@ the student from that view and renumbers the remaining results. The filter stays
 
 `JsonAdaptedStudent` saves `requiresFollowUp` and restores it through the full `Student` constructor.
 Missing or null fields default to false for compatibility with older records. `LogicManager` saves the complete
-roster after successful commands, including hidden students. No history or completion timestamps are stored.
+roster after successful commands that change student records, including hidden students.
+Commands that leave the records unchanged do not save again. No history or completion timestamps are stored.
 
 Preservation and ordering contract:
 * `Student` equality, hashing, and string output include current status; identity still uses only matriculation number.
