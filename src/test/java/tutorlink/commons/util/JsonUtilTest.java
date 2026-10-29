@@ -1,9 +1,11 @@
 package tutorlink.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static tutorlink.testutil.Assert.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +41,24 @@ public class JsonUtilTest {
         assertEquals(serializableTestClass.getMapOfIntegerToString(), SerializableTestClass.getHashMapTestValues());
     }
 
-    //TODO: @Test jsonUtil_readJsonStringToObjectInstance_correctObject()
+    @Test
+    public void fromJsonString_trailingContent_throwsIoException() {
+        for (String suffix : List.of("{}", "[]", "null", "true", "42", "\"extra\"", "NOT JSON", "{")) {
+            String json = SerializableTestClass.JSON_STRING_REPRESENTATION + "\n" + suffix;
+            assertThrows(IOException.class, () -> JsonUtil.fromJsonString(json, SerializableTestClass.class));
+        }
+    }
+
+    @Test
+    public void fromJsonString_trailingWhitespace_readsObject() throws IOException {
+        String json = SerializableTestClass.JSON_STRING_REPRESENTATION + " \t\r\n";
+
+        SerializableTestClass actual = JsonUtil.fromJsonString(json, SerializableTestClass.class);
+
+        assertEquals(SerializableTestClass.getNameTestValue(), actual.getName());
+        assertEquals(SerializableTestClass.getListTestValues(), actual.getListOfLocalDateTimes());
+        assertEquals(SerializableTestClass.getHashMapTestValues(), actual.getMapOfIntegerToString());
+    }
 
     //TODO: @Test jsonUtil_writeThenReadObjectToJson_correctObject()
 }
