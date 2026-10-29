@@ -1,5 +1,6 @@
 package tutorlink.storage;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static tutorlink.testutil.Assert.assertThrows;
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -79,6 +81,27 @@ public class JsonUserPrefsStorageTest {
         UserPrefs actual = readUserPrefs("ExtraValuesUserPref.json").get();
 
         assertEquals(expected, actual);
+    }
+
+    @Test
+    public void readUserPrefs_trailingContent_rejectsAndPreservesFile() throws Exception {
+        Path filePath = testFolder.resolve("trailing-content.json");
+        JsonUserPrefsStorage storage = new JsonUserPrefsStorage(filePath);
+        for (String suffix : List.of("{}", "null", "NOT JSON")) {
+            Files.writeString(filePath, "{}\n" + suffix);
+            byte[] originalBytes = Files.readAllBytes(filePath);
+
+            assertThrows(DataLoadingException.class, storage::readUserPrefs);
+            assertArrayEquals(originalBytes, Files.readAllBytes(filePath));
+        }
+    }
+
+    @Test
+    public void readUserPrefs_trailingWhitespace_readsDefaultPreferences() throws Exception {
+        Path filePath = testFolder.resolve("trailing-whitespace.json");
+        Files.writeString(filePath, "{} \t\r\n");
+
+        assertEquals(new UserPrefs(), new JsonUserPrefsStorage(filePath).readUserPrefs().orElseThrow());
     }
 
     private UserPrefs getTypicalUserPrefs() {
