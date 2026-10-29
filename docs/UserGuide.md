@@ -504,6 +504,13 @@ unconfirmed `delete INDEX`, do not write the data file. Repeating an already com
 not save again. If saving a change fails, TutorLink reports the error and restores the previous roster, filter,
 sorting, and selection. Resolve the reported file-permission or storage problem before retrying the change.
 
+If another TutorLink window or an external editor changes the data file after this window loads it, saving is
+rejected with a conflict message and your command is rolled back. Close and reopen the affected window to load
+the latest roster, then retry the command. Read-only commands can still show the older roster until you reopen.
+If another window is saving at the same moment, wait for it to finish and retry; you may then need to reopen.
+TutorLink creates a `data/tutorlink.json.lock` file to coordinate saves. Leave this file in place while any
+TutorLink window is open. Close TutorLink before editing the data file externally.
+
 ### Editing the data file
 
 TutorLink data is saved automatically as `data/tutorlink.json` inside the folder from which you launch the app.

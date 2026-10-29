@@ -373,6 +373,21 @@ The snapshot reuses immutable students and predicates while copying the roster l
 lists already used by the UI. `LogicManagerTest` covers every mutating command, filter/sort preservation, and a failed
 edit followed by a read-only command. UI and packaged tests verify the selected profile and contact values.
 
+`JsonStudentDirectoryStorage` retains the exact bytes from each successful read or save, including the absence
+of a file on first launch. Before saving, it obtains a nonblocking operating-system lock on a persistent sibling
+`.lock` file and checks that the current bytes match that baseline. A stale or busy writer throws `IOException`,
+using the same rollback path and actionable feedback. Rejected saves never update the baseline. Existing files
+cannot be overwritten without first being read. Symbolic links resolve to the same target and lock path.
+The complete JSON is written to a temporary file in the same directory, then moved atomically over the roster.
+Existing file attributes supported by the filesystem are copied to the temporary file, and write-protected rosters
+are rejected before replacement. Filesystems without atomic replacement fail the save safely. The lock file is
+retained because deleting it can allow competing processes to lock different file objects. No lock remains held
+between commands or after exit.
+Concurrent storage tests cover first writes, stale updates, external edits/deletion, lock contention, and reload;
+storage safety tests cover a separate JVM holding the lock, read-only files, permission preservation, dangling
+symbolic links, and failed atomic replacement with temporary-file cleanup and successful retries.
+Logic tests cover rollback for every mutating command and successful writes after reopening.
+
 The command box normalizes tabs to spaces with a `TextFormatter` before JavaFX removes them. This preserves field
 boundaries in pasted commands, including the address/email case covered by `MainWindowTest` and the packaged smoke test.
 
