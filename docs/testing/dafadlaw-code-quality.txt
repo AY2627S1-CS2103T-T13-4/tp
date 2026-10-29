@@ -196,12 +196,19 @@ of every teammate-owned line in each shared file. Open storage/startup issues
 Validation
 ----------
 - ./gradlew -PmacJavafxPlatform=mac-aarch64 check coverage shadowJar
-  Passed: 573 tests; zero failures, errors or skips. Main/test Checkstyle and
+  Initially passed: 573 tests; zero failures, errors or skips. Main/test Checkstyle and
   coverage reports passed; Apple Silicon release JAR built.
 - Packaged smoke test with plain ARM64 Oracle JDK 25.0.1 passed all 20 launches,
   including restart, follow-up, selection/preview, contact clearing, rejected-save
   recovery, malformed JSON and original-file preservation checks.
   Evidence: build/packaged-smoke/run-re_o97ix/ (ignored local test output).
+- ./gradlew -PmacJavafxPlatform=mac-aarch64 check coverage
+  Final suite: 574 tests passed with zero failures, errors or skips; Checkstyle
+  passed. The added UI regression verifies Help opens and displays feedback,
+  Exit closes both windows and retains window preferences, and neither command
+  writes student data even when storage is unavailable. It closes the uncovered
+  Help/Exit branches identified by the initial PR patch-coverage check; the final
+  local report covers every line and branch in both extracted UI helpers.
 - Recompiled the final PackagedSmoke helper after descriptive parameter renaming.
 - Repository line-ending, EOF-newline and trailing-whitespace checks passed.
 - Local packaged GUI coverage is macOS ARM64; Windows/Linux and x64 packaged GUI
