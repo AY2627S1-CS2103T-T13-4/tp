@@ -48,6 +48,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import tutorlink.logic.Logic;
 import tutorlink.logic.LogicManager;
 import tutorlink.logic.commands.CommandResult;
@@ -207,6 +208,35 @@ public class MainWindowTest {
     @AfterEach
     public void tearDown() throws Exception {
         runOnFxThread(() -> stage.hide());
+    }
+
+    @Test
+    public void execute_helpThenExitWithUnavailableStorage_opensHelpAndClosesBothWindows() throws Exception {
+        runOnFxThread(() -> {
+            isSaveBlocked = true;
+            window.executeCommand("view 2");
+            CommandResult helpResult = window.executeCommand("help");
+            Stage helpStage = Window.getWindows().stream().filter(Stage.class::isInstance)
+                    .map(Stage.class::cast).filter(candidate -> candidate.getTitle().equals("Help"))
+                    .findFirst().orElseThrow();
+            try {
+                assertTrue(helpResult.isShowHelp());
+                assertTrue(helpStage.isShowing());
+                assertEquals(helpResult.getFeedbackToUser(), ((TextArea) lookup("resultDisplay")).getText());
+                assertEquals(ALICE, window.getStudentListPanel().getSelectedStudent());
+
+                CommandResult exitResult = window.executeCommand("exit");
+                assertTrue(exitResult.isExit());
+                assertFalse(stage.isShowing());
+                assertFalse(helpStage.isShowing());
+                assertEquals(stage.getWidth(), logic.getGuiSettings().getWindowWidth());
+                assertEquals(stage.getHeight(), logic.getGuiSettings().getWindowHeight());
+                assertEquals(0, saveCount);
+                assertEquals(List.of(BOB, ALICE, CARA), logic.getStudentList());
+            } finally {
+                helpStage.hide();
+            }
+        });
     }
 
     @Test
