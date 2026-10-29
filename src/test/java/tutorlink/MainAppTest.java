@@ -99,4 +99,19 @@ public class MainAppTest {
         assertThrows(IllegalStateException.class, () -> MainApp.initModelManager(storage, new UserPrefs()));
         assertEquals(oldData, Files.readString(dataFile));
     }
+
+    @Test
+    public void initPrefs_nullGuiSettings_usesDefaultsAndAllowsModelInitialization() throws Exception {
+        Path prefsFile = temporaryFolder.resolve("preferences.json");
+        Files.writeString(prefsFile, "{\"guiSettings\": null}");
+        JsonUserPrefsStorage prefsStorage = new JsonUserPrefsStorage(prefsFile);
+        MainApp app = new MainApp();
+
+        UserPrefs prefs = app.initPrefs(prefsStorage);
+        StorageManager storage = new StorageManager(
+                new JsonStudentDirectoryStorage(temporaryFolder.resolve("tutorlink.json")), prefsStorage);
+
+        assertEquals(new UserPrefs(), prefs);
+        assertDoesNotThrow(() -> MainApp.initModelManager(storage, prefs));
+    }
 }

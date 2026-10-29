@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static tutorlink.testutil.Assert.assertThrows;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -59,6 +60,16 @@ public class JsonUserPrefsStorageTest {
     @Test
     public void readUserPrefs_valuesMissingFromFile_defaultValuesUsed() throws DataLoadingException {
         UserPrefs actual = readUserPrefs("EmptyUserPrefs.json").get();
+        assertEquals(new UserPrefs(), actual);
+    }
+
+    @Test
+    public void readUserPrefs_nullGuiSettings_defaultValuesUsed() throws IOException, DataLoadingException {
+        Path prefsFile = testFolder.resolve("NullGuiSettings.json");
+        Files.writeString(prefsFile, "{\"guiSettings\": null}");
+
+        UserPrefs actual = new JsonUserPrefsStorage(prefsFile).readUserPrefs().orElseThrow();
+
         assertEquals(new UserPrefs(), actual);
     }
 
