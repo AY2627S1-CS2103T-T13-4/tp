@@ -84,6 +84,29 @@ TutorLink is a **desktop application for managing student records, optimized for
 
 ## Features
 
+### Inline command hints and Tab completion
+
+When the command box has focus and the caret is at the end, a unique command prefix shows the remaining
+syntax in gray. For example, `ad` shows `d n/NAME m/MATRIC_NUMBER g/TUTORIAL_GROUP [p/PHONE] ...`.
+Ambiguous prefixes such as `f` show no hint. Gray text is only a hint: Enter executes your actual input.
+
+Press Tab to accept one step at a time:
+
+1. Type `ad`, then press Tab to complete `add`.
+2. Press Tab again to insert ` n/`, then type a name such as `Alice Tan`.
+3. Press Tab to insert ` m/`, enter the matriculation number, then press Tab to insert ` g/`.
+4. Enter the tutorial group. You can now press Enter, or use Tab to add each optional prefix (`p/`, `e/`,
+   `a/`, then `t/`) separately, supplying its value before continuing.
+
+Tab never inserts placeholder words or square brackets. Hints use brackets for optional parameters;
+`edit` still requires at least one field. Already supplied prefixes are skipped, including when you enter
+parameters in a different order. Repeated tags can still be typed manually.
+Position arguments such as `INDEX`, `KEYWORD`, and `on|done` must be typed yourself.
+
+Hints hide when the caret moves into the input, text is selected, the box loses focus, or the input cannot
+be interpreted safely. Long hints are clipped to the available space without shortening your input.
+When no completion can be accepted, Tab moves focus normally; Shift+Tab always keeps its usual focus behavior.
+
 ### Student roster scope
 
 This release focuses on managing a student roster. Tutorial groups are stored as part of each student's record and can be used to filter the roster with `list g/TUTORIAL_GROUP`. Standalone tutorial-group creation, editing, and deletion are not available in this release.
