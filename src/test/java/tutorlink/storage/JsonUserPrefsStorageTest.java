@@ -66,6 +66,16 @@ public class JsonUserPrefsStorageTest {
     }
 
     @Test
+    public void readUserPrefs_nullGuiSettings_defaultValuesUsed() throws IOException, DataLoadingException {
+        Path prefsFile = testFolder.resolve("NullGuiSettings.json");
+        Files.writeString(prefsFile, "{\"guiSettings\": null}");
+
+        UserPrefs actual = new JsonUserPrefsStorage(prefsFile).readUserPrefs().orElseThrow();
+
+        assertEquals(new UserPrefs(), actual);
+    }
+
+    @Test
     public void readUserPrefs_extraValuesInFile_extraValuesIgnored() throws DataLoadingException {
         UserPrefs expected = getTypicalUserPrefs();
         UserPrefs actual = readUserPrefs("ExtraValuesUserPref.json").get();
