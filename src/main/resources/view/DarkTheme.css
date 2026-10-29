@@ -424,3 +424,7 @@
 .detail-card .cell_big_label {
     -fx-font-size: 21px;
 }
+
+.command-ghost {
+    -fx-fill: #929292;
+}

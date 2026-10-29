@@ -183,6 +183,33 @@ Classes used by multiple components are in the `tutorlink.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Inline command completion
+
+`CommandCompletion` is a pure advisory model: it returns a display suffix and an append string.
+Its command words reference the command constants and its prefix templates reference `CliSyntax`, following
+current parser and usage-message syntax. Exact command names take precedence over longer names; otherwise
+only a unique name prefix is suggested. Name acceptance only appends the command suffix. Subsequent
+acceptance appends one missing parameter prefix, skipping supplied parameters while preserving every value
+and its order. Empty required values block advancement. Positional arguments are hints only, and no
+placeholder values or optional brackets are inserted. Within addresses, only recognized parameter prefixes
+form boundaries; escaped prefixes and other slash words remain address text. Unknown prefixes outside
+addresses, duplicate non-tag prefixes, and invalid preambles suppress suggestions.
+Completion does not validate or execute commands.
+
+`CommandBox` filters only an unmodified Tab at the end of an unselected input when an append is available.
+Other keys and focus traversal continue through JavaFX. Its text formatter still normalizes pasted tabs.
+Enter continues to read only `TextField.getText()` and retains the existing execution and error handling.
+
+`CommandCompletionSkin` extends the native `TextFieldSkin`. It draws a separate unmanaged, mouse-transparent
+`Text` node, using the native character bounds after layout for horizontal scroll positioning and the
+field's font and baseline. Only the hint is clipped to the input viewport; it never reserves input width
+or changes the field's text. Focus, selection, caret, text, font and size changes update its layout.
+
+`CommandCompletionTest` covers command syntax and incremental acceptance. `CommandBoxTest` uses a real
+JavaFX stage and skin to cover event dispatch, focus traversal, actual-input execution, paste normalization,
+selection, native undo/redo, skin replacement, font changes and horizontal scrolling.
+Tests use synthetic commands without accessing user data.
+
 ### Tag search
 
 The `findtag TAG` command searches the full roster for students with an exact, case-insensitive tag match.
