@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static tutorlink.testutil.Assert.assertThrows;
 import static tutorlink.testutil.TypicalStudents.ALICE;
 import static tutorlink.testutil.TypicalStudents.HOON;
@@ -11,11 +12,18 @@ import static tutorlink.testutil.TypicalStudents.IDA;
 import static tutorlink.testutil.TypicalStudents.getTypicalStudentDirectory;
 
 import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -184,5 +192,146 @@ public class JsonStudentDirectoryStorageTest {
     @Test
     public void saveStudentDirectory_nullFilePath_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> saveStudentDirectory(new StudentDirectory(), null));
+    }
+
+    @Test
+    public void saveStudentDirectory_staleInstance_rejectsRepeatedSavesUntilReload() throws Exception {
+        Path filePath = testFolder.resolve("shared.json");
+        JsonStudentDirectoryStorage first = new JsonStudentDirectoryStorage(filePath);
+        first.saveStudentDirectory(new StudentDirectory());
+        JsonStudentDirectoryStorage second = new JsonStudentDirectoryStorage(filePath);
+        second.readStudentDirectory();
+
+        first.saveStudentDirectory(getTypicalStudentDirectory());
+        String saved = Files.readString(filePath);
+        for (int i = 0; i < 2; i++) {
+            assertThrows(IOException.class, JsonStudentDirectoryStorage.DATA_CHANGED_MESSAGE, () ->
+                    second.saveStudentDirectory(new StudentDirectory()));
+            assertEquals(saved, Files.readString(filePath));
+        }
+
+        StudentDirectory reloaded = new StudentDirectory(second.readStudentDirectory().orElseThrow());
+        reloaded.addStudent(HOON);
+        second.saveStudentDirectory(reloaded);
+        assertEquals(reloaded, new StudentDirectory(first.readStudentDirectory().orElseThrow()));
+    }
+
+    @Test
+    public void saveStudentDirectory_fileCreatedDeletedOrEdited_rejectsUnexpectedChanges() throws Exception {
+        Path filePath = testFolder.resolve("external.json");
+        JsonStudentDirectoryStorage storage = new JsonStudentDirectoryStorage(filePath);
+        storage.readStudentDirectory();
+        Files.writeString(filePath, "{\"students\":[]}");
+        assertThrows(IOException.class, JsonStudentDirectoryStorage.DATA_CHANGED_MESSAGE, () ->
+                storage.saveStudentDirectory(getTypicalStudentDirectory()));
+
+        storage.readStudentDirectory();
+        Files.delete(filePath);
+        assertThrows(IOException.class, JsonStudentDirectoryStorage.DATA_CHANGED_MESSAGE, () ->
+                storage.saveStudentDirectory(getTypicalStudentDirectory()));
+        assertFalse(Files.exists(filePath));
+
+        storage.readStudentDirectory();
+        storage.saveStudentDirectory(getTypicalStudentDirectory());
+        String edited = Files.readString(filePath) + "\n";
+        Files.writeString(filePath, edited);
+        assertThrows(IOException.class, JsonStudentDirectoryStorage.DATA_CHANGED_MESSAGE, () ->
+                storage.saveStudentDirectory(new StudentDirectory()));
+        assertEquals(edited, Files.readString(filePath));
+    }
+
+    @Test
+    public void saveStudentDirectory_existingFileWithoutRead_rejectsOverwrite() throws Exception {
+        Path filePath = testFolder.resolve("unread.json");
+        Files.writeString(filePath, "{\"students\":[]}");
+        JsonStudentDirectoryStorage storage = new JsonStudentDirectoryStorage(filePath);
+
+        assertThrows(IOException.class, JsonStudentDirectoryStorage.DATA_CHANGED_MESSAGE, () ->
+                storage.saveStudentDirectory(getTypicalStudentDirectory()));
+        assertEquals("{\"students\":[]}", Files.readString(filePath));
+    }
+
+    @Test
+    public void saveStudentDirectory_lockHeld_rejectsSaveAndAllowsRetry() throws Exception {
+        Path filePath = testFolder.resolve("locked.json");
+        JsonStudentDirectoryStorage storage = new JsonStudentDirectoryStorage(filePath);
+        storage.saveStudentDirectory(new StudentDirectory());
+        String saved = Files.readString(filePath);
+
+        try (FileChannel channel = FileChannel.open(testFolder.resolve("locked.json.lock"), StandardOpenOption.WRITE);
+                FileLock lock = channel.lock()) {
+            assertTrue(lock.isValid());
+            assertThrows(IOException.class, JsonStudentDirectoryStorage.SAVE_IN_PROGRESS_MESSAGE, () ->
+                    storage.saveStudentDirectory(getTypicalStudentDirectory()));
+            assertEquals(saved, Files.readString(filePath));
+        }
+
+        storage.saveStudentDirectory(getTypicalStudentDirectory());
+        assertEquals(getTypicalStudentDirectory(), storage.readStudentDirectory().orElseThrow());
+        try (var files = Files.list(testFolder)) {
+            assertEquals(2, files.count()); // Only the data and persistent lock files remain.
+        }
+    }
+
+    @Test
+    public void saveStudentDirectory_simultaneousSaves_onlyOneSucceeds() throws Exception {
+        Path filePath = testFolder.resolve("simultaneous.json");
+        JsonStudentDirectoryStorage first = new JsonStudentDirectoryStorage(filePath);
+        JsonStudentDirectoryStorage second = new JsonStudentDirectoryStorage(filePath);
+        first.readStudentDirectory();
+        second.readStudentDirectory();
+        StudentDirectory firstRoster = new StudentDirectory();
+        firstRoster.addStudent(ALICE);
+        StudentDirectory secondRoster = new StudentDirectory();
+        secondRoster.addStudent(HOON);
+        CyclicBarrier barrier = new CyclicBarrier(2);
+
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            var firstSave = executor.submit(attemptSave(first, firstRoster, barrier));
+            var secondSave = executor.submit(attemptSave(second, secondRoster, barrier));
+            assertTrue(firstSave.get(10, TimeUnit.SECONDS) ^ secondSave.get(10, TimeUnit.SECONDS));
+        }
+
+        ReadOnlyStudentDirectory saved = new JsonStudentDirectoryStorage(filePath).readStudentDirectory().orElseThrow();
+        assertTrue(saved.equals(firstRoster) || saved.equals(secondRoster));
+    }
+
+    @Test
+    public void saveStudentDirectory_symbolicLink_usesTargetAndDetectsConflict() throws Exception {
+        Path target = testFolder.resolve("target.json");
+        Path alias = testFolder.resolve("alias.json");
+        JsonStudentDirectoryStorage first = new JsonStudentDirectoryStorage(target);
+        first.saveStudentDirectory(new StudentDirectory());
+        try {
+            Files.createSymbolicLink(alias, target);
+        } catch (IOException | UnsupportedOperationException e) {
+            assumeTrue(false, "Symbolic links unavailable: " + e.getMessage());
+        }
+        JsonStudentDirectoryStorage second = new JsonStudentDirectoryStorage(alias);
+        second.readStudentDirectory();
+        first.saveStudentDirectory(getTypicalStudentDirectory());
+
+        assertThrows(IOException.class, JsonStudentDirectoryStorage.DATA_CHANGED_MESSAGE, () ->
+                second.saveStudentDirectory(new StudentDirectory()));
+        assertTrue(Files.isSymbolicLink(alias));
+        assertEquals(getTypicalStudentDirectory(), second.readStudentDirectory().orElseThrow());
+        second.saveStudentDirectory(new StudentDirectory());
+        assertTrue(Files.isSymbolicLink(alias));
+        assertEquals(new StudentDirectory(), first.readStudentDirectory().orElseThrow());
+    }
+
+    private Callable<Boolean> attemptSave(JsonStudentDirectoryStorage storage, StudentDirectory roster,
+            CyclicBarrier barrier) {
+        return () -> {
+            barrier.await(10, TimeUnit.SECONDS);
+            try {
+                storage.saveStudentDirectory(roster);
+                return true;
+            } catch (IOException e) {
+                assertTrue(e.getMessage().equals(JsonStudentDirectoryStorage.DATA_CHANGED_MESSAGE)
+                        || e.getMessage().equals(JsonStudentDirectoryStorage.SAVE_IN_PROGRESS_MESSAGE));
+                return false;
+            }
+        };
     }
 }

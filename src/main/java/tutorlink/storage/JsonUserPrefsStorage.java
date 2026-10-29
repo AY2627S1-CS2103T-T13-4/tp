@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
 
+import tutorlink.commons.core.GuiSettings;
 import tutorlink.commons.exceptions.DataLoadingException;
 import tutorlink.commons.util.JsonUtil;
 import tutorlink.model.ReadOnlyUserPrefs;
@@ -40,7 +41,10 @@ public class JsonUserPrefsStorage {
      * @throws DataLoadingException if the file format is not as expected.
      */
     public Optional<UserPrefs> readUserPrefs(Path prefsFilePath) throws DataLoadingException {
-        return JsonUtil.readJsonFile(prefsFilePath, UserPrefs.class);
+        Optional<UserPrefs> userPrefs = JsonUtil.readJsonFile(prefsFilePath, UserPrefs.class);
+        userPrefs.filter(prefs -> prefs.getGuiSettings() == null)
+                .ifPresent(prefs -> prefs.setGuiSettings(new GuiSettings()));
+        return userPrefs;
     }
 
     /**

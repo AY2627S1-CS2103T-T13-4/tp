@@ -1,29 +1,17 @@
 package tutorlink.commons.util;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Writes and reads files
  */
 public class FileUtil {
-
-    private static final String CHARSET = "UTF-8";
-
-    /**
-     * Creates a file if it does not exist along with its missing parent directories.
-     * @throws IOException if the file or directory cannot be created.
-     */
-    public static void createIfMissing(Path file) throws IOException {
-        if (Files.exists(file)) {
-            return;
-        }
-
-        createParentDirsOfFile(file);
-
-        Files.createFile(file);
-    }
 
     /**
      * Creates parent directories of file if it has a parent directory
@@ -40,7 +28,7 @@ public class FileUtil {
      * Assumes file exists
      */
     public static String readFromFile(Path file) throws IOException {
-        return new String(Files.readAllBytes(file), CHARSET);
+        return Files.readString(file, StandardCharsets.UTF_8);
     }
 
     /**
@@ -48,7 +36,40 @@ public class FileUtil {
      * Will create the file if it does not exist yet.
      */
     public static void writeToFile(Path file, String content) throws IOException {
-        Files.write(file, content.getBytes(CHARSET));
+        writeToFile(file, content, (temporaryFile, bytes) -> Files.write(temporaryFile, bytes));
+    }
+
+    /**
+     * Writes through a temporary file so a failed write cannot truncate the previous target.
+     * The writer parameter lets tests reproduce a partial temporary-file write reliably.
+     */
+    static void writeToFile(Path file, String content, TemporaryFileWriter writer) throws IOException {
+        Path absoluteFile = file.toAbsolutePath();
+        if (Files.exists(absoluteFile) && !Files.isWritable(absoluteFile)) {
+            throw new AccessDeniedException(absoluteFile.toString());
+        }
+        createParentDirsOfFile(absoluteFile);
+        Path temporaryFile = Files.createTempFile(absoluteFile.getParent(), ".tutorlink-", ".tmp");
+
+        try {
+            writer.write(temporaryFile, content.getBytes(StandardCharsets.UTF_8));
+            replaceFile(temporaryFile, absoluteFile);
+        } finally {
+            Files.deleteIfExists(temporaryFile);
+        }
+    }
+
+    private static void replaceFile(Path source, Path target) throws IOException {
+        try {
+            Files.move(source, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(source, target, StandardCopyOption.REPLACE_EXISTING);
+        }
+    }
+
+    @FunctionalInterface
+    interface TemporaryFileWriter {
+        void write(Path file, byte[] content) throws IOException;
     }
 
 }
