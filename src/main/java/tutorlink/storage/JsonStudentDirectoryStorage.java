@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import tutorlink.commons.core.LogsCenter;
 import tutorlink.commons.exceptions.DataLoadingException;
 import tutorlink.commons.exceptions.IllegalValueException;
-import tutorlink.commons.util.FileUtil;
 import tutorlink.commons.util.JsonUtil;
 import tutorlink.model.ReadOnlyStudentDirectory;
 
@@ -82,7 +81,6 @@ public class JsonStudentDirectoryStorage {
         requireNonNull(studentDirectory);
         requireNonNull(filePath);
 
-        FileUtil.createIfMissing(filePath);
         JsonUtil.saveJsonFile(new JsonSerializableStudentDirectory(studentDirectory), filePath);
     }
 
