@@ -13,7 +13,7 @@
 **TutorLink is a desktop application for managing student records across tutorial groups.** It supports searching,
 sorting, remarks, and follow-ups through a CLI (Command Line Interface), with student details shown in a GUI.
 
-[Download v1.5.1](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases/tag/v1.5.1), the release candidate with improved
+[Download v1.6](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases/tag/v1.6), the public release with improved
 email validation, optional-contact clearing, deletion previews that select the correct student, and a persistent
 display of the current filter.
 

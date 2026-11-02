@@ -26,6 +26,10 @@ AGENTS.md
 CLAUDE.md
 /.claude/
 /.codex/
+/.codex-*/
+/.build-*/
+/.gradle-*/
+/META-INF/
 
 # Temp files
 _temp/

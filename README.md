@@ -29,15 +29,15 @@ TutorLink is intended for tutors who manage one or more tutorial groups and need
 
 ## Current release scope
 
-The v1.5 release candidate manages student rosters across tutorial groups. Tutors can filter students by group, view each
+The v1.6 public release manages student rosters across tutorial groups. Tutors can filter students by group, view each
 group's student count, and move students between groups by editing their records. TutorLink does not provide standalone
 tutorial-group creation, editing, or deletion.
 
-v1.5 improves email validation, lets tutors clear optional contact details, and highlights the target of a deletion
+v1.6 improves email validation, lets tutors clear optional contact details, and highlights the target of a deletion
 preview. Attendance tracking and participation records are outside the current release scope.
 
 Download the architecture-appropriate JAR and `SHA256SUMS.txt` from the
-[v1.5.1 patch release](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases/tag/v1.5.1), which also keeps the current
+[v1.6 release](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases/tag/v1.6), which also keeps the current
 filter visible, explains accidental `findtag t/` input, and supports literal prefixes inside addresses.
 
 ## Documentation
