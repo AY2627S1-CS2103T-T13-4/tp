@@ -73,6 +73,15 @@ The PR pages show the review, CI, and merge history. These contributions shipped
   UI, and packaged tests, including empty-to-empty searches and a save failure after a filter change. The v1.5.1
   patch retains the original v1.5 tag and artifacts while addressing the newly reported usability issues.
 
+### v1.6 release preparation
+
+* Reviewed and verified the name-validation, completion, and full-remark fixes in
+  [PR #150](https://github.com/AY2627S1-CS2103T-T13-4/tp/pull/150), including all 632 tests and packaged workflows.
+* Prepared the final application version, release links, upgrade guidance, AI-use acknowledgement, and a fresh
+  screenshot of the packaged application. [PR #151](https://github.com/AY2627S1-CS2103T-T13-4/tp/pull/151)
+  records the changes and validation. Final artifacts and verification are recorded in the
+  [v1.6 release](https://github.com/AY2627S1-CS2103T-T13-4/tp/releases/tag/v1.6).
+
 ## Peer review
 
 * Reproduced a null student record that bypasses the friendly storage-error path and gave an inline follow-up
