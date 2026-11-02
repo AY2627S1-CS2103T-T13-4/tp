@@ -101,6 +101,7 @@ Press Tab to accept one step at a time:
 Tab never inserts placeholder words or square brackets. Hints use brackets for optional parameters;
 `edit` still requires at least one field. Already supplied prefixes are skipped, including when you enter
 parameters in a different order. Repeated tags can still be typed manually.
+Names such as `Ravi s/o Kumar` and `Anita d/o Devi` keep their spelling when Tab inserts the next prefix.
 Position arguments such as `INDEX`, `KEYWORD`, and `on|done` must be typed yourself.
 
 Hints hide when the caret moves into the input, text is selected, the box loses focus, or the input cannot
@@ -157,7 +158,12 @@ If omitted, the corresponding contact details are displayed as `Not provided`.
 A successful addition clears the current filter and sorting, showing the full roster in directory order
 with the new student at the end.
 
-Names can contain letters, digits, and spaces, up to 70 characters after leading/trailing whitespace is removed and consecutive spaces are collapsed. For example, `John  Doe` is saved as `John Doe`.
+Names can contain Unicode letters and combining accent marks, digits (`0`–`9`), ordinary spaces, apostrophes (`'` or `’`),
+hyphens (`-`), slashes (`/`), and periods (`.`). They must contain at least one letter or digit and be at most
+70 characters after leading/trailing whitespace is removed and consecutive ordinary spaces are collapsed.
+For example, `John  Doe` is saved as `John Doe`; `John O'Connor`, `Mary-Jane Tan`, `Ravi s/o Kumar`,
+`Anita d/o Devi`, `José Tan`, and `J. Tan` are accepted. Other symbols and internal whitespace such as tabs
+or line breaks are invalid. Letter case and accent spelling are preserved.
 
 The matriculation number must be `A` followed by seven digits and a letter. Letter case is ignored on input, and the
 value is saved in uppercase. A tutorial group must be one letter followed by exactly two digits. Its letter is saved
@@ -359,7 +365,13 @@ Format: `remark INDEX r/REMARK`
 * Use `r/` without text to clear the student's current remark.
 * TutorLink stores one current remark. It does not keep a history of previous remarks.
 * Existing remarks, tags, and follow-up status are preserved when other student fields are edited.
-* Very long remarks are shown as a bounded preview in the student card. Hover over the preview to see the full remark.
+* Select the student or use `view INDEX` to read the full remark in the right-hand details panel.
+  Remarks wrap to the panel width. Scroll down inside that panel to read longer remarks and the contact details below;
+  the student list remains available while you scroll.
+* Click **Open full remark** below a remark to open a resizable, read-only text window. It provides horizontal and
+  vertical scrolling and lets you select and copy the original text. Use this window for very long continuous words
+  whose tail may extend beyond the inline panel. The roster remains usable while the window is open;
+  close it with **Close** when finished.
 
 Examples:
 * `remark 1 r/Needs help with recursion` sets the 1st student's remark.
@@ -376,6 +388,8 @@ Format: `find KEYWORD [MORE_KEYWORDS]`
 * Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
 * Each keyword can match a whole word in a name or a complete matriculation number.
   Partial matches are not supported: `Han` does not match `Hans`, and `A0123` does not match `A0123456B`.
+  Keep punctuation and accents in the word: `find O'Connor`, `find Mary-Jane`, and `find José` match those
+  complete name words. `Connor` does not match `O'Connor`, and `Jose` does not match `José`.
 * Matriculation-number matching is also case-insensitive: `a0123456b` matches `A0123456B`.
 * Students matching at least one keyword are returned (an `OR` search). You can mix names and matriculation numbers.
 * Each matching student appears once, in their original directory order, even if multiple keywords match.
@@ -563,7 +577,15 @@ It uses the same saved-data format as v1.5.
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous TutorLink home folder.
+**A**: Close TutorLink on both computers, then follow these steps:
+
+1. Back up `data/tutorlink.json` from the old TutorLink home folder (the working directory used to launch the app).
+2. Install TutorLink on the new computer and choose its home folder. Create a `data` folder inside it if one does
+   not already exist. A fresh launch does not create `tutorlink.json` until a command changes student records.
+3. Copy the backed-up file into that folder as `data/tutorlink.json`. If a destination file already exists,
+   back it up before replacing it.
+4. Launch TutorLink from the same new home folder and check that your students, remarks, and follow-up statuses
+   are present. Keep the original backup until the transfer is verified.
 
 --------------------------------------------------------------------------------------------------------------------
 

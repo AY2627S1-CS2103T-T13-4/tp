@@ -119,6 +119,33 @@ public class CommandBoxTest {
     }
 
     @Test
+    public void tab_nameSlashes_completesFollowingFieldsAndKeepsName() throws Exception {
+        runOnFxThread(() -> {
+            for (String command : List.of("add", "edit 1")) {
+                for (String name : List.of("Ravi s/o Kumar", "Anita d/o Devi")) {
+                    enter(command + " n/" + name);
+                    assertTrue(ghost().getText().contains("m/MATRIC_NUMBER"));
+                    tab(false);
+                    assertEquals(command + " n/" + name + " m/", field.getText());
+                    assertTrue(field.isFocused());
+                    field.appendText("A0123456X");
+                    tab(false);
+                    assertTrue(field.getText().endsWith(" g/"));
+                    field.appendText("T01");
+                    tab(false);
+                    assertTrue(field.getText().endsWith(" p/"));
+                    field.appendText("91234567");
+                    String expected = command + " n/" + name + " m/A0123456X g/T01 p/91234567";
+                    assertEquals(expected, field.getText());
+                    field.fireEvent(new ActionEvent());
+                    assertEquals(expected, executed.getLast());
+                    assertEquals("", field.getText());
+                }
+            }
+        });
+    }
+
+    @Test
     public void enter_unacceptedGhost_executesOnlyActualInputAndRetainsErrors() throws Exception {
         runOnFxThread(() -> {
             enter("ad");

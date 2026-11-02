@@ -1,7 +1,9 @@
 package tutorlink.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import tutorlink.model.student.Student;
@@ -44,6 +47,9 @@ public class StudentCardTest {
         runOnFxThread(() -> {
             StudentCard studentCard = new StudentCard(student, 1);
             assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Needs help with recursion"));
+            Button readFullRemark = (Button) studentCard.getRoot().lookup("#readFullRemark");
+            assertTrue(readFullRemark.isVisible());
+            assertTrue(readFullRemark.isManaged());
         });
     }
 
@@ -54,11 +60,14 @@ public class StudentCardTest {
         runOnFxThread(() -> {
             StudentCard studentCard = new StudentCard(student, 1);
             assertTrue(containsLabelWithText(studentCard.getRoot(), "Remark: Not provided"));
+            Button readFullRemark = (Button) studentCard.getRoot().lookup("#readFullRemark");
+            assertFalse(readFullRemark.isVisible());
+            assertFalse(readFullRemark.isManaged());
         });
     }
 
     @Test
-    public void constructor_withLongRemark_wrapsAndProvidesTooltip() throws Exception {
+    public void constructor_withLongRemark_wrapsAndDoesNotRequireTooltip() throws Exception {
         String longRemark = "Discuss recursion and file access modes with the student";
         Student student = new StudentBuilder().withRemark(longRemark).build();
 
@@ -67,23 +76,21 @@ public class StudentCardTest {
             Label remark = (Label) studentCard.getRoot().lookup("#remark");
             assertNotNull(remark);
             assertTrue(remark.isWrapText());
-            assertNotNull(remark.getTooltip());
-            assertEquals(longRemark, remark.getTooltip().getText());
+            assertEquals("Remark: " + longRemark, remark.getText());
+            assertNull(remark.getTooltip());
         });
     }
 
     @Test
-    public void constructor_withVeryLongRemark_truncatesPreviewAndKeepsFullTooltip() throws Exception {
+    public void constructor_withVeryLongRemark_keepsFullTextInDetails() throws Exception {
         String longRemark = "x".repeat(200);
 
         runOnFxThread(() -> {
             StudentCard studentCard = new StudentCard(new StudentBuilder().withRemark(longRemark).build(), 1);
             Label remark = (Label) studentCard.getRoot().lookup("#remark");
             assertNotNull(remark);
-            assertEquals("Remark: " + "x".repeat(157) + "...", remark.getText());
-            assertEquals("Remark: ".length() + 160, remark.getText().length());
-            assertNotNull(remark.getTooltip());
-            assertEquals(longRemark, remark.getTooltip().getText());
+            assertEquals("Remark: " + longRemark, remark.getText());
+            assertNull(remark.getTooltip());
         });
     }
 

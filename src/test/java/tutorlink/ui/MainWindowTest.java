@@ -26,11 +26,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point3D;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -47,6 +52,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
 import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import tutorlink.logic.Logic;
@@ -83,6 +90,7 @@ public class MainWindowTest {
     private MainWindow window;
     private Logic logic;
     private Stage stage;
+    private Stage fullRemarkStage;
     private boolean isSaveBlocked;
     private int saveCount;
     private int commandCount;
@@ -207,7 +215,12 @@ public class MainWindowTest {
 
     @AfterEach
     public void tearDown() throws Exception {
-        runOnFxThread(() -> stage.hide());
+        runOnFxThread(() -> {
+            if (fullRemarkStage != null) {
+                fullRemarkStage.hide();
+            }
+            stage.hide();
+        });
     }
 
     @Test
@@ -683,9 +696,9 @@ public class MainWindowTest {
             Label remark = label("remark");
             Label address = label("address");
             Label tag = (Label) detailsScroll().getContent().lookup("#tags").lookup(".label");
-            assertTrue(remark.getText().endsWith("..."));
-            assertEquals("Prepare an example for the next meeting. ".repeat(100).trim(),
-                    remark.getTooltip().getText());
+            assertEquals("Remark: " + "Prepare an example for the next meeting. ".repeat(100).trim(),
+                    remark.getText());
+            assertNull(remark.getTooltip());
             assertTrue(address.getHeight() > 100);
             assertTrue(tag.getHeight() > 20, "Long tag height=" + tag.getHeight()
                     + ", width=" + tag.getWidth() + ", prefHeight=" + tag.prefHeight(tag.getWidth())
@@ -698,6 +711,120 @@ public class MainWindowTest {
             detailsScroll().setVvalue(1);
             window.executeCommand("view 2");
             assertEquals(0, detailsScroll().getVvalue());
+        });
+    }
+
+    @Test
+    public void longRemarks_renderCompleteTextAndScrollToFinalLineWithoutHidingRoster() throws Exception {
+        CountDownLatch resized = new CountDownLatch(1);
+        runOnFxThread(() -> {
+            ChangeListener<Number> listener = (observable, oldValue, newValue) -> {
+                if (stage.getScene().getWidth() <= 960 && stage.getScene().getHeight() <= 640) {
+                    resized.countDown();
+                }
+            };
+            stage.getScene().widthProperty().addListener(listener);
+            stage.getScene().heightProperty().addListener(listener);
+            stage.setWidth(960);
+            stage.setHeight(640);
+        });
+        assertTrue(resized.await(5, TimeUnit.SECONDS), "The actual scene must resize before testing narrow details");
+        runOnFxThread(() -> {
+            assertTrue(stage.getScene().getWidth() <= 960);
+            assertTrue(stage.getScene().getHeight() <= 640);
+            SplitPane workspace = (SplitPane) lookup("workspace");
+            workspace.setDividerPositions(0.2, 0.65);
+            for (String fullRemark : List.of(
+                    "Discuss recursion and base cases during the next consultation. ".repeat(8) + "END OF REMARK",
+                    "Prepare another example before the next meeting. ".repeat(300) + "END OF REMARK",
+                    "X".repeat(12000) + " END OF REMARK")) {
+                window.executeCommand("remark 1 r/" + fullRemark);
+                window.executeCommand("view 1");
+                layout();
+                Label remark = label("remark");
+                Text rendered = (Text) remark.lookup(".text");
+                assertEquals("Remark: " + fullRemark, rendered.getText());
+                assertTrue(remark.getWidth() <= detailsScroll().getViewportBounds().getWidth());
+                assertTrue(rendered.getLayoutBounds().getHeight() <= remark.getHeight() + 1);
+                assertTrue(remark.getHeight() > 100);
+                assertNull(remark.getTooltip());
+                detailsScroll().setVvalue(1);
+                layout();
+                int lastCharacter = rendered.getText().length() - 1;
+                Bounds finalGlyph = rendered.localToScene(
+                        new javafx.scene.shape.Path(rendered.rangeShape(lastCharacter, lastCharacter + 1))
+                                .getBoundsInLocal());
+                Node viewport = detailsScroll().lookup(".viewport");
+                Bounds visible = viewport.localToScene(viewport.getBoundsInLocal());
+                assertTrue(visible.contains(finalGlyph), "The final remark character must be visible after scrolling");
+                assertTrue(visible.contains(label("email").localToScene(label("email").getBoundsInLocal())));
+                assertEquals(3, studentList().getItems().size());
+                assertTrue(studentCell(0).getHeight() < 160, "Remarks must not expand roster summaries");
+                studentList().getSelectionModel().select(1);
+                layout();
+                assertEquals(0, detailsScroll().getVvalue());
+            }
+        });
+    }
+
+    @Test
+    public void longUnbrokenRemark_fullReaderReachesTailAndKeepsRosterAvailable() throws Exception {
+        String fullRemark = "X".repeat(50000) + "FINAL_MARKER";
+        runOnFxThread(() -> {
+            window.executeCommand("remark 1 r/" + fullRemark);
+            window.executeCommand("view 1");
+            Button openFullRemark = (Button) detailsScroll().getContent().lookup("#readFullRemark");
+            openFullRemark.fire();
+            fullRemarkStage = Window.getWindows().stream().filter(Stage.class::isInstance).map(Stage.class::cast)
+                    .filter(candidate -> candidate.getTitle().equals("Full remark")).findFirst().orElseThrow();
+            TextArea reader = (TextArea) fullRemarkStage.getScene().lookup("#fullRemarkText");
+            assertEquals(fullRemark, reader.getText());
+            assertFalse(reader.isEditable());
+            assertFalse(reader.isWrapText());
+            assertEquals(Modality.NONE, fullRemarkStage.getModality());
+            DialogPane pane = (DialogPane) fullRemarkStage.getScene().getRoot();
+            assertEquals(BOB.getName().fullName + " (" + BOB.getMatricNumber().value + ")", pane.getHeaderText());
+            reader.positionCaret(reader.getLength());
+        });
+        CountDownLatch scrolled = new CountDownLatch(1);
+        runOnFxThread(() -> {
+            Scene scene = fullRemarkStage.getScene();
+            Runnable listener = new Runnable() {
+                private int pulses;
+
+                @Override
+                public void run() {
+                    if (++pulses == 2) {
+                        scene.removePostLayoutPulseListener(this);
+                        scrolled.countDown();
+                    } else {
+                        Platform.requestNextPulse();
+                    }
+                }
+            };
+            scene.addPostLayoutPulseListener(listener);
+            Platform.requestNextPulse();
+        });
+        assertTrue(scrolled.await(5, TimeUnit.SECONDS), "The full reader must finish scrolling to the caret");
+        runOnFxThread(() -> {
+            TextArea reader = (TextArea) fullRemarkStage.getScene().lookup("#fullRemarkText");
+            Text rendered = (Text) reader.lookup(".text");
+            int end = rendered.getText().length();
+            Bounds lastWord = rendered.localToScene(new javafx.scene.shape.Path(rendered.rangeShape(end - 12, end))
+                    .getBoundsInLocal());
+            Node viewport = reader.lookup(".viewport");
+            assertTrue(viewport.localToScene(viewport.getBoundsInLocal()).contains(lastWord),
+                    "The complete FINAL_MARKER must be visible in the full reader");
+            assertTrue(reader.getScrollLeft() > 0);
+            reader.selectAll();
+            assertEquals(fullRemark, reader.getSelectedText());
+            assertEquals(fullRemark, model.getStudentDirectory().getStudentList().getFirst().getRemark());
+            window.executeCommand("view 2");
+            assertEquals(ALICE.getName().fullName, label("name").getText());
+            DialogPane pane = (DialogPane) fullRemarkStage.getScene().getRoot();
+            Button close = (Button) pane.lookupButton(ButtonType.CLOSE);
+            close.fire();
+            assertFalse(fullRemarkStage.isShowing());
         });
     }
 

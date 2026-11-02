@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
@@ -27,6 +28,7 @@
       <Label fx:id="tutorialGroup" styleClass="cell_small_label" text="\$tutorialGroup" />
       <Label fx:id="followUp" styleClass="cell_small_label" text="\$followUp" />
       <Label fx:id="remark" styleClass="cell_small_label" text="\$remark" wrapText="true" />
+      <Button fx:id="readFullRemark" text="Open full remark" onAction="#handleReadFullRemark" />
       <FlowPane fx:id="tags" hgap="6" vgap="6" minWidth="0" prefWidth="0" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" wrapText="true" maxWidth="Infinity" />
       <Label fx:id="address" styleClass="cell_small_label" text="\$address" wrapText="true" maxWidth="Infinity" />

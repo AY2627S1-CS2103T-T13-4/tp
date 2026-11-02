@@ -60,6 +60,35 @@ public class CommandCompletionTest {
     }
 
     @Test
+    public void suggest_nameSlashes_preservesHintsAndParsedName() throws Exception {
+        for (String command : new String[] {"add", "edit 1"}) {
+            for (String name : new String[] {"Ravi s/o Kumar", "Anita d/o Devi", "Alice North/Lane", "Alice x/value"}) {
+                String input = command + " n/" + name;
+                assertTrue(completion.suggest(input).display().contains("m/MATRIC_NUMBER"));
+                input = accept(input, input + " m/") + "A0123456X";
+                input = accept(input, input + " g/") + "T01";
+                assertEquals(" p/", completion.suggest(input).append());
+
+                ModelManager model = new ModelManager();
+                if (command.equals("edit 1")) {
+                    model.addStudent(new StudentBuilder().build());
+                }
+                new TutorLinkParser().parseCommand(input).execute(model);
+                assertEquals(name, model.getStudentDirectory().getStudentList().getFirst().getName().fullName);
+            }
+        }
+    }
+
+    @Test
+    public void suggest_invalidNameSlashesOrUnknownParameters_doesNotAppend() {
+        for (String input : new String[] {"add n/Alice s/o Peter*", "edit 1 n/Anita d/o Devi*", "add n/ '/",
+            "add n/Ravi s/o " + "A".repeat(70), "add n/Alice s/o Kumar n/Bob", "edit 1 n/Anita d/o Devi n/Alice",
+            "add n/Ravi s/o Kumar g/T01 x/value", "add x/value n/Alice", "add n/ m/A0123456X"}) {
+            assertSuggestion(input, "", "");
+        }
+    }
+
+    @Test
     public void suggest_addEscapedAddressPrefixes_preservesHintsAndAddress() throws Exception {
         for (String prefix : new String[] {"n/", "m/", "g/", "p/", "e/", "a/", "t/"}) {
             for (String address : new String[] {"Block 10 \\" + prefix + "Lane", "\\" + prefix + "Lane"}) {
@@ -195,7 +224,7 @@ public class CommandCompletionTest {
 
     @Test
     public void suggest_incompleteOrUnknownArguments_doesNotAppend() {
-        for (String input : new String[] {"add Alice", "add n/Alice x/value", "add n/ m/A0123456X",
+        for (String input : new String[] {"add Alice", "add m/A0123456X x/value", "add n/ m/A0123456X",
             "add n/Alice n/Bob", "edit nope", "edit 0", "edit 999999999999", "remark 1 x/text", "list random"}) {
             assertSuggestion(input, "", "");
         }

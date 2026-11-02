@@ -49,7 +49,17 @@ deactivate TutorLinkParser
 LogicManager -> DeleteCommand : execute(m)
 activate DeleteCommand
 
-DeleteCommand -> Model : deleteStudent(1)
+DeleteCommand -> Model : getFilteredStudentList()
+activate Model
+Model --> DeleteCommand : lastShownList
+deactivate Model
+
+note right of DeleteCommand
+  Validate the displayed index.
+  studentToDelete = lastShownList.get(0)
+end note
+
+DeleteCommand -> Model : deleteStudent(studentToDelete)
 activate Model
 
 Model --> DeleteCommand

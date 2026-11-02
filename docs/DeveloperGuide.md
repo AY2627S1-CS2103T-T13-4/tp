@@ -88,9 +88,17 @@ This view-only result does not write roster data. After each command, `MainWindo
 selection across record replacements if that student remains visible, and otherwise clears the details. Three resizable
 columns separate group navigation, student summaries, and full details.
 
-`StudentCard` displays a bounded preview for remarks longer than 160 characters and attaches the complete remark as a
-tooltip. This keeps long free-text notes from making the details card unreasonably tall while preserving access to the
-stored value.
+`StudentCard` displays the complete remark in a wrapping label inside `StudentDetailsPanel`'s existing `ScrollPane`.
+The pane fits its content to the available width; users select a student or execute `view INDEX`, then scroll
+vertically to read the remark and the fields below it. Remarks do not rely on a tooltip or a truncated preview.
+An **Open full remark** button opens a resizable, non-modal `Dialog` containing the unmodified remark in a read-only
+`TextArea`. Wrapping is disabled in that reader so both scroll directions remain available even when JavaFX's inline
+label layout clips the end of a very long continuous word. The reader supports selection/copying without changing
+the stored remark and leaves the roster usable. The button is hidden and unmanaged when the remark is absent.
+The separate `StudentSummaryCard` keeps the roster compact and usable while the details panel scrolls.
+UI tests render paragraph-length and much longer remarks in a narrow panel, check their laid-out text and width,
+and scroll to the final text line and contact fields. A separate regression opens the reader for 50,000 continuous
+characters followed by `FINAL_MARKER` and checks that the whole marker is rendered inside its viewport.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/ui/MainWindow.java).
 
@@ -194,9 +202,10 @@ only a unique name prefix is suggested. Name acceptance only appends the command
 acceptance appends one missing parameter prefix, skipping supplied parameters while preserving every value
 and its order. Empty required values block advancement. Positional arguments are hints only, and no
 placeholder values or optional brackets are inserted. Within addresses, only recognized parameter prefixes
-form boundaries; escaped prefixes and other slash words remain address text. Unknown prefixes outside
-addresses, duplicate non-tag prefixes, and invalid preambles suppress suggestions.
-Completion does not validate or execute commands.
+form boundaries; escaped prefixes and other slash words remain address text. Within names, unknown slash words
+such as `s/o` and `d/o` remain part of the name, and the complete name is checked with the shared `Name` rule before
+advancing. Unknown prefixes in other fields, duplicate non-tag prefixes, and invalid preambles suppress suggestions.
+Completion remains advisory and never executes commands; general command validation is left to the parser.
 
 `CommandBox` filters only an unmodified Tab at the end of an unselected input when an append is available.
 Other keys and focus traversal continue through JavaFX. Its text formatter still normalizes pasted tabs.
@@ -468,7 +477,7 @@ The following decisions define the current behaviour for the model, commands, st
 
 | Field | Requirement | Missing value |
 |-------|-------------|---------------|
-| Name | Required; letters, digits, and spaces only; at most 70 characters after normalization | Reject the record or command |
+| Name | Required; Unicode letters and combining marks, digits (`0`–`9`), ordinary spaces, and `'`, `’`, `-`, `/`, `.` only; at least one letter or digit; at most 70 characters after normalization | Reject the record or command |
 | Matriculation number | Required and unique, ignoring letter case | Reject the record or command |
 | Tutorial group | Required | Reject the record or command |
 | Phone, email, address | Retain the existing fields, but make each optional | Represent an absent value as `null` in the model and JSON; display `Not provided` in the UI |
@@ -484,7 +493,16 @@ A tutorial group is
 an attribute of each student; TutorLink supports group filtering, group counts, and changing a student's group through
 `edit`, rather than independent tutorial-group records or management commands.
 
-Names are trimmed at both ends, and consecutive internal spaces are collapsed to one before the 70-character limit is checked. For example, `John  Doe` is stored as `John Doe`. Letter case is preserved; punctuation and other internal whitespace are invalid.
+Names are trimmed at both ends, and consecutive internal ordinary spaces are collapsed to one before the
+70-character limit is checked. For example, `John  Doe` is stored as `John Doe`. The shared `Name` validation
+accepts Unicode letters and combining accent marks, digits (`0`–`9`), ordinary spaces, apostrophes (`'`, `’`),
+hyphens (`-`), slashes (`/`), and periods (`.`); at least one letter or digit is required. Other symbols and internal
+whitespace such as tabs or line breaks are invalid. Letter case and the original Unicode representation are preserved;
+the existing Java `String.length()` limit counts UTF-16 code units, including combining marks separately.
+Add/edit parsing and JSON loading use this same rule. `s/o` and `d/o` do not match command prefixes.
+Name searches still compare complete whitespace-separated words, including their punctuation and accents.
+`NameCommandIntegrationTest` covers representative names through add, edit, find, JSON save/reload, invalid input,
+and length boundaries; value-object and JSON-adapter tests cover validation boundaries and missing names.
 
 Tutorial groups use one letter followed by exactly two digits, stored with an uppercase letter (for example, `T04` or `W12`). Lowercase input such as `t04` is accepted and stored as `T04`. `T4`, `T004`, and groups containing spaces are invalid. Parsing, model validation, filtering, JSON loading, and display must apply the same rule; leading zeros must be preserved. Matriculation numbers are likewise stored uppercase before duplicate checks.
 
