@@ -16,9 +16,11 @@
 * TutorLink adapts the architecture, command framework, storage, testing utilities, and documentation of
   [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org).
 * Libraries include [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson),
-  [JUnit](https://junit.org/), and [Guava](https://github.com/google/guava).
+  and [JUnit](https://junit.org/).
 * Xu Zhenyao (`little-zhenyao`) used OpenAI Codex to help implement features, write tests, and diagnose and fix bugs
   in his contributions to TutorLink. He also used it to help plan and allocate weekly project tasks.
+* Fang Pin Xin (`pinxinfang`) used OpenAI Codex to review and test release code, check documentation and
+  attribution, update release documentation, and prepare and verify the v1.6 release artifacts.
 
 --------------------------------------------------------------------------------------------------------------------
 

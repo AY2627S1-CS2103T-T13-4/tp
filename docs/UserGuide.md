@@ -561,7 +561,7 @@ If TutorLink cannot load the data file, it shows an error and stops starting. It
 Furthermore, certain edits can cause TutorLink to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
 
-### Upgrading to v1.5
+### Upgrading to v1.6
 
 Close TutorLink and copy `data/tutorlink.json` to a safe backup location before replacing the JAR in the same home
 folder. Existing valid records, remarks, and follow-up statuses are retained. v1.5 enforces the email length limits
@@ -571,6 +571,11 @@ startup stops with the protective error described above. Correct that email in a
 
 The v1.5.1 patch adds the persistent filter condition, address-prefix escapes, and corrective `findtag` guidance.
 It uses the same saved-data format as v1.5.
+
+v1.6 retains that saved-data format and accepts names containing accents and common punctuation. It adds a
+full-remark reader and includes protection against overwriting data changed by another instance or external editor.
+Keep a backup before upgrading. Older versions may reject names newly accepted by v1.6, so keep using v1.6
+after saving such names. For moving data to another computer, follow the FAQ below.
 
 --------------------------------------------------------------------------------------------------------------------
 
