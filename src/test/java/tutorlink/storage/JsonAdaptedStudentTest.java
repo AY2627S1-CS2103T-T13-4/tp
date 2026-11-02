@@ -74,6 +74,16 @@ public class JsonAdaptedStudentTest {
     }
 
     @Test
+    public void toModelType_invalidNameBoundaries_throwsIllegalValueException() {
+        for (String name : List.of("", "   ", "'’-/.", "\u0301", "Peter*", "Peter\tJack", "Peter\nJack",
+                "Peter\u0000Jack", "Peter\u007fJack", "é".repeat(71))) {
+            JsonAdaptedStudent student = new JsonAdaptedStudent(name, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
+                    VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, VALID_TAGS);
+            assertThrows(IllegalValueException.class, Name.MESSAGE_CONSTRAINTS, student::toModelType);
+        }
+    }
+
+    @Test
     public void toModelType_nullName_throwsIllegalValueException() {
         JsonAdaptedStudent student = new JsonAdaptedStudent(null, VALID_MATRIC_NUMBER, VALID_TUTORIAL_GROUP,
                 VALID_PHONE, VALID_EMAIL, VALID_ADDRESS, VALID_TAGS);

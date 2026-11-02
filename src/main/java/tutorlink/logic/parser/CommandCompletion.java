@@ -23,6 +23,7 @@ import tutorlink.logic.commands.ListCommand;
 import tutorlink.logic.commands.RemarkCommand;
 import tutorlink.logic.commands.SortCommand;
 import tutorlink.logic.commands.ViewCommand;
+import tutorlink.model.student.Name;
 
 /**
  * Computes advisory syntax and a single safe append operation, independently of the command executor.
@@ -91,14 +92,17 @@ public class CommandCompletion {
         List<Integer> starts = new ArrayList<>();
         List<Integer> ends = new ArrayList<>();
         Set<Parameter> seen = new HashSet<>();
+        boolean hasNameSlash = false;
         while (matcher.find()) {
             String prefix = matcher.group(1);
             Parameter parameter = parameters.stream()
                     .filter(candidate -> candidate.prefix().getPrefix().equals(prefix))
                     .findFirst().orElse(null);
-            // Like the parser, keep unrecognized slash words and escapes inside free-text addresses.
+            // Like the parser, keep unrecognized slash words inside names and free-text addresses.
             if (parameter == null && !supplied.isEmpty()
-                    && supplied.getLast().prefix().equals(CliSyntax.PREFIX_ADDRESS)) {
+                    && (supplied.getLast().prefix().equals(CliSyntax.PREFIX_ADDRESS)
+                    || supplied.getLast().prefix().equals(CliSyntax.PREFIX_NAME))) {
+                hasNameSlash |= supplied.getLast().prefix().equals(CliSyntax.PREFIX_NAME);
                 continue;
             }
             if (parameter == null || (!seen.add(parameter) && !parameter.prefix().equals(CliSyntax.PREFIX_TAG))) {
@@ -119,7 +123,11 @@ public class CommandCompletion {
         String activePlaceholder = "";
         for (int i = 0; i < supplied.size(); i++) {
             int end = i + 1 < supplied.size() ? starts.get(i + 1) : arguments.length();
-            if (arguments.substring(ends.get(i), end).isBlank()) {
+            String value = arguments.substring(ends.get(i), end);
+            if (hasNameSlash && supplied.get(i).prefix().equals(CliSyntax.PREFIX_NAME) && !Name.isValidName(value)) {
+                return NONE;
+            }
+            if (value.isBlank()) {
                 boolean canClear = word.equals(RemarkCommand.COMMAND_WORD)
                         || isEdit && supplied.get(i).optional();
                 if (!canClear) {

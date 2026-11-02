@@ -10,9 +10,11 @@ import static tutorlink.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should contain only letters, numbers, and spaces, and be at most 70 characters long";
+            "Names should contain only Unicode letters, combining accent marks, digits (0-9), spaces, "
+            + "apostrophes (' or ’), hyphens (-), slashes (/), and periods (.), "
+            + "include at least one letter or digit, and be at most 70 characters long";
     public static final int MAX_LENGTH = 70;
-    public static final String VALIDATION_REGEX = "[A-Za-z0-9]+(?: [A-Za-z0-9]+)*";
+    public static final String VALIDATION_REGEX = "(?=.*[\\p{L}0-9])[\\p{L}\\p{M}0-9 '’./-]+";
 
     public final String fullName;
 
