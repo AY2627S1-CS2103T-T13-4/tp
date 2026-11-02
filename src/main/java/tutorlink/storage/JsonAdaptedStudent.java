@@ -101,6 +101,19 @@ class JsonAdaptedStudent {
      * @throws IllegalValueException if there were any data constraints violated in the adapted student.
      */
     public Student toModelType() throws IllegalValueException {
+        Set<Tag> modelTags = parseTags();
+        Name modelName = parseName();
+        MatricNumber modelMatricNumber = parseMatricNumber();
+        TutorialGroup modelTutorialGroup = parseTutorialGroup();
+        Phone modelPhone = parsePhone();
+        Email modelEmail = parseEmail();
+        Address modelAddress = parseAddress();
+
+        return new Student(modelName, modelMatricNumber, modelTutorialGroup,
+                modelPhone, modelEmail, modelAddress, modelTags, remark, requiresFollowUp);
+    }
+
+    private Set<Tag> parseTags() throws IllegalValueException {
         final List<Tag> studentTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             if (tag == null) {
@@ -108,15 +121,20 @@ class JsonAdaptedStudent {
             }
             studentTags.add(tag.toModelType());
         }
+        return new HashSet<>(studentTags);
+    }
 
+    private Name parseName() throws IllegalValueException {
         if (name == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Name.class.getSimpleName()));
         }
         if (!Name.isValidName(name)) {
             throw new IllegalValueException(Name.MESSAGE_CONSTRAINTS);
         }
-        final Name modelName = new Name(name);
+        return new Name(name);
+    }
 
+    private MatricNumber parseMatricNumber() throws IllegalValueException {
         if (matricNumber == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     MatricNumber.class.getSimpleName()));
@@ -124,8 +142,10 @@ class JsonAdaptedStudent {
         if (!MatricNumber.isValidMatricNumber(matricNumber)) {
             throw new IllegalValueException(MatricNumber.MESSAGE_CONSTRAINTS);
         }
-        final MatricNumber modelMatricNumber = new MatricNumber(matricNumber);
+        return new MatricNumber(matricNumber);
+    }
 
+    private TutorialGroup parseTutorialGroup() throws IllegalValueException {
         if (tutorialGroup == null) {
             throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT,
                     TutorialGroup.class.getSimpleName()));
@@ -136,26 +156,28 @@ class JsonAdaptedStudent {
         if (!TutorialGroup.isValidTutorialGroup(normalizedTutorialGroup)) {
             throw new IllegalValueException(TutorialGroup.MESSAGE_CONSTRAINTS);
         }
-        final TutorialGroup modelTutorialGroup = new TutorialGroup(normalizedTutorialGroup);
+        return new TutorialGroup(normalizedTutorialGroup);
+    }
 
+    private Phone parsePhone() throws IllegalValueException {
         if (phone != null && !Phone.isValidPhone(phone)) {
             throw new IllegalValueException(Phone.MESSAGE_CONSTRAINTS);
         }
-        final Phone modelPhone = phone == null ? null : new Phone(phone);
+        return phone == null ? null : new Phone(phone);
+    }
 
+    private Email parseEmail() throws IllegalValueException {
         if (email != null && !Email.isValidEmail(email)) {
             throw new IllegalValueException(Email.MESSAGE_CONSTRAINTS);
         }
-        final Email modelEmail = email == null ? null : new Email(email);
+        return email == null ? null : new Email(email);
+    }
 
+    private Address parseAddress() throws IllegalValueException {
         if (address != null && !Address.isValidAddress(address)) {
             throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
         }
-        final Address modelAddress = address == null ? null : new Address(address);
-
-        final Set<Tag> modelTags = new HashSet<>(studentTags);
-        return new Student(modelName, modelMatricNumber, modelTutorialGroup,
-                modelPhone, modelEmail, modelAddress, modelTags, remark, requiresFollowUp);
+        return address == null ? null : new Address(address);
     }
 
 }

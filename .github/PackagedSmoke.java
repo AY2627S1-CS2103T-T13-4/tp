@@ -24,6 +24,12 @@ import javafx.stage.Window;
 
 /** Exercises the real packaged application through its controls, without replacing its entry point. */
 public class PackagedSmoke {
+    private static final int WINDOW_STARTUP_ATTEMPTS = 100;
+    private static final int WINDOW_POLL_INTERVAL_MILLIS = 100;
+    private static final int FX_ACTION_TIMEOUT_SECONDS = 30;
+    private static final int MAX_EMAIL_LOCAL_PART_LENGTH = 64;
+    private static final int MAX_EMAIL_DOMAIN_LABEL_LENGTH = 63;
+
     private static Scene scene;
 
     public static void premain(String phase) {
@@ -54,7 +60,8 @@ public class PackagedSmoke {
         switch (phase) {
             case "reported-alpha" -> reportedAlphaWorkflow();
             case "peer-alpha" -> peerAlphaWorkflow();
-            case "alpha-fixes", "alpha-restart" -> alphaFixWorkflow(phase);
+            case "alpha-fixes" -> alphaFixWorkflow();
+            case "alpha-restart" -> verifyAlphaFixesAfterRestart();
             case "followup-mark", "followup-complete", "followup-verify" -> followUpWorkflow(phase);
             case "workflow" -> directoryWorkflow();
             case "restart" -> verifyDirectoryRestart();
@@ -168,7 +175,7 @@ public class PackagedSmoke {
     }
 
     private static void waitForWindow() throws Exception {
-        for (int attempt = 0; attempt < 100; attempt++) {
+        for (int attempt = 0; attempt < WINDOW_STARTUP_ATTEMPTS; attempt++) {
             try {
                 if (fx(() -> !Window.getWindows().isEmpty())) {
                     return;
@@ -176,7 +183,7 @@ public class PackagedSmoke {
             } catch (IllegalStateException toolkitNotReady) {
                 // The actual application, not the agent, initializes JavaFX.
             }
-            Thread.sleep(100);
+            Thread.sleep(WINDOW_POLL_INTERVAL_MILLIS);
         }
         throw new AssertionError("Application did not open a window");
     }
@@ -307,7 +314,8 @@ public class PackagedSmoke {
         check(student().getAddress().value.equals("Block 10 p/Lane e/learning centre"), "literal address prefixes");
         command("add n/Punycode Test m/A1000007G g/T02 e/user@xn--bcher-kva.de", 2, false);
         String saved = data();
-        command("add n/Domain Test m/A1000006F g/T01 e/user@" + "a".repeat(64) + ".com", 2, true);
+        command("add n/Domain Test m/A1000006F g/T01 e/user@"
+                + "a".repeat(MAX_EMAIL_DOMAIN_LABEL_LENGTH + 1) + ".com", 2, true);
         check(data().equals(saved), "oversized domain label does not add a student");
         command("findtag friends", 1, false);
         command("remark 1 r/Needs consultation", 1, false);
@@ -328,25 +336,36 @@ public class PackagedSmoke {
         check(((Label) scene.lookup("#activeFilter")).getText().equals("All students"), "list clears condition");
     }
 
-    private static void alphaFixWorkflow(String phase) throws Exception {
-        if (phase.equals("alpha-restart")) {
-            command("followups", 1, false);
-            check(student().getName().fullName.equals("Zoe Test"), "correct student restored");
-            check(student().getPhone() == null && student().getEmail() == null && student().getAddress() == null,
-                    "cleared contacts survive restart");
-            check(student().getRemark().equals("Discuss recursion"), "remark survives contact clears and restart");
-            command("view 1", 1, false);
-            check(detailLabel("email").getText().equals("Email: Not provided"), "cleared email displayed");
-            command("followup 1 done", 0, false);
-            command("list", 2, false);
-            return;
-        }
+    private static void verifyAlphaFixesAfterRestart() {
+        command("followups", 1, false);
+        check(student().getName().fullName.equals("Zoe Test"), "correct student restored");
+        check(student().getPhone() == null && student().getEmail() == null && student().getAddress() == null,
+                "cleared contacts survive restart");
+        check(student().getRemark().equals("Discuss recursion"), "remark survives contact clears and restart");
+        command("view 1", 1, false);
+        check(detailLabel("email").getText().equals("Email: Not provided"), "cleared email displayed");
+        command("followup 1 done", 0, false);
+        command("list", 2, false);
+    }
+
+    private static void alphaFixWorkflow() throws Exception {
+        prepareAlphaRoster();
+        verifyDeletePreview();
+        verifyContactClearing();
+        verifyRemarkClearing();
+        verifySortedDeletion();
+    }
+
+    private static void prepareAlphaRoster() {
         command("clear", 0, false);
         command("add n/Zoe Test m/A1111111A g/T01 p/91234567 e/student+_tutorial@example.com a/10 College Road", 1, false);
         command("remark 1 r/Discuss recursion", 1, false);
         command("followup 1 on", 1, false);
         command("add n/Alpha Test m/A2222222B g/T01", 2, false);
         command("add n/Other Test m/A3333333C g/T02", 3, false);
+    }
+
+    private static void verifyDeletePreview() throws Exception {
         command("list g/T01", 2, false);
         command("sort name", 2, false);
         command("view 1", 2, false);
@@ -356,13 +375,17 @@ public class PackagedSmoke {
         check(list().getSelectionModel().getSelectedIndex() == 1, "preview highlights displayed target");
         check(detailLabel("name").getText().equals("Zoe Test"), "preview details match target");
         snapshot(scene, "deletePreviewTarget.png");
+    }
+
+    private static void verifyContactClearing() throws Exception {
+        String before = data();
         command("delete 0", 2, true);
         command("delete 99 confirm", 2, true);
-        command("edit 2 p/ e/" + "a".repeat(65) + "@example.com", 2, true);
+        command("edit 2 p/ e/" + "a".repeat(MAX_EMAIL_LOCAL_PART_LENGTH + 1) + "@example.com", 2, true);
         check(data().equals(before), "invalid combined clear is atomic");
         command("edit 2 e/a..b@example.com", 2, true);
-        command("edit 2 e/name@" + "a".repeat(64) + ".com", 2, true);
-        command("edit 2 e/" + "a".repeat(64) + "@example.com", 2, false);
+        command("edit 2 e/name@" + "a".repeat(MAX_EMAIL_DOMAIN_LABEL_LENGTH + 1) + ".com", 2, true);
+        command("edit 2 e/" + "a".repeat(MAX_EMAIL_LOCAL_PART_LENGTH) + "@example.com", 2, false);
         command("edit 2 p/ e/ a/", 2, false);
         check(detailLabel("phone").getText().equals("Phone: Not provided")
                 && detailLabel("email").getText().equals("Email: Not provided")
@@ -372,11 +395,17 @@ public class PackagedSmoke {
         command("find Zoe", 1, false);
         check(student().requiresFollowUp() && student().getRemark().equals("Discuss recursion"),
                 "contact clear preserves follow-up and remark");
+    }
+
+    private static void verifyRemarkClearing() {
         command("edit 1 t/needsHelp", 1, false);
         command("findtag NEEDSHELP", 1, false);
         command("remark 1 r/", 1, false);
         check(student().getRemark() == null, "empty remark clears");
         command("remark 1 r/Discuss recursion", 1, false);
+    }
+
+    private static void verifySortedDeletion() {
         command("list", 3, false);
         command("sort group desc", 3, false);
         command("view 2", 3, false);
@@ -401,7 +430,7 @@ public class PackagedSmoke {
     private static <T> T fx(Callable<T> action) throws Exception {
         FutureTask<T> task = new FutureTask<>(action);
         Platform.runLater(task);
-        return task.get(30, TimeUnit.SECONDS);
+        return task.get(FX_ACTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     private static ListView<?> list() {
@@ -423,15 +452,16 @@ public class PackagedSmoke {
         return label;
     }
 
-    private static void command(String text, int count, boolean error) {
+    private static void command(String commandText, int expectedStudentCount, boolean expectsError) {
         TextField box = (TextField) scene.lookup("#commandTextField");
-        box.setText(text);
+        box.setText(commandText);
         box.fireEvent(new ActionEvent());
-        if (count >= 0) {
-            check(items().size() == count, text + ": expected " + count + " students, got " + items().size());
-            check(box.getStyleClass().contains("error") == error, text + ": error state");
+        if (expectedStudentCount >= 0) {
+            check(items().size() == expectedStudentCount,
+                    commandText + ": expected " + expectedStudentCount + " students, got " + items().size());
+            check(box.getStyleClass().contains("error") == expectsError, commandText + ": error state");
         }
-        System.out.println("PASS " + text);
+        System.out.println("PASS " + commandText);
     }
 
     private static String data() throws Exception {

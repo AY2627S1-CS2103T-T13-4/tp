@@ -17,6 +17,8 @@
   [AddressBook-Level3](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org).
 * Libraries include [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson),
   [JUnit](https://junit.org/), and [Guava](https://github.com/google/guava).
+* Xu Zhenyao (`little-zhenyao`) used OpenAI Codex to help implement features, write tests, and diagnose and fix bugs
+  in his contributions to TutorLink. He also used it to help plan and allocate weekly project tasks.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -86,9 +88,17 @@ This view-only result does not write roster data. After each command, `MainWindo
 selection across record replacements if that student remains visible, and otherwise clears the details. Three resizable
 columns separate group navigation, student summaries, and full details.
 
-`StudentCard` displays a bounded preview for remarks longer than 160 characters and attaches the complete remark as a
-tooltip. This keeps long free-text notes from making the details card unreasonably tall while preserving access to the
-stored value.
+`StudentCard` displays the complete remark in a wrapping label inside `StudentDetailsPanel`'s existing `ScrollPane`.
+The pane fits its content to the available width; users select a student or execute `view INDEX`, then scroll
+vertically to read the remark and the fields below it. Remarks do not rely on a tooltip or a truncated preview.
+An **Open full remark** button opens a resizable, non-modal `Dialog` containing the unmodified remark in a read-only
+`TextArea`. Wrapping is disabled in that reader so both scroll directions remain available even when JavaFX's inline
+label layout clips the end of a very long continuous word. The reader supports selection/copying without changing
+the stored remark and leaves the roster usable. The button is hidden and unmanaged when the remark is absent.
+The separate `StudentSummaryCard` keeps the roster compact and usable while the details panel scrolls.
+UI tests render paragraph-length and much longer remarks in a narrow panel, check their laid-out text and width,
+and scroll to the final text line and contact fields. A separate regression opens the reader for 50,000 continuous
+characters followed by `FINAL_MARKER` and checks that the whole marker is rendered inside its viewport.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-T13-4/tp/tree/master/src/main/java/tutorlink/ui/MainWindow.java).
 
@@ -183,6 +193,34 @@ Classes used by multiple components are in the `tutorlink.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Inline command completion
+
+`CommandCompletion` is a pure advisory model: it returns a display suffix and an append string.
+Its command words reference the command constants and its prefix templates reference `CliSyntax`, following
+current parser and usage-message syntax. Exact command names take precedence over longer names; otherwise
+only a unique name prefix is suggested. Name acceptance only appends the command suffix. Subsequent
+acceptance appends one missing parameter prefix, skipping supplied parameters while preserving every value
+and its order. Empty required values block advancement. Positional arguments are hints only, and no
+placeholder values or optional brackets are inserted. Within addresses, only recognized parameter prefixes
+form boundaries; escaped prefixes and other slash words remain address text. Within names, unknown slash words
+such as `s/o` and `d/o` remain part of the name, and the complete name is checked with the shared `Name` rule before
+advancing. Unknown prefixes in other fields, duplicate non-tag prefixes, and invalid preambles suppress suggestions.
+Completion remains advisory and never executes commands; general command validation is left to the parser.
+
+`CommandBox` filters only an unmodified Tab at the end of an unselected input when an append is available.
+Other keys and focus traversal continue through JavaFX. Its text formatter still normalizes pasted tabs.
+Enter continues to read only `TextField.getText()` and retains the existing execution and error handling.
+
+`CommandCompletionSkin` extends the native `TextFieldSkin`. It draws a separate unmanaged, mouse-transparent
+`Text` node, using the native character bounds after layout for horizontal scroll positioning and the
+field's font and baseline. Only the hint is clipped to the input viewport; it never reserves input width
+or changes the field's text. Focus, selection, caret, text, font and size changes update its layout.
+
+`CommandCompletionTest` covers command syntax and incremental acceptance. `CommandBoxTest` uses a real
+JavaFX stage and skin to cover event dispatch, focus traversal, actual-input execution, paste normalization,
+selection, native undo/redo, skin replacement, font changes and horizontal scrolling.
+Tests use synthetic commands without accessing user data.
+
 ### Tag search
 
 The `findtag TAG` command searches the full roster for students with an exact, case-insensitive tag match.
@@ -246,7 +284,8 @@ all unrelated fields, including the existing remark. Repeating either action lea
 <puml src="diagrams/FollowUpSequenceDiagram.puml" alt="Completing a follow-up using the current displayed index" />
 
 `followups` accepts no arguments. `FollowUpsCommand` replaces the active predicate using
-`Model#updateFilteredStudentList(Student::requiresFollowUp)`. The filtered list is backed by the entire roster,
+`Model#updateFilteredStudentList(Student::requiresFollowUp, "Follow-up required")`.
+The filtered list is backed by the entire roster,
 so results are independent of the previous name search, tag search, or group filter. The command neither copies nor
 mutates the source roster. Results follow roster order and an empty result has an explicit message.
 After `setStudent`, JavaFX re-evaluates the active predicate; completing a follow-up therefore immediately removes
@@ -255,7 +294,8 @@ the student from that view and renumbers the remaining results. The filter stays
 
 `JsonAdaptedStudent` saves `requiresFollowUp` and restores it through the full `Student` constructor.
 Missing or null fields default to false for compatibility with older records. `LogicManager` saves the complete
-roster after successful commands, including hidden students. No history or completion timestamps are stored.
+roster after successful commands that change student records, including hidden students.
+Commands that leave the records unchanged do not save again. No history or completion timestamps are stored.
 
 Preservation and ordering contract:
 * `Student` equality, hashing, and string output include current status; identity still uses only matriculation number.
@@ -373,6 +413,21 @@ The snapshot reuses immutable students and predicates while copying the roster l
 lists already used by the UI. `LogicManagerTest` covers every mutating command, filter/sort preservation, and a failed
 edit followed by a read-only command. UI and packaged tests verify the selected profile and contact values.
 
+`JsonStudentDirectoryStorage` retains the exact bytes from each successful read or save, including the absence
+of a file on first launch. Before saving, it obtains a nonblocking operating-system lock on a persistent sibling
+`.lock` file and checks that the current bytes match that baseline. A stale or busy writer throws `IOException`,
+using the same rollback path and actionable feedback. Rejected saves never update the baseline. Existing files
+cannot be overwritten without first being read. Symbolic links resolve to the same target and lock path.
+The complete JSON is written to a temporary file in the same directory, then moved atomically over the roster.
+Existing file attributes supported by the filesystem are copied to the temporary file, and write-protected rosters
+are rejected before replacement. Filesystems without atomic replacement fail the save safely. The lock file is
+retained because deleting it can allow competing processes to lock different file objects. No lock remains held
+between commands or after exit.
+Concurrent storage tests cover first writes, stale updates, external edits/deletion, lock contention, and reload;
+storage safety tests cover a separate JVM holding the lock, read-only files, permission preservation, dangling
+symbolic links, and failed atomic replacement with temporary-file cleanup and successful retries.
+Logic tests cover rollback for every mutating command and successful writes after reopening.
+
 The command box normalizes tabs to spaces with a `TextFormatter` before JavaFX removes them. This preserves field
 boundaries in pasted commands, including the address/email case covered by `MainWindowTest` and the packaged smoke test.
 
@@ -422,7 +477,7 @@ The following decisions define the current behaviour for the model, commands, st
 
 | Field | Requirement | Missing value |
 |-------|-------------|---------------|
-| Name | Required; letters, digits, and spaces only; at most 70 characters after normalization | Reject the record or command |
+| Name | Required; Unicode letters and combining marks, digits (`0`–`9`), ordinary spaces, and `'`, `’`, `-`, `/`, `.` only; at least one letter or digit; at most 70 characters after normalization | Reject the record or command |
 | Matriculation number | Required and unique, ignoring letter case | Reject the record or command |
 | Tutorial group | Required | Reject the record or command |
 | Phone, email, address | Retain the existing fields, but make each optional | Represent an absent value as `null` in the model and JSON; display `Not provided` in the UI |
@@ -438,7 +493,16 @@ A tutorial group is
 an attribute of each student; TutorLink supports group filtering, group counts, and changing a student's group through
 `edit`, rather than independent tutorial-group records or management commands.
 
-Names are trimmed at both ends, and consecutive internal spaces are collapsed to one before the 70-character limit is checked. For example, `John  Doe` is stored as `John Doe`. Letter case is preserved; punctuation and other internal whitespace are invalid.
+Names are trimmed at both ends, and consecutive internal ordinary spaces are collapsed to one before the
+70-character limit is checked. For example, `John  Doe` is stored as `John Doe`. The shared `Name` validation
+accepts Unicode letters and combining accent marks, digits (`0`–`9`), ordinary spaces, apostrophes (`'`, `’`),
+hyphens (`-`), slashes (`/`), and periods (`.`); at least one letter or digit is required. Other symbols and internal
+whitespace such as tabs or line breaks are invalid. Letter case and the original Unicode representation are preserved;
+the existing Java `String.length()` limit counts UTF-16 code units, including combining marks separately.
+Add/edit parsing and JSON loading use this same rule. `s/o` and `d/o` do not match command prefixes.
+Name searches still compare complete whitespace-separated words, including their punctuation and accents.
+`NameCommandIntegrationTest` covers representative names through add, edit, find, JSON save/reload, invalid input,
+and length boundaries; value-object and JSON-adapter tests cover validation boundaries and missing names.
 
 Tutorial groups use one letter followed by exactly two digits, stored with an uppercase letter (for example, `T04` or `W12`). Lowercase input such as `t04` is accepted and stored as `T04`. `T4`, `T004`, and groups containing spaces are invalid. Parsing, model validation, filtering, JSON loading, and display must apply the same rule; leading zeros must be preserved. Matriculation numbers are likewise stored uppercase before duplicate checks.
 

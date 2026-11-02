@@ -50,9 +50,9 @@ Command -> Model : getFilteredStudentList()
 Model --> Command : matching students in directory order
 Command --> LogicManager : CommandResult with match count
 deactivate Command
-ref over LogicManager, Model
-  LogicManager saves the complete roster through Storage.
-end ref
+note over LogicManager
+  Student records are unchanged; return without saving.
+end note
 [<-- LogicManager : CommandResult
 deactivate LogicManager
 @enduml

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import tutorlink.commons.exceptions.DataLoadingException;
 import tutorlink.logic.Logic;
 import tutorlink.logic.LogicManager;
 import tutorlink.model.Model;
@@ -46,13 +47,14 @@ public class GroupsCommandIntegrationTest {
     private JsonStudentDirectoryStorage studentDirectoryStorage;
 
     @BeforeEach
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, DataLoadingException {
         setUpLogic(getTypicalStudentDirectory());
     }
 
-    private void setUpLogic(ReadOnlyStudentDirectory studentDirectory) throws IOException {
+    private void setUpLogic(ReadOnlyStudentDirectory studentDirectory) throws IOException, DataLoadingException {
         model = new ModelManager(studentDirectory, new UserPrefs());
         studentDirectoryStorage = new JsonStudentDirectoryStorage(temporaryFolder.resolve("studentDirectory.json"));
+        studentDirectoryStorage.readStudentDirectory();
         studentDirectoryStorage.saveStudentDirectory(model.getStudentDirectory());
         logic = new LogicManager(model, new StorageManager(studentDirectoryStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));

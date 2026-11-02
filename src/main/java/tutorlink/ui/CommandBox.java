@@ -4,9 +4,12 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Region;
 import tutorlink.logic.commands.CommandResult;
 import tutorlink.logic.commands.exceptions.CommandException;
+import tutorlink.logic.parser.CommandCompletion;
 import tutorlink.logic.parser.exceptions.ParseException;
 
 /**
@@ -28,6 +31,21 @@ public class CommandBox extends UiPart<Region> {
     public CommandBox(CommandExecutor commandExecutor) {
         super(FXML);
         this.commandExecutor = commandExecutor;
+        commandTextField.setSkin(new CommandCompletionSkin(commandTextField));
+        CommandCompletion completion = new CommandCompletion();
+        commandTextField.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() != KeyCode.TAB || event.isShiftDown() || event.isControlDown()
+                    || event.isAltDown() || event.isMetaDown()
+                    || commandTextField.getCaretPosition() != commandTextField.getLength()
+                    || commandTextField.getSelection().getLength() != 0) {
+                return;
+            }
+            String append = completion.suggest(commandTextField.getText()).append();
+            if (!append.isEmpty()) {
+                commandTextField.appendText(append);
+                event.consume();
+            }
+        });
         // TextField otherwise removes tabs, merging pasted parameters before the parser sees them.
         commandTextField.setTextFormatter(new TextFormatter<>(change -> {
             change.setText(change.getText().replace('\t', ' '));

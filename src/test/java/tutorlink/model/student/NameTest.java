@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static tutorlink.testutil.Assert.assertThrows;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 public class NameTest {
@@ -25,6 +27,32 @@ public class NameTest {
     public void constructor_consecutiveSpaces_normalizesName() {
         assertEquals("John Doe", new Name("  John   Doe  ").fullName);
         assertEquals("A".repeat(70), new Name("  " + "A".repeat(70) + "  ").fullName);
+    }
+
+    @Test
+    public void constructor_unicodeAndPunctuation_preservesNameAndNormalizesSpaces() {
+        for (String name : List.of("John O'Connor", "Sean O’Neil", "Mary-Jane Tan", "Ravi s/o Kumar",
+                "Anita d/o Devi", "José Tan", "Jose\u0301 Tan", "王伟", "J. Tan", "12345")) {
+            assertTrue(Name.isValidName(name), name);
+            assertEquals(name, new Name("  " + name.replace(" ", "   ") + "  ").fullName);
+        }
+    }
+
+    @Test
+    public void constructor_invalidCharactersOrMissingLettersAndDigits_rejectsName() {
+        for (String name : List.of("", "   ", "'’-/.", "\u0301", "Peter*", "Peter\tJack", "Peter\nJack",
+                "Peter\u0000Jack", "Peter\u007fJack", "Peter\u00a0Jack", "A".repeat(71))) {
+            assertFalse(Name.isValidName(name), name);
+            assertThrows(IllegalArgumentException.class, Name.MESSAGE_CONSTRAINTS, () -> new Name(name));
+        }
+    }
+
+    @Test
+    public void constructor_unicodeLengthBoundary_checksNormalizedLength() {
+        assertEquals("é".repeat(70), new Name("  " + "é".repeat(70) + "  ").fullName);
+        assertThrows(IllegalArgumentException.class, () -> new Name("é".repeat(71)));
+        assertEquals("e\u0301".repeat(35), new Name("e\u0301".repeat(35)).fullName);
+        assertThrows(IllegalArgumentException.class, () -> new Name("e\u0301".repeat(35) + "A"));
     }
 
     @Test

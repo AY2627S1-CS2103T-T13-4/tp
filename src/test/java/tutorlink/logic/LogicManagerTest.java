@@ -191,6 +191,81 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_twoInstances_staleMutationsRollBackAndReadsPreserveSavedData() throws Exception {
+        Path dataPath = temporaryFolder.resolve("shared.json");
+        JsonStudentDirectoryStorage firstStorage = new JsonStudentDirectoryStorage(dataPath);
+        firstStorage.saveStudentDirectory(new StudentDirectory());
+        JsonStudentDirectoryStorage secondStorage = new JsonStudentDirectoryStorage(dataPath);
+        Model firstModel = new ModelManager(firstStorage.readStudentDirectory().orElseThrow(), new UserPrefs());
+        Model secondModel = new ModelManager(secondStorage.readStudentDirectory().orElseThrow(), new UserPrefs());
+        Logic first = logicWithStorage(firstModel, firstStorage);
+        Logic second = logicWithStorage(secondModel, secondStorage);
+
+        first.execute("add n/Concurrent Probe m/A8999999Z g/T01");
+        String saved = Files.readString(dataPath);
+        second.execute("list");
+        assertEquals(saved, Files.readString(dataPath));
+        String conflictMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT,
+                JsonStudentDirectoryStorage.DATA_CHANGED_MESSAGE);
+        assertThrows(CommandException.class, conflictMessage, () ->
+                second.execute("add n/Parallel Student m/A8999998Z g/T02"));
+        assertEquals(List.of(), second.getStudentList());
+        second.execute("list");
+        assertEquals(saved, Files.readString(dataPath));
+
+        // A rejected write must not advance the stale instance's baseline and permit a later overwrite.
+        assertThrows(CommandException.class, () -> second.execute("add n/Retry Student m/A8999997Z g/T02"));
+        first.execute("remark 1 r/Still writable");
+        JsonStudentDirectoryStorage restartedStorage = new JsonStudentDirectoryStorage(dataPath);
+        Model restartedModel = new ModelManager(restartedStorage.readStudentDirectory().orElseThrow(), new UserPrefs());
+        Logic restarted = logicWithStorage(restartedModel, restartedStorage);
+        restarted.execute("find A8999999Z");
+        assertEquals(1, restarted.getFilteredStudentList().size());
+        restarted.execute("add n/Parallel Student m/A8999998Z g/T02");
+        assertEquals(2, restartedStorage.readStudentDirectory().orElseThrow().getStudentList().size());
+    }
+
+    @Test
+    public void execute_staleInstance_restoresRosterFilterAndSortingForEveryMutation() throws Exception {
+        Path dataPath = temporaryFolder.resolve("stale.json");
+        JsonStudentDirectoryStorage writer = new JsonStudentDirectoryStorage(dataPath);
+        Student zoe = new StudentBuilder(AMY).withName("Zoe Test").withMatricNumber("A9999999Z").build();
+        Student excluded = new StudentBuilder(AMY).withName("Other Group").withMatricNumber("A9999998Y")
+                .withTutorialGroup("T99").build();
+        for (String command : List.of("edit 1 g/T02", "add n/Other Student m/A2000001A g/T02",
+                "remark 1 r/Unexpected", "followup 1 on", "delete 1 confirm", "clear")) {
+            Model originalModel = new ModelManager();
+            originalModel.addStudent(zoe);
+            originalModel.addStudent(AMY);
+            originalModel.addStudent(excluded);
+            writer.saveStudentDirectory(originalModel.getStudentDirectory());
+            JsonStudentDirectoryStorage staleStorage = new JsonStudentDirectoryStorage(dataPath);
+            Model staleModel = new ModelManager(staleStorage.readStudentDirectory().orElseThrow(), new UserPrefs());
+            staleModel.updateFilteredStudentList(
+                    student -> student.getTutorialGroup().equals(AMY.getTutorialGroup()), "Original filter");
+            staleModel.sortStudents(StudentSortOrder.NAME_ASC);
+            Logic staleLogic = logicWithStorage(staleModel, staleStorage);
+            writer.saveStudentDirectory(new StudentDirectory());
+            String saved = Files.readString(dataPath);
+
+            String conflictMessage = String.format(LogicManager.FILE_OPS_ERROR_FORMAT,
+                    JsonStudentDirectoryStorage.DATA_CHANGED_MESSAGE);
+            assertThrows(CommandException.class, conflictMessage, () ->
+                    staleLogic.execute(command));
+
+            assertEquals(List.of(zoe, AMY, excluded), staleLogic.getStudentList());
+            assertEquals(List.of(AMY, zoe), staleLogic.getFilteredStudentList());
+            assertEquals("Original filter", staleLogic.getFilterDescription());
+            assertEquals(saved, Files.readString(dataPath));
+        }
+    }
+
+    private Logic logicWithStorage(Model instanceModel, JsonStudentDirectoryStorage fileStorage) {
+        return new LogicManager(instanceModel, new StorageManager(fileStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"))));
+    }
+
+    @Test
     public void getFilteredStudentList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredStudentList().remove(0));
     }

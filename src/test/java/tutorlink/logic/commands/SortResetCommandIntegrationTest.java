@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.collections.ObservableList;
+import tutorlink.commons.exceptions.DataLoadingException;
 import tutorlink.logic.Logic;
 import tutorlink.logic.LogicManager;
 import tutorlink.logic.Messages;
@@ -55,11 +56,12 @@ public class SortResetCommandIntegrationTest {
     private JsonStudentDirectoryStorage studentDirectoryStorage;
 
     @BeforeEach
-    public void setUp() throws IOException {
+    public void setUp() throws IOException, DataLoadingException {
         StudentDirectory directory = new StudentDirectory();
         directory.setStudents(DIRECTORY_ORDER);
         model = new ModelManager(directory, new UserPrefs());
         studentDirectoryStorage = new JsonStudentDirectoryStorage(temporaryFolder.resolve("students.json"));
+        studentDirectoryStorage.readStudentDirectory();
         studentDirectoryStorage.saveStudentDirectory(model.getStudentDirectory());
         logic = new LogicManager(model, new StorageManager(studentDirectoryStorage,
                 new JsonUserPrefsStorage(temporaryFolder.resolve("prefs.json"))));

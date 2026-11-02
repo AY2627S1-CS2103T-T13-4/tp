@@ -111,3 +111,161 @@ Authored-file inventory at baseline (current attributed lines)
   18  src/test/java/tutorlink/storage/JsonAdaptedStudentTest.java
   11  src/test/java/tutorlink/testutil/StudentBuilder.java
   56  src/test/java/tutorlink/ui/StudentCardTest.java
+
+
+v1.5 recheck: 29 October 2026 (Asia/Singapore)
+===========================================
+Baseline: 07f2098c36e79892bfb6b1141af9bbe08d2ab8f1 (team master).
+This section extends the dated 27 October review above.
+
+Scope
+-----
+Used the exact RepoSense data behind the requested authorship view, generated
+29 October 2026 at 12:48:23 UTC+08:00, since 18 September 2026, for dafadlaw in
+AY2627S1-CS2103T-T13-4/tp[master]. All four requested file categories were included:
+  functional-code: 328 attributed lines in 18 files
+  test-code:       786 attributed lines in 23 files
+  other:           182 attributed lines in 1 file
+  docs:            429 attributed lines in 11 files
+  total:         1725 attributed lines in 53 files
+These are surviving lines credited by the dashboard, not complete file lengths.
+Read attributed code with its surrounding methods and contracts, compared the
+files with current master, and checked relevant documentation and UML snippets.
+The dashboard predates a trailing-content regression added to MainAppTest on
+master; this recheck retains that regression. The other 52 files match the
+dashboard at baseline. Supporting smoke-test.py was also inspected.
+
+Dashboard source:
+https://nus-cs2103-ay2627-s1.github.io/tp-dashboard/AY2627S1-CS2103T-T13-4_tp_master/authorship.json
+SHA-256 of downloaded authorship.json:
+b6aec254a05cb7744f0427fc817eb9a0fe689962cbd51af797d4118026021e16
+
+Review criteria
+---------------
+Applied the course code-quality chapter linked above and the SE-EDU basic and
+intermediate Java conventions, together with repository Checkstyle. Checked
+method responsibilities, nesting, expressions, literals, names, variable scope,
+unsafe shortcuts, duplication, dead code, comments, and failure paths.
+
+Remaining findings and refactoring
+----------------------------------
+1. JsonAdaptedStudent.toModelType mixed roster-field orchestration with inline
+   tag, required-field, legacy-group, and optional-contact validation (57 lines
+   including signature/braces). Extracted field-specific parsing helpers; the
+   12-line entry point now describes the conversion. Tags still validate first,
+   followed by name, matriculation number, group, phone, email, and address.
+   Existing error messages, legacy-group normalization, optional null values,
+   remark and follow-up behavior are retained.
+
+2. MainWindow.executeCommand mixed command execution, result presentation, and
+   nested selection recovery (41 lines). Extracted showCommandResult and
+   updateSelection; the entry point is now 23 lines. An explicit requested
+   selection uses a guard return, and a named condition explains replacement
+   recovery. Error feedback, original group restoration, final detail refresh,
+   help/exit, and changed-matriculation selection behavior are retained.
+
+3. PackagedSmoke.alphaFixWorkflow combined initial setup, five acceptance steps,
+   and a separate restart path in 61 lines. Phase dispatch now selects restart
+   verification explicitly; alphaFixWorkflow names its five workflow steps in
+   seven lines. Existing commands, assertions and screenshots remain. Named
+   constants explain polling attempts, polling interval, JavaFX timeout, and
+   email length boundaries. Command-helper parameter names state the expected
+   count and error condition.
+
+4. The Developer Guide follow-up contract still cited the one-argument filter
+   overload and described saving after successful commands without stating the
+   record-change condition. Updated both descriptions to match current behavior.
+
+Other decisions
+---------------
+Delete preview/confirmation, follow-up commands/parsers, immutable student copies,
+snapshot rollback, JSON compatibility, tab normalization, FXML and remaining
+attributed tests were checked. No further actionable quality finding was found
+in those attributed fragments. Existing scenario tests deliberately keep their
+ordered commands visible; fixture counts and UI sample indices are meaningful
+expected values. The command dispatch switch is cohesive despite its length.
+The compact ModelSnapshot constructor copies its record component parameter as
+part of canonical record initialization; it does not recycle it for another
+purpose. PackagedSmoke's shared Scene belongs to its serial JavaFX test session.
+Historical v1.3/v1.4 reports remain dated evidence for their recorded candidates.
+
+This is a bounded manual review, not a guarantee of defect-free code or a review
+of every teammate-owned line in each shared file. Open storage/startup issues
+#132, #139 and #140 and their proposed PRs are separate from these refactorings.
+
+Validation
+----------
+- ./gradlew -PmacJavafxPlatform=mac-aarch64 check coverage shadowJar
+  Initially passed: 573 tests; zero failures, errors or skips. Main/test Checkstyle and
+  coverage reports passed; Apple Silicon release JAR built.
+- Packaged smoke test with plain ARM64 Oracle JDK 25.0.1 passed all 20 launches,
+  including restart, follow-up, selection/preview, contact clearing, rejected-save
+  recovery, malformed JSON and original-file preservation checks.
+  Evidence: build/packaged-smoke/run-re_o97ix/ (ignored local test output).
+- ./gradlew -PmacJavafxPlatform=mac-aarch64 check coverage
+  Final suite: 574 tests passed with zero failures, errors or skips; Checkstyle
+  passed. The added UI regression verifies Help opens and displays feedback,
+  Exit closes both windows and retains window preferences, and neither command
+  writes student data even when storage is unavailable. It closes the uncovered
+  Help/Exit branches identified by the initial PR patch-coverage check; the final
+  local report covers every line and branch in both extracted UI helpers.
+- Recompiled the final PackagedSmoke helper after descriptive parameter renaming.
+- Repository line-ending, EOF-newline and trailing-whitespace checks passed.
+- Local packaged GUI coverage is macOS ARM64; Windows/Linux and x64 packaged GUI
+  execution are not claimed by this review.
+
+Dashboard inventory (attributed lines, category, path)
+----------------------------------------------------
+ 182  other            .github/PackagedSmoke.java
+   3  docs             docs/AboutUs.md
+  69  docs             docs/DeveloperGuide.md
+  23  docs             docs/Testing.md
+  64  docs             docs/UserGuide.md
+   2  docs             docs/diagrams/ArchitectureSequenceDiagram.puml
+   1  docs             docs/diagrams/DeleteSequenceDiagram.puml
+  55  docs             docs/diagrams/FollowUpSequenceDiagram.puml
+   6  docs             docs/diagrams/ModelClassDiagram.puml
+   1  docs             docs/diagrams/UndoRedoState1.puml
+  70  docs             docs/testing/followup-v1.4.md
+ 135  docs             docs/testing/v1.3-packaged-smoke.md
+  12  functional-code  src/main/java/tutorlink/logic/LogicManager.java
+  25  functional-code  src/main/java/tutorlink/logic/commands/DeleteCommand.java
+   2  functional-code  src/main/java/tutorlink/logic/commands/EditCommand.java
+  78  functional-code  src/main/java/tutorlink/logic/commands/FollowUpCommand.java
+  34  functional-code  src/main/java/tutorlink/logic/commands/FollowUpsCommand.java
+  10  functional-code  src/main/java/tutorlink/logic/parser/DeleteCommandParser.java
+  37  functional-code  src/main/java/tutorlink/logic/parser/FollowUpCommandParser.java
+  21  functional-code  src/main/java/tutorlink/logic/parser/FollowUpsCommandParser.java
+   4  functional-code  src/main/java/tutorlink/logic/parser/TutorLinkParser.java
+   6  functional-code  src/main/java/tutorlink/model/Model.java
+  16  functional-code  src/main/java/tutorlink/model/ModelManager.java
+  22  functional-code  src/main/java/tutorlink/model/ModelSnapshot.java
+  31  functional-code  src/main/java/tutorlink/model/student/Student.java
+  18  functional-code  src/main/java/tutorlink/storage/JsonAdaptedStudent.java
+   6  functional-code  src/main/java/tutorlink/ui/CommandBox.java
+   2  functional-code  src/main/java/tutorlink/ui/MainWindow.java
+   3  functional-code  src/main/java/tutorlink/ui/StudentCard.java
+   1  functional-code  src/main/resources/view/StudentListCard.fxml
+  15  test-code        src/test/java/tutorlink/MainAppTest.java
+  71  test-code        src/test/java/tutorlink/logic/LogicManagerTest.java
+  11  test-code        src/test/java/tutorlink/logic/commands/AddCommandTest.java
+   1  test-code        src/test/java/tutorlink/logic/commands/ContactDetailsIntegrationTest.java
+  26  test-code        src/test/java/tutorlink/logic/commands/DeleteCommandTest.java
+   5  test-code        src/test/java/tutorlink/logic/commands/FindCommandIntegrationTest.java
+   3  test-code        src/test/java/tutorlink/logic/commands/FindTagCommandIntegrationTest.java
+ 178  test-code        src/test/java/tutorlink/logic/commands/FollowUpCommandIntegrationTest.java
+ 112  test-code        src/test/java/tutorlink/logic/commands/FollowUpCommandTest.java
+  79  test-code        src/test/java/tutorlink/logic/commands/FollowUpsCommandTest.java
+   4  test-code        src/test/java/tutorlink/logic/commands/GroupsCommandIntegrationTest.java
+   3  test-code        src/test/java/tutorlink/logic/commands/SortCommandIntegrationTest.java
+   3  test-code        src/test/java/tutorlink/logic/commands/SortGroupCommandIntegrationTest.java
+   3  test-code        src/test/java/tutorlink/logic/commands/SortResetCommandIntegrationTest.java
+  11  test-code        src/test/java/tutorlink/logic/parser/DeleteCommandParserTest.java
+  38  test-code        src/test/java/tutorlink/logic/parser/FollowUpCommandParserTest.java
+  32  test-code        src/test/java/tutorlink/logic/parser/FollowUpsCommandParserTest.java
+   5  test-code        src/test/java/tutorlink/logic/parser/TutorLinkParserTest.java
+  26  test-code        src/test/java/tutorlink/model/student/StudentTest.java
+  28  test-code        src/test/java/tutorlink/storage/JsonAdaptedStudentTest.java
+  11  test-code        src/test/java/tutorlink/testutil/StudentBuilder.java
+  62  test-code        src/test/java/tutorlink/ui/MainWindowTest.java
+  59  test-code        src/test/java/tutorlink/ui/StudentCardTest.java

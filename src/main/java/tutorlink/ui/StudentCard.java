@@ -4,11 +4,16 @@ import java.util.Comparator;
 
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.stage.Modality;
 import tutorlink.model.student.Student;
 
 /**
@@ -18,8 +23,6 @@ public class StudentCard extends UiPart<Region> {
 
     private static final String FXML = "StudentListCard.fxml";
     private static final String NOT_PROVIDED = "Not provided";
-    private static final int MAX_DISPLAYED_REMARK_LENGTH = 160;
-    private static final String REMARK_ELLIPSIS = "...";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -46,6 +49,8 @@ public class StudentCard extends UiPart<Region> {
     @FXML
     private Label remark;
     @FXML
+    private Button readFullRemark;
+    @FXML
     private Label phone;
     @FXML
     private Label address;
@@ -66,12 +71,11 @@ public class StudentCard extends UiPart<Region> {
         tutorialGroup.setText("Group: " + student.getTutorialGroup().value);
         followUp.setText("Follow-up: " + (student.requiresFollowUp() ? "Required" : "Not required"));
         String remarkText = student.getRemark() == null ? NOT_PROVIDED : student.getRemark();
-        remark.setText("Remark: " + truncateRemark(remarkText));
+        remark.setText("Remark: " + remarkText);
         remark.setWrapText(true);
         remark.setMaxWidth(Double.MAX_VALUE);
-        if (student.getRemark() != null) {
-            remark.setTooltip(new Tooltip(student.getRemark()));
-        }
+        readFullRemark.setVisible(student.getRemark() != null);
+        readFullRemark.setManaged(student.getRemark() != null);
         phone.setText("Phone: " + (student.getPhone() == null ? NOT_PROVIDED : student.getPhone().value));
         address.setText("Address: " + (student.getAddress() == null ? NOT_PROVIDED : student.getAddress().value));
         email.setText("Email: " + (student.getEmail() == null ? NOT_PROVIDED : student.getEmail().value));
@@ -90,13 +94,25 @@ public class StudentCard extends UiPart<Region> {
     }
 
     /**
-     * Returns a bounded preview for a remark while keeping the complete value available in the tooltip.
+     * Opens a selectable, scrollable view of the unmodified remark without blocking the roster.
      */
-    private String truncateRemark(String remarkText) {
-        if (remarkText.length() <= MAX_DISPLAYED_REMARK_LENGTH) {
-            return remarkText;
-        }
-        return remarkText.substring(0, MAX_DISPLAYED_REMARK_LENGTH - REMARK_ELLIPSIS.length()) + REMARK_ELLIPSIS;
+    @FXML
+    private void handleReadFullRemark() {
+        TextArea content = new TextArea(student.getRemark());
+        content.setId("fullRemarkText");
+        content.setEditable(false);
+        content.setWrapText(false);
+        content.setPrefColumnCount(70);
+        content.setPrefRowCount(16);
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Full remark");
+        dialog.setHeaderText(student.getName().fullName + " (" + student.getMatricNumber().value + ")");
+        dialog.initOwner(getRoot().getScene().getWindow());
+        dialog.initModality(Modality.NONE);
+        dialog.setResizable(true);
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.show();
     }
 
 }

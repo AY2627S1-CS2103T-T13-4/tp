@@ -26,10 +26,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.event.ActionEvent;
 import javafx.event.EventType;
+import javafx.geometry.Bounds;
 import javafx.geometry.Point3D;
 import javafx.scene.Node;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -37,6 +43,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.skin.VirtualFlow;
 import javafx.scene.image.PixelFormat;
 import javafx.scene.image.WritableImage;
 import javafx.scene.input.KeyCode;
@@ -44,7 +51,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.PickResult;
+import javafx.scene.layout.StackPane;
+import javafx.scene.text.Text;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 import tutorlink.logic.Logic;
 import tutorlink.logic.LogicManager;
 import tutorlink.logic.commands.CommandResult;
@@ -52,6 +63,7 @@ import tutorlink.logic.commands.exceptions.CommandException;
 import tutorlink.logic.parser.exceptions.ParseException;
 import tutorlink.model.ModelManager;
 import tutorlink.model.ReadOnlyStudentDirectory;
+import tutorlink.model.StudentDirectory;
 import tutorlink.model.student.Student;
 import tutorlink.storage.JsonStudentDirectoryStorage;
 import tutorlink.storage.JsonUserPrefsStorage;
@@ -78,6 +90,7 @@ public class MainWindowTest {
     private MainWindow window;
     private Logic logic;
     private Stage stage;
+    private Stage fullRemarkStage;
     private boolean isSaveBlocked;
     private int saveCount;
     private int commandCount;
@@ -202,7 +215,41 @@ public class MainWindowTest {
 
     @AfterEach
     public void tearDown() throws Exception {
-        runOnFxThread(() -> stage.hide());
+        runOnFxThread(() -> {
+            if (fullRemarkStage != null) {
+                fullRemarkStage.hide();
+            }
+            stage.hide();
+        });
+    }
+
+    @Test
+    public void execute_helpThenExitWithUnavailableStorage_opensHelpAndClosesBothWindows() throws Exception {
+        runOnFxThread(() -> {
+            isSaveBlocked = true;
+            window.executeCommand("view 2");
+            CommandResult helpResult = window.executeCommand("help");
+            Stage helpStage = Window.getWindows().stream().filter(Stage.class::isInstance)
+                    .map(Stage.class::cast).filter(candidate -> candidate.getTitle().equals("Help"))
+                    .findFirst().orElseThrow();
+            try {
+                assertTrue(helpResult.isShowHelp());
+                assertTrue(helpStage.isShowing());
+                assertEquals(helpResult.getFeedbackToUser(), ((TextArea) lookup("resultDisplay")).getText());
+                assertEquals(ALICE, window.getStudentListPanel().getSelectedStudent());
+
+                CommandResult exitResult = window.executeCommand("exit");
+                assertTrue(exitResult.isExit());
+                assertFalse(stage.isShowing());
+                assertFalse(helpStage.isShowing());
+                assertEquals(stage.getWidth(), logic.getGuiSettings().getWindowWidth());
+                assertEquals(stage.getHeight(), logic.getGuiSettings().getWindowHeight());
+                assertEquals(0, saveCount);
+                assertEquals(List.of(BOB, ALICE, CARA), logic.getStudentList());
+            } finally {
+                helpStage.hide();
+            }
+        });
     }
 
     @Test
@@ -421,6 +468,156 @@ public class MainWindowTest {
     }
 
     @Test
+    public void viewFirstStudent_afterScrollingMixedHeightRows_scrollsBackToFirstSummary() throws Exception {
+        setUpMixedHeightRoster(12);
+        viewStudentAndAssertVisible(11);
+        viewStudentAndAssertVisible(0);
+        viewStudentAndAssertVisible(5);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> {
+            Label name = (Label) studentCell(2).getGraphic().lookup("#name");
+            assertTrue(name.getHeight() > name.getFont().getSize() * 2, "Long names should wrap");
+        });
+    }
+
+    @Test
+    public void viewStudent_mixedHeightRowsAfterSortingAndFiltering_scrollsToDisplayedIndex() throws Exception {
+        setUpMixedHeightRoster(60);
+        viewStudentAndAssertVisible(59);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> window.executeCommand("sort name desc"));
+        viewStudentAndAssertVisible(59);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> window.executeCommand("findtag needsHelp"));
+        viewStudentAndAssertVisible(29);
+        viewStudentAndAssertVisible(14);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> window.executeCommand("sort group desc"));
+        viewStudentAndAssertVisible(29);
+        viewStudentAndAssertVisible(0);
+        runOnFxThread(() -> window.executeCommand("find A8000001Z"));
+        viewStudentAndAssertVisible(0);
+    }
+
+    @Test
+    public void viewStudent_afterWindowResizesAndFilteredSorting_keepsWholeSummaryVisible() throws Exception {
+        setUpMixedHeightRoster(60);
+        List<String> commands = List.of("view 60", "view 1", "view 30", "view 1", "sort name desc", "view 60",
+                "view 1", "findtag needsHelp", "view 30", "view 15", "view 1", "sort group desc", "view 30",
+                "view 1", "list g/T01", "view 12", "view 1", "find A8000001Z", "view 1", "list", "view 60", "view 1");
+        for (double[] size : new double[][] {{1200, 780}, {960, 640}, {1600, 1000}}) {
+            runOnFxThread(() -> {
+                window.executeCommand("list");
+                stage.setWidth(size[0]);
+                stage.setHeight(size[1]);
+                SplitPane workspace = (SplitPane) lookup("workspace");
+                workspace.setDividerPositions(0.19, 0.52);
+            });
+            awaitLayoutPulses();
+            for (String command : commands) {
+                runOnFxThread(() -> window.executeCommand(command));
+                if (command.startsWith("view ")) {
+                    int index = Integer.parseInt(command.substring(5)) - 1;
+                    assertVisibleStudentAfterPulse(index);
+                } else {
+                    awaitLayoutPulses();
+                }
+            }
+        }
+    }
+
+    @Test
+    public void viewStudent_followedByFilterOrRestoredSelection_cancelsEarlierScroll() throws Exception {
+        setUpMixedHeightRoster(60);
+        runOnFxThread(() -> {
+            window.executeCommand("view 60");
+            window.executeCommand("find A8000001Z");
+        });
+        awaitLayoutPulses();
+        runOnFxThread(() -> {
+            assertNull(window.getStudentListPanel().getSelectedStudent());
+            assertEquals(1, studentList().getItems().size());
+            window.executeCommand("list");
+            window.executeCommand("view 60");
+            window.getStudentListPanel().restoreSelection(model.getFilteredStudentList().getFirst());
+            studentList().scrollTo(0);
+        });
+        assertVisibleStudentAfterPulse(0);
+    }
+
+    @Test
+    public void viewStudent_windowHiddenOrSceneDetached_cancelsEarlierScroll() throws Exception {
+        setUpMixedHeightRoster(60);
+        runOnFxThread(() -> {
+            window.executeCommand("view 60");
+            stage.hide();
+            studentList().scrollTo(0);
+            stage.show();
+        });
+        awaitLayoutPulses();
+        runOnFxThread(() -> {
+            assertEquals(59, studentList().getSelectionModel().getSelectedIndex());
+            assertTrue(isStudentFullyVisible(studentCell(0)));
+            window.executeCommand("view 60");
+            Scene original = stage.getScene();
+            stage.setScene(new Scene(new StackPane(), 1200, 780));
+            ListView<?> list = (ListView<?>) original.lookup("#studentListView");
+            list.scrollTo(0);
+            stage.setScene(original);
+        });
+        awaitLayoutPulses();
+        runOnFxThread(() -> {
+            assertEquals(59, studentList().getSelectionModel().getSelectedIndex());
+            assertTrue(isStudentFullyVisible(studentCell(0)));
+        });
+    }
+
+    private void awaitLayoutPulses() throws Exception {
+        CountDownLatch pulses = new CountDownLatch(5);
+        Runnable listener = () -> {
+            pulses.countDown();
+            Platform.requestNextPulse();
+        };
+        runOnFxThread(() -> {
+            stage.getScene().addPostLayoutPulseListener(listener);
+            Platform.requestNextPulse();
+        });
+        try {
+            assertTrue(pulses.await(5, TimeUnit.SECONDS), "Window layout did not complete");
+        } finally {
+            runOnFxThread(() -> stage.getScene().removePostLayoutPulseListener(listener));
+        }
+    }
+
+    private void setUpMixedHeightRoster(int count) throws Exception {
+        runOnFxThread(() -> {
+            model.setStudentDirectory(new StudentDirectory());
+            for (int i = 1; i <= count; i++) {
+                String name = String.format("Student %02d", i);
+                if (i % 3 == 0) {
+                    name += " LongName".repeat(6) + " LongN";
+                }
+                model.addStudent(new StudentBuilder().withName(name)
+                        .withMatricNumber(String.format("A%07dZ", 8000000 + i))
+                        .withTutorialGroup(String.format("T%02d", (i - 1) % 5 + 1))
+                        .withTags(i % 2 == 0 ? "paid" : "needsHelp")
+                        .withFollowUp(i % 4 == 0).build());
+            }
+            stage.hide();
+            stage = new Stage();
+            window = new MainWindow(stage, logic, temporaryFolder.resolve("students.json"));
+            window.show();
+            window.fillInnerParts();
+            layout();
+        });
+    }
+
+    private void viewStudentAndAssertVisible(int index) throws Exception {
+        runOnFxThread(() -> window.executeCommand("view " + (index + 1)));
+        assertVisibleStudentAfterPulse(index);
+    }
+
+    @Test
     public void viewOffscreenStudent_scrollsToCorrectSummaryAfterReorderingAndFiltering() throws Exception {
         runOnFxThread(() -> {
             for (int i = 0; i < 40; i++) {
@@ -499,9 +696,9 @@ public class MainWindowTest {
             Label remark = label("remark");
             Label address = label("address");
             Label tag = (Label) detailsScroll().getContent().lookup("#tags").lookup(".label");
-            assertTrue(remark.getText().endsWith("..."));
-            assertEquals("Prepare an example for the next meeting. ".repeat(100).trim(),
-                    remark.getTooltip().getText());
+            assertEquals("Remark: " + "Prepare an example for the next meeting. ".repeat(100).trim(),
+                    remark.getText());
+            assertNull(remark.getTooltip());
             assertTrue(address.getHeight() > 100);
             assertTrue(tag.getHeight() > 20, "Long tag height=" + tag.getHeight()
                     + ", width=" + tag.getWidth() + ", prefHeight=" + tag.prefHeight(tag.getWidth())
@@ -514,6 +711,120 @@ public class MainWindowTest {
             detailsScroll().setVvalue(1);
             window.executeCommand("view 2");
             assertEquals(0, detailsScroll().getVvalue());
+        });
+    }
+
+    @Test
+    public void longRemarks_renderCompleteTextAndScrollToFinalLineWithoutHidingRoster() throws Exception {
+        CountDownLatch resized = new CountDownLatch(1);
+        runOnFxThread(() -> {
+            ChangeListener<Number> listener = (observable, oldValue, newValue) -> {
+                if (stage.getScene().getWidth() <= 960 && stage.getScene().getHeight() <= 640) {
+                    resized.countDown();
+                }
+            };
+            stage.getScene().widthProperty().addListener(listener);
+            stage.getScene().heightProperty().addListener(listener);
+            stage.setWidth(960);
+            stage.setHeight(640);
+        });
+        assertTrue(resized.await(5, TimeUnit.SECONDS), "The actual scene must resize before testing narrow details");
+        runOnFxThread(() -> {
+            assertTrue(stage.getScene().getWidth() <= 960);
+            assertTrue(stage.getScene().getHeight() <= 640);
+            SplitPane workspace = (SplitPane) lookup("workspace");
+            workspace.setDividerPositions(0.2, 0.65);
+            for (String fullRemark : List.of(
+                    "Discuss recursion and base cases during the next consultation. ".repeat(8) + "END OF REMARK",
+                    "Prepare another example before the next meeting. ".repeat(300) + "END OF REMARK",
+                    "X".repeat(12000) + " END OF REMARK")) {
+                window.executeCommand("remark 1 r/" + fullRemark);
+                window.executeCommand("view 1");
+                layout();
+                Label remark = label("remark");
+                Text rendered = (Text) remark.lookup(".text");
+                assertEquals("Remark: " + fullRemark, rendered.getText());
+                assertTrue(remark.getWidth() <= detailsScroll().getViewportBounds().getWidth());
+                assertTrue(rendered.getLayoutBounds().getHeight() <= remark.getHeight() + 1);
+                assertTrue(remark.getHeight() > 100);
+                assertNull(remark.getTooltip());
+                detailsScroll().setVvalue(1);
+                layout();
+                int lastCharacter = rendered.getText().length() - 1;
+                Bounds finalGlyph = rendered.localToScene(
+                        new javafx.scene.shape.Path(rendered.rangeShape(lastCharacter, lastCharacter + 1))
+                                .getBoundsInLocal());
+                Node viewport = detailsScroll().lookup(".viewport");
+                Bounds visible = viewport.localToScene(viewport.getBoundsInLocal());
+                assertTrue(visible.contains(finalGlyph), "The final remark character must be visible after scrolling");
+                assertTrue(visible.contains(label("email").localToScene(label("email").getBoundsInLocal())));
+                assertEquals(3, studentList().getItems().size());
+                assertTrue(studentCell(0).getHeight() < 160, "Remarks must not expand roster summaries");
+                studentList().getSelectionModel().select(1);
+                layout();
+                assertEquals(0, detailsScroll().getVvalue());
+            }
+        });
+    }
+
+    @Test
+    public void longUnbrokenRemark_fullReaderReachesTailAndKeepsRosterAvailable() throws Exception {
+        String fullRemark = "X".repeat(50000) + "FINAL_MARKER";
+        runOnFxThread(() -> {
+            window.executeCommand("remark 1 r/" + fullRemark);
+            window.executeCommand("view 1");
+            Button openFullRemark = (Button) detailsScroll().getContent().lookup("#readFullRemark");
+            openFullRemark.fire();
+            fullRemarkStage = Window.getWindows().stream().filter(Stage.class::isInstance).map(Stage.class::cast)
+                    .filter(candidate -> candidate.getTitle().equals("Full remark")).findFirst().orElseThrow();
+            TextArea reader = (TextArea) fullRemarkStage.getScene().lookup("#fullRemarkText");
+            assertEquals(fullRemark, reader.getText());
+            assertFalse(reader.isEditable());
+            assertFalse(reader.isWrapText());
+            assertEquals(Modality.NONE, fullRemarkStage.getModality());
+            DialogPane pane = (DialogPane) fullRemarkStage.getScene().getRoot();
+            assertEquals(BOB.getName().fullName + " (" + BOB.getMatricNumber().value + ")", pane.getHeaderText());
+            reader.positionCaret(reader.getLength());
+        });
+        CountDownLatch scrolled = new CountDownLatch(1);
+        runOnFxThread(() -> {
+            Scene scene = fullRemarkStage.getScene();
+            Runnable listener = new Runnable() {
+                private int pulses;
+
+                @Override
+                public void run() {
+                    if (++pulses == 2) {
+                        scene.removePostLayoutPulseListener(this);
+                        scrolled.countDown();
+                    } else {
+                        Platform.requestNextPulse();
+                    }
+                }
+            };
+            scene.addPostLayoutPulseListener(listener);
+            Platform.requestNextPulse();
+        });
+        assertTrue(scrolled.await(5, TimeUnit.SECONDS), "The full reader must finish scrolling to the caret");
+        runOnFxThread(() -> {
+            TextArea reader = (TextArea) fullRemarkStage.getScene().lookup("#fullRemarkText");
+            Text rendered = (Text) reader.lookup(".text");
+            int end = rendered.getText().length();
+            Bounds lastWord = rendered.localToScene(new javafx.scene.shape.Path(rendered.rangeShape(end - 12, end))
+                    .getBoundsInLocal());
+            Node viewport = reader.lookup(".viewport");
+            assertTrue(viewport.localToScene(viewport.getBoundsInLocal()).contains(lastWord),
+                    "The complete FINAL_MARKER must be visible in the full reader");
+            assertTrue(reader.getScrollLeft() > 0);
+            reader.selectAll();
+            assertEquals(fullRemark, reader.getSelectedText());
+            assertEquals(fullRemark, model.getStudentDirectory().getStudentList().getFirst().getRemark());
+            window.executeCommand("view 2");
+            assertEquals(ALICE.getName().fullName, label("name").getText());
+            DialogPane pane = (DialogPane) fullRemarkStage.getScene().getRoot();
+            Button close = (Button) pane.lookupButton(ButtonType.CLOSE);
+            close.fire();
+            assertFalse(fullRemarkStage.isShowing());
         });
     }
 
@@ -601,36 +912,46 @@ public class MainWindowTest {
         String visibleIndices = studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
                 .map(ListCell.class::cast).filter(cell -> !cell.isEmpty())
                 .map(cell -> Integer.toString(cell.getIndex())).collect(Collectors.joining(", "));
-        return studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
-                .map(ListCell.class::cast).filter(cell -> cell.getIndex() == index && !cell.isEmpty())
-                .findFirst().orElseThrow(() -> new AssertionError("Missing rendered row " + index
-                        + "; rendered rows=" + visibleIndices + "; list height=" + studentList().getHeight()
-                        + "; selected=" + studentList().getSelectionModel().getSelectedIndex()
-                        + "; filter=" + logic.getFilterDescription()));
+        ListCell<?> cell = (ListCell<?>) ((VirtualFlow<?>) studentList().lookup(".virtual-flow")).getVisibleCell(index);
+        if (cell == null || cell.isEmpty() || !cell.isVisible()) {
+            throw new AssertionError("Missing rendered row " + index
+                    + "; rendered rows=" + visibleIndices + "; list height=" + studentList().getHeight()
+                    + "; selected=" + studentList().getSelectionModel().getSelectedIndex()
+                    + "; filter=" + logic.getFilterDescription());
+        }
+        return cell;
     }
 
     private void assertVisibleStudent(int index) {
         ListCell<?> cell = studentCell(index);
-        var bounds = studentList().sceneToLocal(cell.localToScene(cell.getBoundsInLocal()));
-        assertTrue(bounds.getMaxY() > 0 && bounds.getMinY() < studentList().getHeight());
+        Node viewport = studentList().lookup(".clipped-container");
+        assertTrue(isStudentFullyVisible(cell), "Student " + (index + 1) + " should be fully inside the viewport; "
+                + "bounds=" + viewport.sceneToLocal(cell.localToScene(cell.getBoundsInLocal()))
+                + "; viewport=" + viewport.getBoundsInLocal() + "; layout=" + viewport.getLayoutBounds());
+        assertEquals(index, studentList().getSelectionModel().getSelectedIndex());
         assertEquals((index + 1) + ".", ((Label) cell.getGraphic().lookup("#id")).getText());
         Student expected = logic.getFilteredStudentList().get(index);
         assertEquals(expected.getName().fullName, ((Label) cell.getGraphic().lookup("#name")).getText());
         assertEquals(expected.getName().fullName, label("name").getText());
     }
 
+    private boolean isStudentFullyVisible(ListCell<?> cell) {
+        Node viewport = studentList().lookup(".clipped-container");
+        var bounds = viewport.sceneToLocal(cell.localToScene(cell.getBoundsInLocal()));
+        return bounds.getMinY() >= -1 && bounds.getMaxY() <= viewport.getBoundsInLocal().getHeight() + 1;
+    }
+
     private void assertVisibleStudentAfterPulse(int index) throws Exception {
         // VirtualFlow can need multiple pulses to measure wrapped rows after a filter change.
         // Wait for the observable viewport state, with a deadline, rather than a fixed delay.
         CountDownLatch laidOut = new CountDownLatch(1);
+        int[] visiblePulses = {0};
         Runnable listener = () -> {
-            boolean visible = studentList().lookupAll(".list-cell").stream().filter(ListCell.class::isInstance)
-                    .map(ListCell.class::cast).filter(cell -> cell.getIndex() == index && !cell.isEmpty())
-                    .anyMatch(cell -> {
-                        var bounds = studentList().sceneToLocal(cell.localToScene(cell.getBoundsInLocal()));
-                        return bounds.getMaxY() > 0 && bounds.getMinY() < studentList().getHeight();
-                    });
-            if (visible) {
+            ListCell<?> cell = (ListCell<?>) ((VirtualFlow<?>) studentList().lookup(".virtual-flow"))
+                    .getVisibleCell(index);
+            boolean visible = cell != null && !cell.isEmpty() && cell.isVisible() && isStudentFullyVisible(cell);
+            visiblePulses[0] = visible ? visiblePulses[0] + 1 : 0;
+            if (visiblePulses[0] >= 3) {
                 laidOut.countDown();
             } else {
                 Platform.requestNextPulse();
@@ -641,7 +962,8 @@ public class MainWindowTest {
             Platform.requestNextPulse();
         });
         try {
-            laidOut.await(5, TimeUnit.SECONDS);
+            assertTrue(laidOut.await(5, TimeUnit.SECONDS),
+                    "Student " + (index + 1) + " did not remain fully visible for three layout pulses");
             runOnFxThread(() -> assertVisibleStudent(index));
         } finally {
             runOnFxThread(() -> stage.getScene().removePostLayoutPulseListener(listener));

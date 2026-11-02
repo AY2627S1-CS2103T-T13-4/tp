@@ -253,17 +253,7 @@ public class MainWindow extends UiPart<Stage> {
             CommandResult commandResult = logic.execute(commandText);
             requestedSelection = commandResult.getStudentToView().orElse(null);
             updateGroupHighlight(commandText);
-            logger.info("Result: " + commandResult.getFeedbackToUser());
-            resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
-
-            if (commandResult.isShowHelp()) {
-                handleHelp();
-            }
-
-            if (commandResult.isExit()) {
-                handleExit();
-            }
-
+            showCommandResult(commandResult);
             return commandResult;
         } catch (CommandException | ParseException e) {
             groupListPanel.showGroup(previousGroup);
@@ -272,16 +262,33 @@ public class MainWindow extends UiPart<Stage> {
             throw e;
         } finally {
             updateStudentCount();
-            if (requestedSelection != null) {
-                studentListPanel.showStudent(requestedSelection);
-            } else {
-                if (selectedDirectoryIndex >= 0 && previousRosterSize == logic.getStudentList().size()) {
-                    // Record replacements retain directory positions, including edits to a matriculation number.
-                    previousSelection = logic.getStudentList().get(selectedDirectoryIndex);
-                }
-                studentListPanel.restoreSelection(previousSelection);
-            }
+            updateSelection(requestedSelection, previousSelection, selectedDirectoryIndex, previousRosterSize);
             updateDetails();
         }
+    }
+
+    private void showCommandResult(CommandResult commandResult) {
+        logger.info("Result: " + commandResult.getFeedbackToUser());
+        resultDisplay.setFeedbackToUser(commandResult.getFeedbackToUser());
+        if (commandResult.isShowHelp()) {
+            handleHelp();
+        }
+        if (commandResult.isExit()) {
+            handleExit();
+        }
+    }
+
+    /** Keeps an explicit command target selected, or recovers the selection after a record replacement. */
+    private void updateSelection(Student requestedSelection, Student previousSelection,
+            int selectedDirectoryIndex, int previousRosterSize) {
+        if (requestedSelection != null) {
+            studentListPanel.showStudent(requestedSelection);
+            return;
+        }
+        // Record replacements retain directory positions, including edits to a matriculation number.
+        boolean hasReplacement = selectedDirectoryIndex >= 0 && previousRosterSize == logic.getStudentList().size();
+        Student selectionToRestore = hasReplacement
+                ? logic.getStudentList().get(selectedDirectoryIndex) : previousSelection;
+        studentListPanel.restoreSelection(selectionToRestore);
     }
 }
